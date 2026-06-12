@@ -41,4 +41,20 @@ class Validation extends BaseConfig
     // --------------------------------------------------------------------
     // Rules
     // --------------------------------------------------------------------
+
+    /**
+     * Regole di validazione per il form di login (sovrascrive Shield che usa email di default).
+     *
+     * @var array<string, array<string, list<string>|string>>
+     */
+    public array $login = [
+        'username' => [
+            'label' => 'Auth.username',
+            'rules' => ['required', 'max_length[30]', 'min_length[3]'],
+        ],
+        'password' => [
+            'label' => 'Auth.password',
+            'rules' => ['required', 'max_byte[72]'],
+        ],
+    ];
 }
