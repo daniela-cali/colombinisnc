@@ -1,0 +1,194 @@
+# Progetto Colombini SNC
+
+## Preferenze generali
+- Rispondere sempre in italiano, anche dopo compattazioni del contesto.
+- Se dei file sono stati dimenticati nell'ultimo commit, usare `git commit --amend --no-edit` invece di un nuovo commit separato (commit atomici e puliti).
+- Le preferenze e regole di progetto vanno sempre in questo file `CLAUDE.md` (non nel sistema di memoria), così possono essere pushate e condivise.
+- **Review del codice**: creare i file direttamente con Write/Edit e lasciare che l'utente approvi i diff nell'IDE. Non mostrare l'intero file o blocchi lunghi di codice in chat — la spiegazione descrive le modifiche a parole, non ripete il codice verbatim.
+- **Spiegazioni passo per passo**: prima di ogni modifica, spiegare passo per passo e riga per riga cosa si sta per fare e perché, come farebbe un insegnante — cosa cambia, perché si sceglie quell'approccio, quali effetti produce. Solo dopo usare Write/Edit. Eccezione: per modifiche di una sola riga o correzioni ovvie basta una frase di contesto.
+- **Commit solo dopo test**: non proporre mai il commit finché l'utente non conferma di aver testato le modifiche. Aspettare esplicita conferma prima di eseguire `git add` / `git commit`.
+- **CSS sempre in `public/css/custom.css`**: mai scrivere `<style>` inline nelle view né aggiungere attributi `style=` per regole riutilizzabili. Tutte le personalizzazioni CSS vanno in `custom.css`.
+- **Branch Git**: non aprire un branch per ogni piccola modifica. Suggerire attivamente quando NON serve un branch (es. modifiche contenute su una o due view/controller). Usare un branch solo per feature significative o rischiose.
+- **Guida passo per passo — ordine dei file**: quando si guida l'utente nell'implementazione passo per passo di cose codice già scritto, partire sempre dalla **view** prima del controller e del model. La view definisce quali variabili servono, così controller e model vengono scritti sapendo già cosa devono produrre. Per le parti da creare ex novo partire dalla migration, dal model, poi controller e poi view.
+
+## Brainstorming prima di implementare
+Prima di iniziare qualsiasi feature nuova o non banale, proporre sempre un brainstorming onesto sui pro e contro — senza dare per scontato che si proceda. L'utente vuole valutare se vale la pena e confrontare approcci alternativi prima di investire tempo. Non cercare file né scrivere codice finché non si è concordato l'approccio.
+
+## Stack tecnologico
+- **PHP**: 8.2+
+- **CodeIgniter**: 4.7.3
+- **MySQL**: 8.x
+- **AdminLTE**: 4.0.2 con Bootstrap 5.3.8
+- **Frontend**: nessun bundler (Vite/webpack) — dipendenze gestite via npm + comando `assets:publish`
+
+## Asset frontend — gestione dipendenze
+Le dipendenze frontend si installano via **npm** e vengono copiate in `public/assets/vendor/` tramite il comando Spark `php spark assets:publish`.
+
+Stack npm del progetto:
+```
+admin-lte@^4.0       → AdminLTE 4 (CSS + JS)
+bootstrap@^5.3       → Bootstrap 5 (solo JS — il CSS è incluso in AdminLTE)
+@popperjs/core       → richiesto da Bootstrap per dropdown e tooltip
+overlayscrollbars    → richiesto da AdminLTE 4
+bootstrap-icons      → icone
+```
+
+Il comando `app/Commands/AssetsPublish.php` legge un manifest e copia i file `dist/` da `node_modules/` verso `public/assets/vendor/`. Va eseguito dopo ogni `npm install` o aggiornamento pacchetti. In produzione i file sono committati in git e il comando non serve.
+
+AdminLTE 4 non ha jQuery come dipendenza — è un rewrite su Bootstrap 5 puro.
+
+## Note ambiente e troubleshooting
+Questa sezione raccoglie note tecniche sull'ambiente di sviluppo e soluzioni a problemi ricorrenti. Non sono regole di progetto ma vanno tenute qui perché il file viene pushato ed è disponibile su qualsiasi macchina.
+
+**Ripristino diff VSCode (Claude Code)**
+Se il diff delle modifiche smette di apparire nell'IDE VSCode:
+1. Verificare che `~/.claude/settings.json` abbia `"defaultMode": "default"` (non `"acceptEdits"`)
+2. Eseguire `Ctrl+Shift+P` → **Developer: Reload Window** per ricaricare l'estensione
+3. Se non basta, aprire una nuova sessione di Claude Code
+
+## Controller CRUD — dati da request
+Le normalizzazioni dei dati (casting, null per stringhe vuote, uppercase, default) appartengono al **model**, non al controller. Usare i callback CI4 `$beforeInsert` / `$beforeUpdate` con un metodo `normalizza()`.
+
+Il controller si limita a:
+```php
+$model->insert($this->request->getPost());
+// oppure, per campi impostati lato server:
+$model->insert(array_merge($this->request->getPost(), ['stato' => 1]));
+```
+
+Non creare metodi helper `campiDaRequest()` né array espliciti campo per campo nel controller.
+
+## Flashdata e layout
+Il layout `app/Views/layouts/admin.php` gestisce già `success`, `error` e `error_html` per tutte le pagine. Non duplicarli nelle singole view — causa visualizzazione doppia. Nelle view includere solo `errors` (plurale) per la lista errori di validazione, che il layout non gestisce.
+
+## Campi con valori limitati nelle migrazioni
+Non usare il tipo `ENUM` di MySQL. Seguire queste convenzioni:
+
+- **Flag booleani** (`attivo`, `visibile`) → `TINYINT` con default `0` o `1`. `attivo = 0` significa disabilitato temporaneamente; non usare un flag `eliminato` — si usa hard delete con controllo applicativo preventivo (verificare record collegati prima di cancellare, mostrare messaggio chiaro all'utente).
+- **Stati con più valori** (`bozza/attivo/sospeso/scaduto`) → `VARCHAR` con costanti nel model e un commento che elenca i valori ammessi:
+
+```php
+// valori: bozza, attivo, sospeso, scaduto, disdetto
+'stato' => [
+    'type'       => 'VARCHAR',
+    'constraint' => 30,
+    'default'    => 'bozza',
+],
+```
+
+```php
+// nel model
+const STATO_BOZZA   = 'bozza';
+const STATO_ATTIVO  = 'attivo';
+const STATO_SOSPESO = 'sospeso';
+```
+
+Questo evita `ALTER TABLE` ogni volta che si aggiunge un valore: basta aggiornare la costante nel model e la validazione CI4.
+
+- **Valori configurabili a runtime** → tabella di lookup con foreign key (solo se l'utente deve poterli modificare senza deploy)
+
+## Campi standard in ogni tabella
+Ogni migrazione include sempre questi campi:
+
+```php
+$this->forge->addField([
+    // ... campi specifici della tabella ...
+    'created_by' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+    'updated_by' => ['type' => 'INT', 'unsigned' => true, 'null' => true],
+]);
+$this->forge->addField('created_at DATETIME NULL');
+$this->forge->addField('updated_at DATETIME NULL');
+```
+
+Nel model: `$useTimestamps = true` per `created_at`/`updated_at`. I campi `created_by` e `updated_by` vengono popolati automaticamente dal callback `normalizza()` leggendo `session()->get('user_id')`. `updated_by` va impostato in `$beforeUpdate`; `created_by` in `$beforeInsert` (e non va mai sovrascritto negli update).
+
+## Query nei model — usare $this, non $this->db->table()
+Nei metodi di un model, usare sempre `$this` (il Query Builder del model) invece di `$this->db->table(...)`. Questo garantisce che timestamp e altri comportamenti del model vengano applicati automaticamente.
+
+```php
+// ✓ corretto
+public function perCliente(int $clienteId): array
+{
+    return $this->select('clienti_impianti.*, i.nome, i.marca')
+        ->join('impianti i', 'i.id = clienti_impianti.impianto_id')
+        ->where('clienti_impianti.cliente_id', $clienteId)
+        ->findAll();
+}
+
+// ✗ evitare
+public function perCliente(int $clienteId): array
+{
+    return $this->db->table('clienti_impianti ci')
+        ->select('ci.*, i.nome')
+        ->join('impianti i', 'i.id = ci.impianto_id')
+        ->get()->getResultArray();
+}
+```
+
+## Query database — CodeIgniter 4
+Usare sempre il **Query Builder** di CI4 (`$db->table(...)` o il model builder). Evitare query raw (`$db->query(...)`) anche per JOIN complessi: usare la stringa di condizione nel terzo parametro di `->join()` con `$db->escape()` per i valori dinamici.
+
+Le query raw non hanno protezione automatica contro SQL injection e rendono il codice meno leggibile e coerente. L'unica eccezione ammessa è una query talmente complessa da non essere esprimibile con il Query Builder — in un gestionale di questo tipo non dovrebbe mai succedere.
+
+```php
+// JOIN con condizioni multiple — Query Builder
+$db->table('users u')
+   ->join('tecnici_competenze tc',
+          'tc.tecnico_id = u.id AND tc.tipo_intervento_id = ' . $tipoId . ' AND tc.livello >= 1',
+          'inner')
+   ->join('interventi i',
+          'i.tecnico_id = u.id AND DATE(i.data_pianificata) = ' . $db->escape($data),
+          'left');
+```
+
+## Commenti sui metodi PHP
+Aggiungere sempre un docblock sopra ogni metodo di controller o model che spieghi **cosa fa e perché**. Includere solo ciò che aggiunge valore rispetto alla firma: descrizione, eventuale `@throws`. Non ripetere `@param` e `@return` se il tipo è già dichiarato nella firma.
+
+```php
+/**
+ * Restituisce il tecnico meno occupato per il tipo dato,
+ * escludendo chi supera la soglia giornaliera.
+ *
+ * @throws RuntimeException se nessun tecnico è disponibile
+ */
+public function tecnicoDisponibile(int $tipoId, string $data): ?array
+```
+
+## AdminLTE 4 — Layout card
+Le convenzioni per card-header, card-footer e card-tools vanno documentate qui man mano che si scopre il comportamento reale di AdminLTE 4 con Bootstrap 5. Non usare i pattern del vecchio progetto (`float-left`/`float-right`, `clearfix`) — erano workaround di Bootstrap 4.
+
+## Bottoni nelle card — colore ereditato
+Usare variabili CSS custom per fare in modo che i bottoni dentro `.card-tools` ereditino automaticamente il colore della card, senza aggiungere classi di colore (`btn-primary` ecc.) nella view.
+
+Il pattern: ogni classe di card definisce `--card-accent` e `--card-accent-text`; la regola CSS su `.card-tools .btn` legge quelle variabili. I bottoni nelle card colorate si colorano da soli — nella view basta `btn btn-sm`.
+
+Le classi specifiche di AdminLTE 4 vanno documentate qui man mano che vengono scoperte. Non copiare i selettori del vecchio progetto (erano Bootstrap 4 / AdminLTE 3).
+
+## View Help
+Un file di help per sezione (non per view singola): `app/Views/help/<sezione>.php`. Descrive il flusso completo della sezione — come creare, modificare, le regole di cancellazione, ecc. Il controller passa `$help_sezione = 'clienti'`; il layout carica il file corrispondente e mostra il bottone guida solo se esiste. Se una sezione non ha ancora un file help, il bottone non appare.
+
+## Changelog
+Prima di ogni commit aggiornare `CHANGELOG.md` seguendo il pattern markdown esistente e includerlo nella stessa commit.
+
+Ogni voce è taggata con il tipo:
+- `[APP]` — funzionalità o modifiche visibili all'utente finale
+- `[DEV]` — modifiche tecniche (refactor, migrazioni, dipendenze, fix interni)
+
+Il sistema confronta `CHANGELOG.md` con il campo `users.ultima_versione_vista` per mostrare le novità all'avvio. Gli utenti con ruolo `admin` vedono solo le righe `[APP]`; gli utenti con ruolo `dev` vedono tutto.
+
+## Roadmap
+Il file `ROADMAP.md` nella root contiene la pianificazione delle feature future, organizzata per fascia di versione. Deve essere chiara, ordinata e approvata dall'utente prima di ogni commit che la modifica — non aggiornare mai la roadmap senza conferma esplicita.
+Includerla nella stessa commit del CHANGELOG. Il campo "Ultimo aggiornamento" in cima va aggiornato con la data corrente ad ogni modifica.
+
+## Documentazione tecnica (doc/)
+La cartella `doc/` nella root contiene documentazione tecnica in HTML, versionata insieme al codice e consultabile direttamente da browser o GitHub.
+
+Contiene almeno:
+- Schema del database (tabelle, campi, relazioni) aggiornato ad ogni migrazione
+- Log sintetico delle modifiche DB (cosa è cambiato e perché, versione per versione)
+
+I file HTML nella cartella `doc/` vanno aggiornati nella stessa commit della migrazione corrispondente. Visibili solo agli utenti con ruolo `dev`.
+
+## Dominio aziendale
+Il dominio aziendale è **colombini-snc.it**.
+Usare per baseURL in produzione e qualsiasi riferimento al dominio. Non usare indirizzi email su questo dominio — non esistono caselle attive.
