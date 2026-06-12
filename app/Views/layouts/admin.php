@@ -39,13 +39,24 @@
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="themeToggle" title="Cambia tema">
+                        <i class="bi bi-moon-fill" id="themeIcon"></i>
+                    </a>
+                </li>
                 <li class="nav-item dropdown">
+                    <?php
+                        $u = auth()->user();
+                        $displayName = trim(($u->nome ?? '') . ' ' . ($u->cognome ?? '')) ?: $u->username;
+                    ?>
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle me-1"></i>
-                        <span class="d-none d-md-inline">Utente</span>
+                        <span class="d-none d-md-inline"><?= esc($displayName) ?></span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Esci</a></li>
+                        <li><a class="dropdown-item" href="<?= base_url('profilo') ?>"><i class="bi bi-person me-2"></i>Profilo</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right me-2"></i>Esci</a></li>
                     </ul>
                 </li>
             </ul>
@@ -66,6 +77,12 @@
                         <a href="<?= base_url('/') ?>" class="nav-link">
                             <i class="nav-icon bi bi-speedometer2"></i>
                             <p>Dashboard</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('impostazioni') ?>" class="nav-link">
+                            <i class="nav-icon bi bi-gear"></i>
+                            <p>Impostazioni</p>
                         </a>
                     </li>
                 </ul>
@@ -122,9 +139,29 @@
 <script src="<?= base_url('assets/vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/adminlte/adminlte.min.js') ?>"></script>
 <script>
-    OverlayScrollbars(document.querySelector('.sidebar-wrapper'), {
+    OverlayScrollbarsGlobal.OverlayScrollbars(document.querySelector('.sidebar-wrapper'), {
         scrollbars: { autoHide: 'leave' }
     });
+
+    (() => {
+        const key  = 'lte-theme';
+        const html = document.documentElement;
+        const btn  = document.getElementById('themeToggle');
+        const icon = document.getElementById('themeIcon');
+
+        function applyTheme(theme) {
+            html.setAttribute('data-bs-theme', theme);
+            html.style.colorScheme = theme;
+            icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+            try { localStorage.setItem(key, theme); } catch {}
+        }
+
+        applyTheme(html.getAttribute('data-bs-theme') || 'light');
+
+        btn.addEventListener('click', () => {
+            applyTheme(html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+        });
+    })();
 </script>
 <?= $this->renderSection('scripts') ?>
 </body>

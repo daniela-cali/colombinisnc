@@ -8,6 +8,10 @@
 - **Spiegazioni passo per passo**: prima di ogni modifica, spiegare passo per passo e riga per riga cosa si sta per fare e perché, come farebbe un insegnante — cosa cambia, perché si sceglie quell'approccio, quali effetti produce. Solo dopo usare Write/Edit. Eccezione: per modifiche di una sola riga o correzioni ovvie basta una frase di contesto.
 - **Commit solo dopo test**: non proporre mai il commit finché l'utente non conferma di aver testato le modifiche. Aspettare esplicita conferma prima di eseguire `git add` / `git commit`.
 - **CSS sempre in `public/css/custom.css`**: mai scrivere `<style>` inline nelle view né aggiungere attributi `style=` per regole riutilizzabili. Tutte le personalizzazioni CSS vanno in `custom.css`.
+- **Nomenclatura controller**: ogni classe controller termina sempre con il suffisso `Controller`
+
+- **Rotte raggruppate**: in `Routes.php` usare sempre `$routes->group()` per raggruppare le rotte per sezione. Mantiene il file ordinato e leggibile. (es. `DashboardController`, `GeneraleController`, `UtentiController`). Vale anche per i controller in sottocartelle.
+
 - **Branch Git**: non aprire un branch per ogni piccola modifica. Suggerire attivamente quando NON serve un branch (es. modifiche contenute su una o due view/controller). Usare un branch solo per feature significative o rischiose.
 - **Guida passo per passo — ordine dei file**: quando si guida l'utente nell'implementazione passo per passo di cose codice già scritto, partire sempre dalla **view** prima del controller e del model. La view definisce quali variabili servono, così controller e model vengono scritti sapendo già cosa devono produrre. Per le parti da creare ex novo partire dalla migration, dal model, poi controller e poi view.
 

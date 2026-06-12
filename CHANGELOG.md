@@ -1,5 +1,16 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.3.0] - 2026-06-12
+
+### Impostazioni — index e navbar
+
+- [APP] Navbar mostra nome/cognome dell'utente loggato (fallback su username)
+- [APP] Link "Profilo" e "Esci" funzionanti nel dropdown utente
+- [APP] Pagina indice impostazioni con card a icone centrate
+- [DEV] Fix icone Bootstrap Icons nelle card (doppio attributo `class` rimosso)
+- [DEV] Layout card impostazioni con utility Bootstrap flex (compatibile con AdminLTE 4)
+- [DEV] CSS: `settings-icon` ridimensionato a 2.5rem, bordo sidebar-brand a 1px teal
+
 ## [0.2.0] - 2026-06-12
 
 ### Autenticazione (Shield)

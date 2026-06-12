@@ -1,0 +1,90 @@
+<?= $this->extend('layouts/admin') ?>
+
+<?= $this->section('title') ?>Impostazioni<?= $this->endSection() ?>
+
+<?= $this->section('breadcrumb') ?>
+    <ol class="breadcrumb float-sm-end">
+        <li class="breadcrumb-item"><a href="<?= base_url('/') ?>">Home</a></li>
+        <li class="breadcrumb-item active">Impostazioni</li>
+    </ol>
+<?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+<div class="row">
+
+    <div class="col-12 mt-3 mb-2">
+        <p class="text-muted section-header">
+            <i class="bi bi-gear me-1"></i> Configurazione generale
+        </p>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <a href="<?= base_url('impostazioni/parametri') ?>" class="text-decoration-none">
+            <div class="card card-outline card-primary h-100 settings-card">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                    <i class="bi bi-sliders settings-icon"></i>
+                    <h5 class="card-title mt-3">Parametri Generali</h5>
+                    <p class="text-muted small mb-0">
+                        Dati azienda, sede, orari e logo.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <a href="<?= base_url('impostazioni/geocodifica') ?>" class="text-decoration-none">
+            <div class="card card-outline card-primary h-100 settings-card">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                    <i class="bi bi-map settings-icon"></i>
+                    <h5 class="card-title mt-3">Geocodifica Clienti</h5>
+                    <p class="text-muted small mb-0">
+                        Verifica e aggiorna le coordinate geografiche dei clienti.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card card-outline card-secondary h-100 settings-card">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4 text-muted">
+                <i class="bi bi-envelope settings-icon text-muted"></i>
+                <h5 class="card-title mt-3">Notifiche Email</h5>
+                <p class="small mb-0">In costruzione.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mt-3 mb-2">
+        <p class="text-muted section-header">
+            <i class="bi bi-people me-1"></i> Utenti
+        </p>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <a href="<?= base_url('impostazioni/utenti-app') ?>" class="text-decoration-none">
+            <div class="card card-outline card-primary h-100 settings-card">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                    <i class="bi bi-person-gear settings-icon"></i>
+                    <h5 class="card-title mt-3">Utenti App</h5>
+                    <p class="text-muted small mb-0">
+                        Amministratori, staff e tecnici con accesso al gestionale.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card card-outline card-secondary h-100 settings-card">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4 text-muted">
+                <i class="bi bi-people settings-icon text-muted"></i>
+                <h5 class="card-title mt-3">Utenti Portale</h5>
+                <p class="small mb-0">In costruzione.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+<?= $this->endSection() ?>

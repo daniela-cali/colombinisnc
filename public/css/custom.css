@@ -16,7 +16,7 @@
 /* --- Navbar -------------------------------------------- */
 .app-header {
     background-color: var(--clr-primary) !important;
-    border-bottom: 3px solid var(--clr-teal) !important;
+    border-bottom: none !important;
 }
 
 .app-header .nav-link,
@@ -47,6 +47,23 @@
 
 .sidebar-brand .brand-text {
     color: #fff;
+}
+
+/* --- Card icone (impostazioni index) ------------------- */
+.settings-icon {
+    font-size: 2.5rem;
+    color: var(--clr-teal);
+    margin-bottom: .75rem;
+}
+
+/* --- Intestazioni di sezione (impostazioni, ecc.) ------ */
+.section-header {
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 5px;
+    margin-bottom: 0;
 }
 
 /* --- Pagina di login ----------------------------------- */
