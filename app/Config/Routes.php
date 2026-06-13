@@ -22,4 +22,16 @@ $routes->group('impostazioni', function ($routes) {
     });
 });
 
+// Anagrafiche
+$routes->group('anagrafiche', function ($routes) {
+    $routes->group('personale', function ($routes) {
+        $routes->get('/',              'Anagrafiche\PersonaleController::index');
+        $routes->get('nuovo',          'Anagrafiche\PersonaleController::nuovo');
+        $routes->post('store',         'Anagrafiche\PersonaleController::store');
+        $routes->get('(:num)/edit',    'Anagrafiche\PersonaleController::edit/$1');
+        $routes->post('(:num)/update', 'Anagrafiche\PersonaleController::update/$1');
+        $routes->post('(:num)/delete', 'Anagrafiche\PersonaleController::delete/$1');
+    });
+});
+
 service('auth')->routes($routes);

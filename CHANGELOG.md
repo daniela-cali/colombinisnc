@@ -1,5 +1,23 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.4.0] - 2026-06-13
+
+### Anagrafica personale
+
+- [APP] CRUD personale completo: lista, creazione, modifica, eliminazione dipendente
+- [APP] Creazione account Shield contestuale al dipendente (username, email, password, gruppi)
+- [APP] Color picker profilo: slider hue continuo + swatches predefiniti; colori già assegnati mostrati come disabilitati
+- [APP] Voce attiva evidenziata nella sidebar in base all'URL corrente
+- [APP] Toggle mostra/nascondi password su tutti i campi di tipo password
+- [DEV] Migrazione `personale`: nuova tabella con FK a `users`, rimozione campi anagrafica da `users`
+- [DEV] `PersonaleModel`: callbacks `normalizza()` per `created_by`/`updated_by`, metodi `elencoCompleto()`, `coloriUsati()`
+- [DEV] Costante `PASTELLI` in `PersonaleController` come unica sorgente della palette colori
+- [DEV] Docblock `@var` in tutte le view per eliminare falsi positivi Intelephense
+- [DEV] Fix CSS: `--bs-primary`, `btn-primary`, `card-primary`, stato attivo sidebar
+- [DEV] Toggle password riscritto in vanilla JS (AdminLTE 4 non ha jQuery)
+- [DEV] Fix form delete annidato in form update (bug: il browser ignorava il form interno)
+- [DEV] ANALISI.md: clienti spostati in v0.5.0, versioni successive scalate
+
 ## [0.3.0] - 2026-06-12
 
 ### Impostazioni — index e navbar

@@ -23,7 +23,7 @@ class AuthGroups extends ShieldAuthGroups
      * --------------------------------------------------------------------
      * The group that a newly registered user is added to.
      */
-    public string $defaultGroup = 'staff';
+    public string $defaultGroup = 'ufficio';
 
     /**
      * --------------------------------------------------------------------
@@ -49,7 +49,7 @@ class AuthGroups extends ShieldAuthGroups
             'title'       => 'Sviluppatore',
             'description' => 'Sviluppatore applicazione',
         ],
-        'staff' => [
+        'ufficio' => [
             'title'     => 'Staff',
             'description' => 'Staff amministrativo',
         ],
@@ -103,7 +103,7 @@ class AuthGroups extends ShieldAuthGroups
             'users.edit',
             'beta.access',
         ],
-        'staff' => [],
+        'ufficio' => [],
         'tecnico' => [],
         'cliente' => [],
 

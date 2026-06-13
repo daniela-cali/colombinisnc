@@ -4,6 +4,10 @@
    ========================================================= */
 
 :root {
+    /* Sovrascrive il primary di Bootstrap/AdminLTE con la nostra palette */
+    --bs-primary:        #1a6fa8;
+    --bs-primary-rgb:    26, 111, 168;
+
     --clr-primary:       #1a6fa8;
     --clr-primary-dark:  #135480;
     --clr-primary-light: #2a8fd4;
@@ -49,11 +53,96 @@
     color: #fff;
 }
 
+/* --- Card primary: allinea il colore del bordo outline alla nostra palette --- */
+.card-primary {
+    --lte-card-variant-bg: var(--clr-primary);
+}
+
+/* --- btn-primary: sovrascrive hover/active generati da Bootstrap --- */
+.btn-primary {
+    --bs-btn-bg:              var(--clr-primary);
+    --bs-btn-border-color:    var(--clr-primary);
+    --bs-btn-hover-bg:        var(--clr-primary-dark);
+    --bs-btn-hover-border-color: var(--clr-primary-dark);
+    --bs-btn-active-bg:       var(--clr-primary-dark);
+    --bs-btn-active-border-color: var(--clr-primary-dark);
+    --bs-btn-disabled-bg:     var(--clr-primary);
+    --bs-btn-disabled-border-color: var(--clr-primary);
+    --bs-btn-focus-shadow-rgb: 26, 111, 168;
+}
+
 /* --- Card icone (impostazioni index) ------------------- */
 .settings-icon {
     font-size: 2.5rem;
     color: var(--clr-teal);
     margin-bottom: .75rem;
+}
+
+/* --- Sidebar: active state diretto (la variabile CSS non si propaga) --- */
+.app-sidebar .nav-link.active {
+    background-color: var(--clr-primary) !important;
+    color: #fff !important;
+}
+
+/* --- Intestazioni sezione sidebar ---------------------- */
+.nav-header {
+    font-variant: small-caps !important;
+}
+
+/* --- Picker colore profilo personale ------------------- */
+.color-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.1s;
+    flex-shrink: 0;
+}
+.color-swatch:hover:not(.taken) {
+    transform: scale(1.2);
+}
+.color-swatch.selected {
+    outline: 2px solid #333;
+    outline-offset: 3px;
+}
+.color-swatch.taken {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+.hue-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 18px;
+    border-radius: 9px;
+    background: linear-gradient(to right,
+        hsl(0,75%,73%), hsl(30,75%,73%), hsl(60,75%,73%),
+        hsl(90,75%,73%), hsl(120,75%,73%), hsl(150,75%,73%),
+        hsl(180,75%,73%), hsl(210,75%,73%), hsl(240,75%,73%),
+        hsl(270,75%,73%), hsl(300,75%,73%), hsl(330,75%,73%),
+        hsl(360,75%,73%));
+    cursor: pointer;
+    outline: none;
+}
+.hue-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid rgba(0,0,0,0.3);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+.hue-slider::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    border: 2px solid rgba(0,0,0,0.3);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    border: none;
 }
 
 /* --- Intestazioni di sezione (impostazioni, ecc.) ------ */
@@ -112,4 +201,9 @@
 .login-brand {
     letter-spacing: .02em;
     color: #fff !important;
+}
+
+/* Titoletto text muted delle card */
+.text-muted.section-header  {
+    font-weight: 700;
 }

@@ -67,9 +67,9 @@
             <div class="card card-outline card-primary h-100 settings-card">
                 <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
                     <i class="bi bi-person-gear settings-icon"></i>
-                    <h5 class="card-title mt-3">Utenti App</h5>
+                    <h5 class="card-title mt-3">Utenti</h5>
                     <p class="text-muted small mb-0">
-                        Amministratori, staff e tecnici con accesso al gestionale.
+                        Tutti gli account con accesso alla piattaforma e gestione gruppi.
                     </p>
                 </div>
             </div>

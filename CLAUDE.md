@@ -148,6 +148,24 @@ $db->table('users u')
 ## Commenti sui metodi PHP
 Aggiungere sempre un docblock sopra ogni metodo di controller o model che spieghi **cosa fa e perché**. Includere solo ciò che aggiunge valore rispetto alla firma: descrizione, eventuale `@throws`. Non ripetere `@param` e `@return` se il tipo è già dichiarato nella firma.
 
+## Docblock nelle view
+Ogni view inizia con un blocco `<?php ... ?>` che dichiara le variabili iniettate dal controller tramite `@var`, seguito da `$this->extend()`. Il resto del file usa la sintassi template normale `<?= ... ?>`.
+
+```php
+<?php
+/**
+ * @var array                                  $persona
+ * @var string                                 $email
+ * @var array                                  $gruppi
+ * @var \CodeIgniter\Shield\Entities\User|null $user
+ */
+$this->extend('layouts/admin');
+?>
+<?= $this->section('title') ?>...<?= $this->endSection() ?>
+```
+
+Dichiarare tutte le variabili passate dalla chiamata `view(...)` nel controller. Per i tipi usare le stesse regole dei docblock PHP: tipo preciso (`string`, `array`, FQN per oggetti, `|null` se nullable). Questo elimina i falsi positivi di Intelephense e documenta implicitamente la firma della view.
+
 ```php
 /**
  * Restituisce il tecnico meno occupato per il tipo dato,
@@ -171,6 +189,9 @@ Le classi specifiche di AdminLTE 4 vanno documentate qui man mano che vengono sc
 ## View Help
 Un file di help per sezione (non per view singola): `app/Views/help/<sezione>.php`. Descrive il flusso completo della sezione — come creare, modificare, le regole di cancellazione, ecc. Il controller passa `$help_sezione = 'clienti'`; il layout carica il file corrispondente e mostra il bottone guida solo se esiste. Se una sezione non ha ancora un file help, il bottone non appare.
 
+## Messaggi di commit
+Ogni commit inizia con il numero di versione: `v0.4.0 — Descrizione breve`. Usare l'em dash (—) come separatore. Il messaggio descrive cosa cambia, non come.
+
 ## Changelog
 Prima di ogni commit aggiornare `CHANGELOG.md` seguendo il pattern markdown esistente e includerlo nella stessa commit.
 
@@ -180,9 +201,9 @@ Ogni voce è taggata con il tipo:
 
 Il sistema confronta `CHANGELOG.md` con il campo `users.ultima_versione_vista` per mostrare le novità all'avvio. Gli utenti con ruolo `admin` vedono solo le righe `[APP]`; gli utenti con ruolo `dev` vedono tutto.
 
-## Roadmap
-Il file `ROADMAP.md` nella root contiene la pianificazione delle feature future, organizzata per fascia di versione. Deve essere chiara, ordinata e approvata dall'utente prima di ogni commit che la modifica — non aggiornare mai la roadmap senza conferma esplicita.
-Includerla nella stessa commit del CHANGELOG. Il campo "Ultimo aggiornamento" in cima va aggiornato con la data corrente ad ogni modifica.
+## Roadmap — sezione 7.1 di ANALISI.md
+La pianificazione delle versioni è in `docs/ANALISI.md` sezione **7.1 Milestone e fasi**. Non esiste un file ROADMAP.md separato.
+Aggiornare la sezione 7.1 (milestone completate e nuove) prima di ogni commit che chiude una versione, e includerla nella stessa commit del CHANGELOG.
 
 ## Documentazione tecnica (doc/)
 La cartella `doc/` nella root contiene documentazione tecnica in HTML, versionata insieme al codice e consultabile direttamente da browser o GitHub.

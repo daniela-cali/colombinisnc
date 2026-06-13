@@ -47,7 +47,8 @@
                 <li class="nav-item dropdown">
                     <?php
                         $u = auth()->user();
-                        $displayName = trim(($u->nome ?? '') . ' ' . ($u->cognome ?? '')) ?: $u->username;
+                        $p = (new \App\Models\PersonaleModel())->perUtente($u->id);
+                        $displayName = $p ? trim($p['cognome'] . ' ' . $p['nome']) : $u->username;
                     ?>
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                         <i class="bi bi-person-circle me-1"></i>
@@ -73,18 +74,37 @@
         <div class="sidebar-wrapper">
             <nav class="mt-2" aria-label="Navigazione principale">
                 <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" id="navigation">
+
+                <li class="nav-header">Cruscotto</li>
                     <li class="nav-item">
-                        <a href="<?= base_url('/') ?>" class="nav-link">
+                        <a href="<?= base_url('/') ?>" class="nav-link <?= uri_string() === '' ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-speedometer2"></i>
                             <p>Dashboard</p>
                         </a>
                     </li>
+
+                    <li class="nav-header">Anagrafiche</li>
                     <li class="nav-item">
-                        <a href="<?= base_url('impostazioni') ?>" class="nav-link">
+                        <a href="<?= base_url('anagrafiche/personale') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/personale') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-people"></i>
+                            <p>Personale</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('anagrafiche/clienti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/clienti') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-person-lines-fill"></i>
+                            <p>Clienti</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-header">Amministrazione</li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('impostazioni') ?>" class="nav-link <?= str_starts_with(uri_string(), 'impostazioni') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-gear"></i>
                             <p>Impostazioni</p>
                         </a>
                     </li>
+
                 </ul>
             </nav>
         </div>
@@ -162,7 +182,35 @@
             applyTheme(html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
         });
     })();
+
+    document.querySelectorAll('input[type="password"]').forEach(function (input) {
+        if (input.dataset.pwdToggleInit) return;
+        input.dataset.pwdToggleInit = 'true';
+
+        if (!input.parentElement.classList.contains('input-group')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'input-group';
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+        }
+
+        if (input.parentElement.querySelector('.input-group-text')) return;
+
+        const toggle = document.createElement('span');
+        toggle.className = 'input-group-text';
+        toggle.style.cursor = 'pointer';
+        toggle.title = 'Mostra/nascondi password';
+        toggle.innerHTML = '<i class="bi bi-eye"></i>';
+        input.parentElement.appendChild(toggle);
+
+        toggle.addEventListener('click', function () {
+            input.type = input.type === 'password' ? 'text' : 'password';
+            toggle.querySelector('i').classList.toggle('bi-eye');
+            toggle.querySelector('i').classList.toggle('bi-eye-slash');
+        });
+    });
 </script>
 <?= $this->renderSection('scripts') ?>
+
 </body>
 </html>

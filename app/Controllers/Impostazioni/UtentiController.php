@@ -4,97 +4,32 @@ namespace App\Controllers\Impostazioni;
 
 use App\Controllers\BaseController;
 use App\Models\UserModel;
-use CodeIgniter\Shield\Entities\User;
 
 class UtentiController extends BaseController
 {
-    private array $gruppiApp = ['admin' => 'Amministratore', 'staff' => 'Staff', 'tecnici' => 'Tecnico'];
+    private array $gruppiApp = [
+        'admin'     => 'Amministratore',
+        'developer' => 'Sviluppatore',
+        'ufficio'   => 'Ufficio',
+        'tecnico'   => 'Tecnico',
+        'cliente'   => 'Cliente',
+    ];
 
     /**
-     * Lista utenti app (admin, staff, tecnici).
+     * Lista di tutti gli utenti Shield con gruppi e nominativo da personale.
      */
     public function utentiApp(): string
     {
-        $ids = db_connect()
-            ->table('auth_groups_users')
-            ->whereIn('group', array_keys($this->gruppiApp))
-            ->select('user_id')
-            ->get()->getResultArray();
-
-        $utenti = [];
-        if ($ids) {
-            $utenti = (new UserModel())
-                ->whereIn('id', array_column($ids, 'user_id'))
-                ->orderBy('cognome')
-                ->orderBy('nome')
-                ->findAll();
-        }
-
         return view('impostazioni/utenti_app', [
-            'utenti' => $utenti,
+            'utenti' => (new UserModel())->tuttiConGruppi(),
         ]);
     }
 
     /**
-     * Form creazione nuovo utente app.
+     * Form modifica utente: email, gruppi e password opzionale.
+     * Nome/cognome si gestiscono in Anagrafiche > Personale.
      */
-    public function creaUtenteApp(): string
-    {
-        return view('impostazioni/crea_utente_app', [
-            'gruppi' => $this->gruppiApp,
-        ]);
-    }
-
-    /**
-     * Salva nuovo utente app con gruppo Shield.
-     */
-    public function storeUtenteApp()
-    {
-        $rules = [
-            'username'         => 'required|min_length[3]|max_length[30]|is_unique[users.username]',
-            'nome'             => 'required|max_length[100]',
-            'cognome'          => 'required|max_length[100]',
-            'email'            => 'required|valid_email|max_length[254]',
-            'gruppo'           => 'required|in_list[' . implode(',', array_keys($this->gruppiApp)) . ']',
-            'password'         => 'required|min_length[8]',
-            'password_confirm' => 'required|matches[password]',
-        ];
-
-        $messages = [
-            'username'         => ['is_unique' => 'Questo nome utente è già in uso.'],
-            'password_confirm' => ['matches'   => 'Le password non coincidono.'],
-        ];
-
-        if (! $this->validate($rules, $messages)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
-        $users = new UserModel();
-        $user  = new User([
-            'username' => $this->request->getPost('username'),
-            'nome'     => $this->request->getPost('nome'),
-            'cognome'  => $this->request->getPost('cognome'),
-            'active'   => true,
-        ]);
-
-        $users->save($user);
-        $user = $users->findById($users->getInsertID());
-
-        $user->createEmailIdentity([
-            'email'    => $this->request->getPost('email'),
-            'password' => $this->request->getPost('password'),
-        ]);
-
-        $user->addGroup($this->request->getPost('gruppo'));
-
-        return redirect()->to('impostazioni/utenti-app')
-            ->with('success', 'Utente "' . $user->username . '" creato con successo.');
-    }
-
-    /**
-     * Form modifica utente app.
-     */
-    public function editUtenteApp(int $id)
+    public function editUtenteApp(int $id): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $user = (new UserModel())->findById($id);
 
@@ -104,15 +39,16 @@ class UtentiController extends BaseController
 
         return view('impostazioni/edit_utente_app', [
             'utente'          => $user,
+            'email'           => $user->getEmailIdentity()?->secret ?? '',
             'gruppi'          => $this->gruppiApp,
-            'gruppo_corrente' => $user->getGroups()[0] ?? '',
+            'gruppi_correnti' => $user->getGroups(),
         ]);
     }
 
     /**
-     * Aggiorna dati utente app, gruppo e password opzionale.
+     * Aggiorna email, gruppi (multipli) e password opzionale.
      */
-    public function updateUtenteApp(int $id)
+    public function updateUtenteApp(int $id): \CodeIgniter\HTTP\RedirectResponse
     {
         $users = new UserModel();
         $user  = $users->findById($id);
@@ -121,13 +57,7 @@ class UtentiController extends BaseController
             return redirect()->to('impostazioni/utenti-app')->with('error', 'Utente non trovato.');
         }
 
-        $rules = [
-            'nome'    => 'required|max_length[100]',
-            'cognome' => 'required|max_length[100]',
-            'email'   => 'required|valid_email|max_length[254]',
-            'gruppo'  => 'required|in_list[' . implode(',', array_keys($this->gruppiApp)) . ']',
-        ];
-
+        $rules    = ['email' => 'required|valid_email|max_length[254]'];
         $password = $this->request->getPost('password');
         if ($password) {
             $rules['password']         = 'min_length[8]';
@@ -138,11 +68,6 @@ class UtentiController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $users->update($id, [
-            'nome'    => $this->request->getPost('nome'),
-            'cognome' => $this->request->getPost('cognome'),
-        ]);
-
         $identity   = $user->getEmailIdentity();
         $nuovaEmail = $this->request->getPost('email');
         if ($identity && $identity->secret !== $nuovaEmail) {
@@ -150,13 +75,15 @@ class UtentiController extends BaseController
             model(\CodeIgniter\Shield\Models\UserIdentityModel::class)->save($identity);
         }
 
-        $nuovoGruppo    = $this->request->getPost('gruppo');
-        $gruppoCorrente = $user->getGroups()[0] ?? null;
-        if ($gruppoCorrente !== $nuovoGruppo) {
-            if ($gruppoCorrente) {
-                $user->removeGroup($gruppoCorrente);
+        $gruppiNuovi    = (array) $this->request->getPost('gruppi');
+        $gruppiCorrenti = $user->getGroups();
+        foreach (array_diff($gruppiCorrenti, $gruppiNuovi) as $g) {
+            $user->removeGroup($g);
+        }
+        foreach (array_diff($gruppiNuovi, $gruppiCorrenti) as $g) {
+            if (isset($this->gruppiApp[$g])) {
+                $user->addGroup($g);
             }
-            $user->addGroup($nuovoGruppo);
         }
 
         if ($password) {
@@ -170,9 +97,9 @@ class UtentiController extends BaseController
     }
 
     /**
-     * Elimina utente app (hard delete).
+     * Elimina utente Shield (hard delete). Il record personale rimane con user_id = NULL.
      */
-    public function deleteUtenteApp(int $id)
+    public function deleteUtenteApp(int $id): \CodeIgniter\HTTP\RedirectResponse
     {
         $users = new UserModel();
         $user  = $users->findById($id);
