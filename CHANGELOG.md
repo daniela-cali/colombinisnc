@@ -1,5 +1,28 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.7.0] - 2026-06-14
+
+### Anagrafica clienti
+
+- [APP] CRUD clienti: ragione sociale / nome+cognome, tipo (società/persona fisica), indirizzo operativo, CAP, città, provincia, nazione, telefono, email, P.IVA, C.F., note, contatti liberi
+- [APP] Geocodifica automatica indirizzo via Nominatim (stesso pattern della sede aziendale)
+- [APP] Distanza sede calcolata in linea d'aria (haversine) ad ogni salvataggio con coordinate valide
+- [APP] Auto-assegnazione zona da longitudine: soglie Ventimiglia/Ceriale/Savona configurabili in Parametri; zona manuale ha la precedenza
+- [APP] Scheda cliente a tab: Anagrafica (attiva), Interventi e Materiali (placeholder v0.8.0)
+- [APP] Lista clienti con DataTables: ricerca testuale, ordinamento multi-colonna (Shift+click), paginazione
+- [APP] Tipo cliente mostrato con icona (edificio/persona), zona con badge colorato — visivamente separati
+- [APP] Codice contabilità (`codice_esterno`): collegamento con software esterno, affiancato alla denominazione nel form con tooltip descrittivo
+- [APP] Denominazione e città sempre in maiuscolo al salvataggio
+- [APP] Parametri — card "Zone geografiche clienti": soglie di longitudine configurabili per le tre zone operative
+- [DEV] Migrazione `clienti`: nuova tabella con FK a `personale` e `users`, campi geocodifica, zona, distanza
+- [DEV] Migrazione `AddCodiceEsternoToClienti`: colonna `codice_esterno VARCHAR(50)` aggiunta dopo `codice`
+- [DEV] `ClientiModel`: callbacks `normalizza()` per created_by/updated_by, haversine, auto-zona, maiuscolo su denominazione e città
+- [DEV] `geocoding.js`: script generico per geocodifica lato client via Nominatim, configurabile con attributi `data-*`
+- [DEV] `ClientiController` in sottocartella `Anagrafiche/`; rotte raggruppate in `$routes->group('clienti')`
+- [DEV] jQuery e DataTables (datatables.net + datatables.net-bs5) aggiunti via npm e pubblicati in `public/assets/vendor/`
+- [DEV] Layout admin: sezione `styles` nell'`<head>` per CSS page-specific; tooltip Bootstrap inizializzati globalmente
+- [DEV] Fix form delete annidato nel form update: risolto con attributo HTML `form="id"` sul bottone di submit
+
 ## [0.6.0] - 2026-06-14
 
 ### Profilo e changelog

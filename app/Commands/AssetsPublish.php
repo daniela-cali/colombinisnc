@@ -39,6 +39,12 @@ class AssetsPublish extends BaseCommand
 
             ['label' => 'Bootstrap Icons CSS',   'src' => 'node_modules/bootstrap-icons/font',        'dest' => 'bootstrap-icons',       'pattern' => 'bootstrap-icons.min.css'],
             ['label' => 'Bootstrap Icons fonts', 'src' => 'node_modules/bootstrap-icons/font/fonts',  'dest' => 'bootstrap-icons/fonts', 'pattern' => '*.woff2'],
+
+            ['label' => 'jQuery',                'src' => 'node_modules/jquery/dist',                 'dest' => 'jquery',                'pattern' => 'jquery.min.js'],
+
+            ['label' => 'DataTables JS',         'src' => 'node_modules/datatables.net/js',           'dest' => 'datatables',            'pattern' => 'dataTables.min.js'],
+            ['label' => 'DataTables BS5 JS',     'src' => 'node_modules/datatables.net-bs5/js',       'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.js'],
+            ['label' => 'DataTables BS5 CSS',    'src' => 'node_modules/datatables.net-bs5/css',      'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.css'],
         ];
 
         CLI::write('Pubblicazione assets frontend...', 'yellow');

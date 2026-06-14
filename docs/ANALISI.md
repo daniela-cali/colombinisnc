@@ -213,36 +213,101 @@ graph TD
 - Restyling palette colori: navbar blu medio, sidebar-brand scura, separatore teal, versione nel footer
 - Avatar rinviato a versione futura
 
-#### 🔲 v0.7.0 — Anagrafica clienti
-- CRUD clienti con coordinate, zona (-1/0/1), tecnico preferito, distanza dalla sede
+#### ✅ v0.7.0 — Anagrafica clienti
+- CRUD clienti completo (società e persone fisiche)
+- Geocodifica automatica via Nominatim; `distanza_sede` calcolata con haversine ad ogni salvataggio
+- Auto-assegnazione zona (Ventimiglia/Ceriale/Savona) da soglie longitudine configurabili in Parametri; zona manuale ha la precedenza
+- Scheda cliente a tab: Anagrafica (attiva) · Interventi · Materiali (placeholder v0.8.0)
+- Lista clienti con DataTables: ricerca testuale, ordinamento multi-colonna, paginazione
+- `codice_esterno` per collegamento con software di contabilità esterno
+- Denominazione e città forzate in maiuscolo nel model
+- jQuery + DataTables via npm; sezione `styles` nel layout per CSS page-specific; tooltip Bootstrap inizializzati globalmente
+- Guida di pagina per la sezione clienti rinviata a milestone futura
 
-#### 🔲 v0.8.0 — Interventi
-- CRUD interventi
-- Tipi e stati intervento
-- Creazione intervento da scheda cliente
+#### 🔲 v0.8.0 — Interventi e abbonamenti
+- CRUD interventi: cliente, tecnico assegnato, data pianificata, durata stimata, tipo, stato, note
+- Tipi intervento: `programmato`, `urgente`, `normale`, `sopralluogo`, `commerciale` (costanti nel model)
+- Stati intervento: `pianificato`, `confermato`, `in_corso`, `completato`, `annullato` (costanti nel model)
+- Creazione da scheda cliente (link diretto, nessun modal — form completo pre-compilato)
+- `impianto_id` nullable (placeholder per v0.11.0; FK aggiunta subito per evitare ALTER futuri)
+- **Abbonamenti** (vedi `docs/abbonamenti_spec.md`): se tipo = `programmato`, al salvataggio si apre una modal che raccoglie data inizio/fine, frequenza e prezzo; il sistema crea silenziosamente una riga in `abbonamenti` e la collega all'intervento via `abbonamenti_interventi`
+  - Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
+  - Stati abbonamento: attivo, sospeso, scaduto
+  - `durata_mesi` calcolata automaticamente nel model; `abbonamento_precedente_id` per catena storica (CTE ricorsiva MySQL 8+)
+  - `prezzo` = totale abbonamento, non per visita
+- Materiali consegnati: tabella `interventi_materiali` (intervento_id, descrizione, quantità); visibili nella scheda cliente tab Materiali
 
 #### 🔲 v0.9.0 — Calendario
-- Integrazione FullCalendar
-- Visualizzazione interventi
-- Creazione/modifica da calendario
+- Integrazione FullCalendar (licenza open-source)
+- Visualizzazione interventi per tecnico e per giorno/settimana/mese
+- Creazione e modifica intervento direttamente dal calendario
+- Evidenziazione per stato e per tecnico (colore da `personale.colore`)
 
 #### 🔲 v0.10.0 — Viaggi
-- Vista giornaliera per tecnico
-- Accesso scheda cliente da intervento
-- Note e materiali
+- Vista giornaliera per tecnico: elenco interventi ordinato per ora
+- Accesso rapido a scheda cliente e scheda intervento
+- Inserimento materiali consegnati e note a chiusura intervento
+- Aggiornamento stato intervento dal campo (mobile-friendly)
 
-#### 🔲 v0.11.0 — Release
-- Dashboard riepilogativa completa
+#### 🔲 v0.11.0 — Anagrafica impianti
+- Tabella `impianti`: tipo (piscina, addolcitore, acquedotto, trattamento acqua, altro), marca, modello, note
+- Tabella `clienti_impianti`: FK cliente + FK impianto + indirizzo specifico dell'impianto se diverso dal cliente
+- Collegamento impianto agli interventi (popola `impianto_id` lasciato nullable in v0.8.0)
+- Scheda cliente: nuovo tab **Impianti**
+
+#### 🔲 v0.12.0 — Richieste di intervento
+- Tabella `richieste`: cliente, tipo, descrizione, priorità, stato, tecnico suggerito
+- Flusso: richiesta → approvazione → conversione in intervento pianificato
+- Badge notifica in sidebar per richieste in attesa (come nel vecchio progetto)
+
+#### 🔲 v0.13.0 — Magazzino
+- Tabella `prodotti`: codice, descrizione, categoria (chimici / ricambi piscine / ricambi trattamento), unità misura, giacenza, soglia minima
+- Scarico automatico giacenza quando si inseriscono materiali su un intervento
+- Alert sottoscorta
+
+#### 🔲 v0.14.0 — Preventivi
+- Tabella `preventivi`: cliente, data, stato (bozza/inviato/accettato/rifiutato), totale
+- Righe preventivo: descrizione, quantità, prezzo unitario
+- Conversione preventivo accettato → intervento/abbonamento
+
+#### 🔲 v0.15.0 — Dashboard e report
+- Dashboard riepilogativa: interventi oggi, settimana, tecnici in campo, richieste aperte, abbonamenti in scadenza
 - Presenze/assenze tecnici
-- Test e fix generali
-- Deploy su Nginx
+- Report PDF: interventi per cliente, materiali consegnati, abbonamenti attivi
+- Statistiche: interventi per tipo/periodo, km percorsi, prodotti consumati
 
-### 7.2 Funzionalità versioni future
-- Report e stampe PDF
-- Notifiche
-- Statistiche
-- Integrazione OpenRouteService (percorsi ottimali)
-- Portale tecnici mobile dedicato
+#### 🔲 v0.16.0 — Release
+- Test e fix generali
+- Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
+- Deploy su Nginx (dominio colombini-snc.it)
+
+### 7.2 Mappa dipendenze tra moduli
+
+```
+personale ──────────────────────────────────────────────┐
+                                                        ↓
+clienti ──→ clienti_impianti ──→ impianti               interventi
+    │                                │                      │
+    │                                └──────────────────────┤
+    │                                                        │
+    └──→ richieste ────────────────────────────────────────→ ┤
+                                                            │
+preventivi ──────────────────────────────────────────────→ ┤
+                                                            │
+                                                            ├──→ abbonamenti
+                                                            │       └──→ abbonamenti_interventi
+                                                            │
+                                                            └──→ interventi_materiali
+                                                                        │
+                                                                        ↓
+                                                                    prodotti (magazzino)
+```
+
+### 7.3 Funzionalità versioni future (post-release)
+- Portale clienti: accesso autonomo a storico interventi e abbonamenti (`user_id` già in `clienti`)
+- Portale tecnici mobile dedicato (PWA o app nativa)
+- Notifiche push/email per promemoria interventi e abbonamenti in scadenza
+- Firma digitale cliente a chiusura intervento
 
 ### 7.3 Rischi e mitigazioni
 

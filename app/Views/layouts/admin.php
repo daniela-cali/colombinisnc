@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="<?= base_url('assets/vendor/adminlte/adminlte.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('css/custom.css') ?>">
+    <?= $this->renderSection('styles') ?>
 </head>
 
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
@@ -283,6 +284,11 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
     });
 </script>
 <?= $this->renderSection('scripts') ?>
+<script>
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function (el) {
+    new bootstrap.Tooltip(el);
+});
+</script>
 
 </body>
 </html>

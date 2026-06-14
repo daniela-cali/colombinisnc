@@ -41,6 +41,15 @@ $routes->group('anagrafiche', function ($routes) {
         $routes->post('(:num)/update', 'Anagrafiche\PersonaleController::update/$1');
         $routes->post('(:num)/delete', 'Anagrafiche\PersonaleController::delete/$1');
     });
+
+    $routes->group('clienti', function ($routes) {
+        $routes->get('/',              'Anagrafiche\ClientiController::index');
+        $routes->get('nuovo',          'Anagrafiche\ClientiController::nuovo');
+        $routes->post('store',         'Anagrafiche\ClientiController::store');
+        $routes->get('(:num)/edit',    'Anagrafiche\ClientiController::edit/$1');
+        $routes->post('(:num)/update', 'Anagrafiche\ClientiController::update/$1');
+        $routes->post('(:num)/delete', 'Anagrafiche\ClientiController::delete/$1');
+    });
 });
 
 service('auth')->routes($routes);

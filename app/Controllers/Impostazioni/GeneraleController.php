@@ -76,6 +76,12 @@ class GeneraleController extends BaseController
             setting()->set('Azienda.' . $key, $post[$key] ?? null);
         }
 
+        // Soglie di longitudine per l'assegnazione automatica della zona cliente
+        foreach (['zona_lng_ovest', 'zona_lng_est'] as $key) {
+            $val = $post[$key] ?? null;
+            setting()->set('Azienda.' . $key, ($val !== null && $val !== '') ? (float) $val : null);
+        }
+
         foreach (['orario_inizio', 'orario_fine', 'pausa_inizio', 'pausa_fine'] as $key) {
             setting()->set('Azienda.' . $key, $post[$key] ?? null);
         }

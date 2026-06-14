@@ -17,10 +17,10 @@ $this->extend('layouts/admin');
 <?= $this->section('content') ?>
 <form id="form-parametri" method="post" action="<?= base_url('impostazioni/parametri') ?>">
     <?= csrf_field() ?>
-    <div class="row g-4">
+    <div class="d-flex gap-4 align-items-start">
 
-        <!-- Sede aziendale -->
-        <div class="col-lg-6">
+        <!-- Colonna sinistra: sede + orari -->
+        <div class="flex-fill d-flex flex-column gap-4">
             <div class="card card-outline card-primary">
                 <div class="card-header">
                     <h3 class="card-title mb-0"><i class="bi bi-building me-2"></i>Sede aziendale</h3>
@@ -70,7 +70,14 @@ $this->extend('layouts/admin');
                                    placeholder="es. 8.231695">
                         </div>
                         <div class="col-2">
-                            <button type="button" class="btn btn-outline-secondary w-100" id="btn-geo-sede"
+                            <button type="button" class="btn btn-outline-secondary w-100"
+                                    data-geocoder
+                                    data-indirizzo="sede_indirizzo"
+                                    data-cap="sede_cap"
+                                    data-citta="sede_citta"
+                                    data-lat="sede_lat"
+                                    data-lng="sede_lng"
+                                    data-result="geo-sede-result"
                                     title="Rileva coordinate dall'indirizzo">
                                 <i class="bi bi-geo-alt"></i>
                             </button>
@@ -112,10 +119,6 @@ $this->extend('layouts/admin');
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Colonna destra -->
-        <div class="col-lg-6 d-flex flex-column gap-4">
 
             <!-- Orari aziendali -->
             <div class="card card-outline card-primary">
@@ -148,6 +151,55 @@ $this->extend('layouts/admin');
                     </div>
                 </div>
             </div>
+        </div><!-- /colonna sinistra -->
+
+        <!-- Colonna destra: zone + durate -->
+        <div class="flex-fill d-flex flex-column gap-4">
+            <div class="card card-outline card-primary">
+                <div class="card-header">
+                    <h3 class="card-title mb-0"><i class="bi bi-signpost-split me-2"></i>Zone geografiche clienti</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">
+                        Soglie di longitudine per l'assegnazione automatica della zona al salvataggio del cliente geocodificato.
+                        La zona viene assegnata solo se non è già impostata manualmente.
+                    </p>
+                    <div class="row g-3 align-items-center mb-3">
+                        <div class="col-4 text-center">
+                            <span class="badge bg-secondary px-3 py-2">Ventimiglia</span>
+                            <div class="text-muted small mt-1">da Andora verso Francia</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <span class="badge bg-light text-dark border px-3 py-2">Ceriale</span>
+                            <div class="text-muted small mt-1">da Andora a Loano</div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <span class="badge bg-info text-dark px-3 py-2">Savona</span>
+                            <div class="text-muted small mt-1">da Loano in poi</div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Soglia Ventimiglia / Ceriale <small class="text-muted">(lng Andora)</small></label>
+                            <input type="number" name="zona_lng_ovest" class="form-control"
+                                   step="0.000001" min="-180" max="180"
+                                   value="<?= esc(setting('Azienda.zona_lng_ovest') ?? '') ?>"
+                                   placeholder="es. 8.148">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Soglia Ceriale / Savona <small class="text-muted">(lng Loano)</small></label>
+                            <input type="number" name="zona_lng_est" class="form-control"
+                                   step="0.000001" min="-180" max="180"
+                                   value="<?= esc(setting('Azienda.zona_lng_est') ?? '') ?>"
+                                   placeholder="es. 8.270">
+                        </div>
+                    </div>
+                    <p class="text-muted small mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Puoi trovare la longitudine esatta cercando Andora o Loano su Google Maps e leggendo la seconda coordinata nell'URL.
+                    </p>
+                </div>
+            </div>
 
             <!-- Durate standard interventi -->
             <div class="card card-outline card-primary">
@@ -175,8 +227,8 @@ $this->extend('layouts/admin');
                     <?php endforeach ?>
                 </div>
             </div>
-
         </div>
+
     </div>
 
     <div class="d-flex justify-content-between mt-4 mb-3">
@@ -196,46 +248,9 @@ $this->extend('layouts/admin');
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
+<script src="<?= base_url('js/geocoding.js') ?>"></script>
 <script>
 (function () {
-    // Geocodifica indirizzo sede → lat/lng via Nominatim
-    document.getElementById('btn-geo-sede').addEventListener('click', function () {
-        var indirizzo = document.querySelector('[name="sede_indirizzo"]').value.trim();
-        var citta     = document.querySelector('[name="sede_citta"]').value.trim();
-        var cap       = document.querySelector('[name="sede_cap"]').value.trim();
-        var result    = document.getElementById('geo-sede-result');
-        var btn       = this;
-
-        if (!indirizzo && !citta) {
-            result.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Inserisci indirizzo o città prima.</span>';
-            return;
-        }
-
-        btn.disabled = true;
-        result.innerHTML = '<span class="text-muted"><i class="bi bi-hourglass-split me-1"></i>Ricerca in corso…</span>';
-
-        var q   = [indirizzo, cap, citta, 'Italia'].filter(Boolean).join(', ');
-        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q);
-
-        fetch(url, { headers: { 'Accept-Language': 'it' } })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data && data[0]) {
-                    var lat = parseFloat(data[0].lat).toFixed(6);
-                    var lng = parseFloat(data[0].lon).toFixed(6);
-                    document.getElementById('sede_lat').value = lat;
-                    document.getElementById('sede_lng').value = lng;
-                    result.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Coordinate aggiornate: ' + lat + ', ' + lng + '</span>';
-                } else {
-                    result.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Indirizzo non trovato — verifica i dati.</span>';
-                }
-            })
-            .catch(function () {
-                result.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Errore di rete.</span>';
-            })
-            .finally(function () { btn.disabled = false; });
-    });
-
     // Aggiorna visualizzazione ore/min in tempo reale
     document.querySelectorAll('.durata-input').forEach(function (input) {
         input.addEventListener('input', function () {
