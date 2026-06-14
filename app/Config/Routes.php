@@ -12,6 +12,10 @@ $routes->group('impostazioni', function ($routes) {
     $routes->get('/',    'Impostazioni\GeneraleController::index');
     $routes->post('salva', 'Impostazioni\GeneraleController::salva');
 
+    $routes->get('parametri',        'Impostazioni\GeneraleController::parametri');
+    $routes->post('parametri',       'Impostazioni\GeneraleController::salvaParametri');
+    $routes->post('parametri/logo',  'Impostazioni\GeneraleController::cambiaLogo');
+
     $routes->group('utenti-app', function ($routes) {
         $routes->get('/',               'Impostazioni\UtentiController::utentiApp');
         $routes->get('nuovo',           'Impostazioni\UtentiController::creaUtenteApp');

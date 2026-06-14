@@ -199,25 +199,37 @@ graph TD
 - Creazione tabella `personale` con FK a `users`
 - CRUD personale
 
-#### 🔲 v0.5.0 — Anagrafica clienti
-- CRUD clienti con coordinate per mappa Leaflet
+#### ✅ v0.5.0 — Parametri generali
+- Tabella `impostazioni` (class / key / value)
+- Sede aziendale: nome, indirizzo, CAP, città, telefono, sito, logo, lat/lng + geocodifica
+- Orari aziendali: inizio/fine giornata, pausa pranzo
+- Durate standard interventi per tipo (sale, filtri, piscine, addolcitori, acquedotti, commerciale)
 
-#### 🔲 v0.6.0 — Interventi
+#### 🔲 v0.6.0 — Profilo e visualizzazione changelog
+- Aggiungere visualizzazione changelog filtrata per [DEV] e [APP] a seconda del gruppo utente loggato
+- Migrazione campo custom ultima_versione_vista su users in cui scrivere l'ultima versione vista, con controllo al login e visualizzazione ultime modifiche
+- Voce di menù Profilo da collegare alla scheda dipendente che di fatto è strutturata come profilo 
+- In profilo integrare avatar preferito da visualizzare al posto dell'icona bi bi-person-circle me-1 in dimensione adatta e precaricare una dozzina di avatar dopo ricerca sul web di immagini stilizzate, divertenti e opportune per il contesto lavorativo
+
+#### 🔲 v0.7.0 — Anagrafica clienti
+- CRUD clienti con coordinate, zona (-1/0/1), tecnico preferito, distanza dalla sede
+
+#### 🔲 v0.8.0 — Interventi
 - CRUD interventi
 - Tipi e stati intervento
 - Creazione intervento da scheda cliente
 
-#### 🔲 v0.7.0 — Calendario
+#### 🔲 v0.9.0 — Calendario
 - Integrazione FullCalendar
 - Visualizzazione interventi
 - Creazione/modifica da calendario
 
-#### 🔲 v0.8.0 — Viaggi
+#### 🔲 v0.10.0 — Viaggi
 - Vista giornaliera per tecnico
 - Accesso scheda cliente da intervento
 - Note e materiali
 
-#### 🔲 v1.0.0 — Release
+#### 🔲 v0.11.0 — Release
 - Dashboard riepilogativa completa
 - Presenze/assenze tecnici
 - Test e fix generali

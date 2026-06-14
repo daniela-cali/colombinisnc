@@ -15,38 +15,47 @@
     --clr-teal-dark:     #0097a7;
     --clr-sidebar-bg:    #1a2d4a;
     --clr-sidebar-alt:   #162440;
+    --clr-top-bar:       #d4e5f4;
 }
 
 /* --- Navbar -------------------------------------------- */
 .app-header {
-    background-color: var(--clr-primary) !important;
+    background-color: var(--clr-top-bar) !important;
     border-bottom: none !important;
+    box-shadow: none !important;
 }
 
 .app-header .nav-link,
 .app-header .navbar-text {
-    color: #fff !important;
+    color: var(--clr-primary) !important;
 }
 
 .app-header .nav-link:hover {
-    color: var(--clr-teal) !important;
+    color: var(--clr-primary-dark) !important;
 }
 
 /* --- Sidebar ------------------------------------------- */
 .app-sidebar {
+    border-right: none !important;
+    box-shadow: none !important;
+    --lte-sidebar-box-shadow:         none;
     --lte-sidebar-hover-bg:           rgba(0, 188, 212, 0.15);
     --lte-sidebar-hover-color:        #fff;
     --lte-sidebar-active-color:       #fff;
-    --lte-sidebar-menu-active-bg:     var(--clr-primary);
-    --lte-sidebar-menu-active-color:  #fff;
+    --lte-sidebar-menu-active-bg:     var(--clr-top-bar);
+    --lte-sidebar-menu-active-color:  var(--clr-primary);
     --lte-sidebar-submenu-hover-bg:   rgba(0, 188, 212, 0.1);
     --lte-sidebar-submenu-hover-color:#fff;
     background-color: var(--clr-sidebar-bg) !important;
 }
 
 .sidebar-brand {
-    background-color: var(--clr-sidebar-alt) !important;
-    border-bottom: 1px solid var(--clr-teal) !important;
+    background-color: var(--clr-top-bar) !important;
+    border-bottom: none !important;
+}
+
+.sidebar-wrapper {
+    border-top: none !important;
 }
 
 .sidebar-brand .brand-text {
@@ -80,8 +89,8 @@
 
 /* --- Sidebar: active state diretto (la variabile CSS non si propaga) --- */
 .app-sidebar .nav-link.active {
-    background-color: var(--clr-primary) !important;
-    color: #fff !important;
+    background-color: var(--clr-top-bar) !important;
+    color: var(--clr-primary) !important;
 }
 
 /* --- Intestazioni sezione sidebar ---------------------- */
@@ -206,4 +215,17 @@
 /* Titoletto text muted delle card */
 .text-muted.section-header  {
     font-weight: 700;
+}
+
+/* --- Parametri generali: anteprima logo aziendale -------- */
+.param-logo-preview {
+    max-height: 50px;
+    max-width: 200px;
+}
+
+/* --- Logo in sidebar ------------------------------------ */
+.sidebar-logo {
+    max-height: 36px;
+    max-width: 160px;
+    object-fit: contain;
 }

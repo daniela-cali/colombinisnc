@@ -68,7 +68,12 @@
     <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
         <div class="sidebar-brand">
             <a href="<?= base_url('/') ?>" class="brand-link">
-                <span class="brand-text fw-semibold">Colombini SNC</span>
+                <?php $logo = setting('Azienda.sede_logo_path'); ?>
+                <?php if ($logo): ?>
+                    <img src="<?= base_url($logo) ?>" alt="Logo" class="sidebar-logo">
+                <?php else: ?>
+                    <span class="brand-text fw-semibold">Colombini SNC</span>
+                <?php endif ?>
             </a>
         </div>
         <div class="sidebar-wrapper">

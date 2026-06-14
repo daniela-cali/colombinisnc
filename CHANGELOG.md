@@ -1,5 +1,19 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.5.0] - 2026-06-14
+
+### Parametri generali
+
+- [APP] Pagina Parametri Generali: dati sede (nome, indirizzo, CAP, città, telefono, sito, lat/lng)
+- [APP] Geocodifica automatica dell'indirizzo sede via Nominatim/OpenStreetMap (nessuna API key)
+- [APP] Orari aziendali configurabili: apertura/chiusura giornata e pausa pranzo
+- [APP] Durate standard interventi per tipo (sale, filtri, piscine, addolcitori, acquedotti, commerciale) con visualizzazione live ore/minuti
+- [APP] Upload logo aziendale con anteprima; logo mostrato nella sidebar con fallback testo
+- [DEV] Package `codeigniter4/settings` (DatabaseHandler): settings key/value in tabella `settings`
+- [DEV] `GeneraleController`: metodi `parametri()`, `salvaParametri()`, `cambiaLogo()`
+- [DEV] Fix form logo separato dal form principale tramite attributo HTML `form="id"` (evita form annidati)
+- [DEV] Palette CSS: variabile `--clr-top-bar` usata su navbar, sidebar-brand e voce attiva menu per cambio colore centralizzato
+
 ## [0.4.0] - 2026-06-13
 
 ### Anagrafica personale
