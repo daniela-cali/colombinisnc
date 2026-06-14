@@ -199,7 +199,7 @@ Ogni voce è taggata con il tipo:
 - `[APP]` — funzionalità o modifiche visibili all'utente finale
 - `[DEV]` — modifiche tecniche (refactor, migrazioni, dipendenze, fix interni)
 
-Il sistema confronta `CHANGELOG.md` con il campo `users.ultima_versione_vista` per mostrare le novità all'avvio. Gli utenti con ruolo `admin` vedono solo le righe `[APP]`; gli utenti con ruolo `dev` vedono tutto.
+Il sistema confronta `CHANGELOG.md` con il campo `users.ultima_versione_vista` per mostrare le novità all'avvio. Gli utenti con ruolo `admin` e `developer` vedono tutte le righe (`[APP]` + `[DEV]`); gli altri ruoli vedono solo le righe `[APP]`.
 
 ## Roadmap — sezione 7.1 di ANALISI.md
 La pianificazione delle versioni è in `docs/ANALISI.md` sezione **7.1 Milestone e fasi**. Non esiste un file ROADMAP.md separato.
@@ -212,7 +212,7 @@ Contiene almeno:
 - Schema del database (tabelle, campi, relazioni) aggiornato ad ogni migrazione
 - Log sintetico delle modifiche DB (cosa è cambiato e perché, versione per versione)
 
-I file HTML nella cartella `doc/` vanno aggiornati nella stessa commit della migrazione corrispondente. Visibili solo agli utenti con ruolo `dev`.
+I file HTML nella cartella `doc/` vanno aggiornati nella stessa commit della migrazione corrispondente. Visibili solo agli utenti con ruolo `developer`.
 
 ## Dominio aziendale
 Il dominio aziendale è **colombini-snc.it**.

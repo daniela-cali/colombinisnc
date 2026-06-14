@@ -26,6 +26,12 @@
 </head>
 
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+<?php
+$_isDevMode      = (bool) array_intersect(['developer', 'admin'], auth()->user()->getGroups());
+$_cl             = changelog_data($_isDevMode);
+$_versioneUtente = auth()->user()->ultima_versione_vista ?? '';
+$_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl['versioneCorrente'];
+?>
 <div class="app-wrapper">
 
     <!-- Navbar -->
@@ -56,6 +62,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="<?= base_url('profilo') ?>"><i class="bi bi-person me-2"></i>Profilo</a></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#modalChangelog"><i class="bi bi-clock-history me-2"></i>Changelog</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="<?= base_url('logout') ?>"><i class="bi bi-box-arrow-right me-2"></i>Esci</a></li>
                     </ul>
@@ -68,15 +75,17 @@
     <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
         <div class="sidebar-brand">
             <a href="<?= base_url('/') ?>" class="brand-link">
-                <?php $logo = setting('Azienda.sede_logo_path'); ?>
-                <?php if ($logo): ?>
-                    <img src="<?= base_url($logo) ?>" alt="Logo" class="sidebar-logo">
-                <?php else: ?>
-                    <span class="brand-text fw-semibold">Colombini SNC</span>
-                <?php endif ?>
+                <span class="brand-text fw-semibold">Colombini Snc</span>
             </a>
         </div>
         <div class="sidebar-wrapper">
+            <a href="<?= base_url('profilo') ?>" class="sidebar-user">
+                <i class="bi bi-person-circle sidebar-user-avatar"></i>
+                <div class="sidebar-user-info">
+                    <span class="sidebar-user-name"><?= esc($displayName) ?></span>
+                    <span class="sidebar-user-role"><?= esc($u->getGroups()[0] ?? '') ?></span>
+                </div>
+            </a>
             <nav class="mt-2" aria-label="Navigazione principale">
                 <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" id="navigation">
 
@@ -154,9 +163,45 @@
     </main>
 
     <footer class="app-footer">
+        <?php if ($_cl['versioneCorrente'] !== ''): ?>
+            <span class="text-muted small">v<?= esc($_cl['versioneCorrente']) ?></span>
+        <?php endif ?>
         <span class="float-end text-muted small">Colombini SNC &copy; <?= date('Y') ?></span>
     </footer>
 
+</div>
+
+<?php if ($_mostraNovita): ?>
+<div class="modal fade" id="modalNovita" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-stars me-2"></i>Novità — v<?= htmlspecialchars($_cl['versioneCorrente']) ?></h5>
+            </div>
+            <div class="modal-body" style="font-size:.9rem;"><?= $_cl['htmlNovita'] ?></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-novita-ok">
+                    <i class="bi bi-check-lg me-1"></i>Ho capito, grazie!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif ?>
+
+<div class="modal fade" id="modalChangelog" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>Changelog</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="font-size:.9rem;"><?= $_cl['htmlChangelog'] ?></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="<?= base_url('assets/vendor/popper/popper.min.js') ?>"></script>
@@ -187,6 +232,28 @@
             applyTheme(html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
         });
     })();
+
+    <?php if ($_mostraNovita): ?>
+    (function () {
+        var modal = new bootstrap.Modal(document.getElementById('modalNovita'));
+        modal.show();
+        document.getElementById('btn-novita-ok').addEventListener('click', function () {
+            fetch('<?= base_url('profilo/versione-vista') ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    versione: '<?= htmlspecialchars($_cl['versioneCorrente']) ?>',
+                    '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
+                })
+            }).then(function (r) {
+                if (r.ok) {
+                    document.activeElement?.blur();
+                    modal.hide();
+                }
+            });
+        });
+    })();
+    <?php endif ?>
 
     document.querySelectorAll('input[type="password"]').forEach(function (input) {
         if (input.dataset.pwdToggleInit) return;

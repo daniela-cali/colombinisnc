@@ -15,7 +15,7 @@
     --clr-teal-dark:     #0097a7;
     --clr-sidebar-bg:    #1a2d4a;
     --clr-sidebar-alt:   #162440;
-    --clr-top-bar:       #d4e5f4;
+    --clr-top-bar:       #1a6fa8;
 }
 
 /* --- Navbar -------------------------------------------- */
@@ -27,11 +27,11 @@
 
 .app-header .nav-link,
 .app-header .navbar-text {
-    color: var(--clr-primary) !important;
+    color: rgba(255,255,255,.9) !important;
 }
 
 .app-header .nav-link:hover {
-    color: var(--clr-primary-dark) !important;
+    color: #fff !important;
 }
 
 /* --- Sidebar ------------------------------------------- */
@@ -43,15 +43,16 @@
     --lte-sidebar-hover-color:        #fff;
     --lte-sidebar-active-color:       #fff;
     --lte-sidebar-menu-active-bg:     var(--clr-top-bar);
-    --lte-sidebar-menu-active-color:  var(--clr-primary);
+    --lte-sidebar-menu-active-color:  #fff;
     --lte-sidebar-submenu-hover-bg:   rgba(0, 188, 212, 0.1);
     --lte-sidebar-submenu-hover-color:#fff;
+    --lte-sidebar-header-color:       var(--clr-teal);
     background-color: var(--clr-sidebar-bg) !important;
 }
 
 .sidebar-brand {
-    background-color: var(--clr-top-bar) !important;
-    border-bottom: none !important;
+    background-color: var(--clr-sidebar-bg) !important;
+    border-bottom: 1px solid var(--clr-teal) !important;
 }
 
 .sidebar-wrapper {
@@ -90,12 +91,13 @@
 /* --- Sidebar: active state diretto (la variabile CSS non si propaga) --- */
 .app-sidebar .nav-link.active {
     background-color: var(--clr-top-bar) !important;
-    color: var(--clr-primary) !important;
+    color: #fff !important;
 }
 
 /* --- Intestazioni sezione sidebar ---------------------- */
 .nav-header {
     font-variant: small-caps !important;
+    color: var(--clr-teal) !important;
 }
 
 /* --- Picker colore profilo personale ------------------- */
@@ -152,6 +154,49 @@
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(0,0,0,0.25);
     border: none;
+}
+
+/* --- Pannello utente in sidebar ------------------------ */
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    text-decoration: none;
+    transition: background-color .15s;
+}
+
+.sidebar-user:hover {
+    background-color: rgba(255,255,255,.06);
+}
+
+.sidebar-user-avatar {
+    font-size: 2rem;
+    flex-shrink: 0;
+    color: var(--lte-sidebar-color, rgba(255,255,255,.65));
+}
+
+.sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.sidebar-user-name {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--lte-sidebar-color, rgba(255,255,255,.65));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-user-role {
+    font-size: .7rem;
+    color: var(--clr-teal);
+    text-transform: lowercase;
 }
 
 /* --- Intestazioni di sezione (impostazioni, ecc.) ------ */

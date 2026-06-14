@@ -8,6 +8,12 @@ use CodeIgniter\Shield\Models\UserModel as ShieldUserModel;
 
 class UserModel extends ShieldUserModel
 {
+    protected function initialize(): void
+    {
+        parent::initialize();
+        $this->allowedFields[] = 'ultima_versione_vista';
+    }
+
     /**
      * Tutti gli utenti Shield con nome/cognome da personale (se presente)
      * e gruppi concatenati. Usato dalla sezione Impostazioni > Utenti.

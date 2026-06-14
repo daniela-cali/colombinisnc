@@ -1,5 +1,23 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.6.0] - 2026-06-14
+
+### Profilo e changelog
+
+- [APP] Modal novità: all'avvio mostra le modifiche dell'ultima versione rispetto all'ultima visita dell'utente
+- [APP] Voce "Changelog" nel dropdown navbar: mostra la storia completa delle versioni
+- [APP] Changelog filtrato per ruolo: admin e developer vedono anche le righe `[DEV]`, gli altri solo `[APP]`
+- [APP] Voce "Profilo" nel dropdown utente collegata alla scheda dipendente dell'utente loggato
+- [APP] Pannello utente nella sidebar: nome, ruolo e link diretto al profilo
+- [APP] Restyling palette: navbar blu medio, sidebar-brand scura con separatore teal, voci active aggiornate al nuovo schema colori
+- [APP] Numero versione corrente visualizzato nel footer
+- [DEV] Migrazione: colonna `ultima_versione_vista` su tabella `users`
+- [DEV] `UserModel`: override `initialize()` per aggiungere `ultima_versione_vista` agli `allowedFields`
+- [DEV] `Auth.php`: usa `App\Models\UserModel` invece del modello di Shield
+- [DEV] Helper `changelog_helper`: `changelog_to_html()` e `changelog_data()` per parsing server-side del `CHANGELOG.md`, filtro per ruolo
+- [DEV] `ProfiloController`: `index()` redirige alla scheda dipendente; `versioneVista()` aggiorna la versione via AJAX
+- [DEV] `BaseController`: caricamento automatico dell'helper `changelog`
+
 ## [0.5.0] - 2026-06-14
 
 ### Parametri generali
@@ -52,7 +70,7 @@
 - [DEV] Installazione e configurazione CodeIgniter Shield
 - [DEV] Migrazioni Shield: tabelle `users`, `auth_identities`, `auth_logins` e correlate
 - [DEV] Configurazione login per username (override validazione Shield che usa email di default)
-- [DEV] Gruppi utente: `admin`, `staff`, `tecnici`, `clienti`
+- [DEV] Gruppi utente: `admin`, `ufficio`, `developer`, `tecnico`, `clienti`
 - [DEV] Filter `session` globale con esclusione rotte auth (protezione tutte le rotte)
 - [DEV] Filter `noauth` su `/login` (redirect dashboard se già autenticati)
 - [DEV] Seeder `AdminSeeder` per creazione utente admin iniziale

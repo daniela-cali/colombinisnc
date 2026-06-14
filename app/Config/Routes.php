@@ -5,6 +5,11 @@ use CodeIgniter\Router\RouteCollection;
 /** @var RouteCollection $routes */
 $routes->get('/', 'DashboardController::index');
 
+$routes->group('profilo', function ($routes) {
+    $routes->get('/',              'ProfiloController::index');
+    $routes->post('versione-vista', 'ProfiloController::versioneVista');
+});
+
 $routes->get('login', '\CodeIgniter\Shield\Controllers\LoginController::loginView', ['filter' => 'noauth']);
 
 // Impostazioni

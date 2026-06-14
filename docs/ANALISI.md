@@ -205,11 +205,13 @@ graph TD
 - Orari aziendali: inizio/fine giornata, pausa pranzo
 - Durate standard interventi per tipo (sale, filtri, piscine, addolcitori, acquedotti, commerciale)
 
-#### 🔲 v0.6.0 — Profilo e visualizzazione changelog
-- Aggiungere visualizzazione changelog filtrata per [DEV] e [APP] a seconda del gruppo utente loggato
-- Migrazione campo custom ultima_versione_vista su users in cui scrivere l'ultima versione vista, con controllo al login e visualizzazione ultime modifiche
-- Voce di menù Profilo da collegare alla scheda dipendente che di fatto è strutturata come profilo 
-- In profilo integrare avatar preferito da visualizzare al posto dell'icona bi bi-person-circle me-1 in dimensione adatta e precaricare una dozzina di avatar dopo ricerca sul web di immagini stilizzate, divertenti e opportune per il contesto lavorativo
+#### ✅ v0.6.0 — Profilo e visualizzazione changelog
+- Visualizzazione changelog filtrata per `[DEV]` e `[APP]` a seconda del gruppo utente loggato
+- Migrazione campo `ultima_versione_vista` su `users`; modal novità all'avvio con aggiornamento via AJAX
+- Voce "Profilo" nel dropdown utente collegata alla scheda dipendente
+- Pannello utente nella sidebar con nome, ruolo e link al profilo
+- Restyling palette colori: navbar blu medio, sidebar-brand scura, separatore teal, versione nel footer
+- Avatar rinviato a versione futura
 
 #### 🔲 v0.7.0 — Anagrafica clienti
 - CRUD clienti con coordinate, zona (-1/0/1), tecnico preferito, distanza dalla sede
