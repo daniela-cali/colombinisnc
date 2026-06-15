@@ -121,6 +121,14 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                         </a>
                     </li>
 
+                    <li class="nav-header">Magazzino</li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('magazzino/articoli') ?>" class="nav-link <?= str_starts_with(uri_string(), 'magazzino') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-boxes"></i>
+                            <p>Articoli</p>
+                        </a>
+                    </li>
+
                     <li class="nav-header">Amministrazione</li>
                     <li class="nav-item">
                         <a href="<?= base_url('impostazioni') ?>" class="nav-link <?= str_starts_with(uri_string(), 'impostazioni') ? 'active' : '' ?>">

@@ -229,19 +229,26 @@ graph TD
 - Generi intervento: `programmato`, `normale`, `sopralluogo`, `commerciale` (costanti nel model)
 - Stati intervento: `da_pianificare` (default), `pianificato`, `in_corso`, `completato`, `annullato` (costanti nel model)
 - `urgenza`: flag booleano (0/1) indipendente dal genere — qualsiasi intervento può essere marcato urgente
-- `data_scadenza`: entro quando deve essere eseguito (distinta da `data_pianificata`); data pianificata senza orario — l'orario verrà impostato dal calendario (v0.9.0)
+- `data_scadenza`: entro quando deve essere eseguito (distinta da `data_pianificata`); data pianificata senza orario — l'orario verrà impostato dal calendario (v0.12.0)
 - `durata_stimata` in minuti, nullable — preleva il default dal tipo intervento selezionato
 - Creazione da scheda cliente (link diretto, pre-compilato); sistema `from` per ritorno al tab Interventi dopo modifica/creazione/eliminazione
 - Scheda cliente: pagina `show` read-only separata da `edit`; tab Interventi con DataTables e filtri rapidi; badge numero interventi nella lista
-- `impianto_id` nullable (placeholder per v0.11.0; FK aggiunta subito per evitare ALTER futuri)
-- Tabella `interventi_materiali` creata; gestione materiali nell'edit intervento; tab Materiali nella scheda cliente rinviato a v0.8.1
+- `impianto_id` nullable (placeholder per v0.14.0; FK aggiunta subito per evitare ALTER futuri)
+- Tabella `interventi_materiali` creata; gestione materiali nell'edit intervento; tab Materiali nella scheda cliente rinviato a v0.10.0
 
-#### 🔲 v0.8.1 — Materiali (scheda cliente)
-- Tab Materiali nella scheda cliente: lista aggregata di tutti i materiali consegnati negli interventi
-- Raggruppamento per descrizione con totale quantità; link all'intervento di origine
-- Possibile filtro per periodo o per intervento
+#### ✅ v0.9.0 — Magazzino base
+- Tabella `categorie_articoli`: codice, nome, ordine — CRUD mini come tipi_intervento
+- Tabella `articoli`: codice, descrizione, categoria_id, costo (prezzo acquisto), vendita (listino aziendale), giacenza (nullable — gestione avanzata in v0.16.0), attivo
+- Categorie iniziali: Prodotti (cloro, sale, antialghe, acido…), Attrezzature (retini, test kit…), Apparecchiature (addolcitori…), Ricambi (futuro import da DB esterno)
+- `articolo_id` nullable aggiunto a `interventi_materiali`: selezione da catalogo nel form materiali; descrizione libera ancora possibile per articoli ad hoc
+- Selezione articolo nel form materiali: autocomplete/select per categoria + articolo, prezzo vendita auto-compilato
 
-#### 🔲 v0.8.2 — Abbonamenti
+#### 🔲 v0.10.0 — Tab Materiali scheda cliente
+- Tab Materiali nella scheda cliente: lista di tutti i materiali consegnati negli interventi del cliente
+- Colonne: data intervento, descrizione articolo, quantità, link all'intervento di origine
+- Ordinamento per data decrescente; possibile filtro per periodo
+
+#### 🔲 v0.11.0 — Abbonamenti
 - Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo
 - Il sistema crea automaticamente una riga in `abbonamenti` e la collega all'intervento via `abbonamenti_interventi`
 - Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
@@ -251,46 +258,47 @@ graph TD
 - `prezzo` = totale abbonamento, non per visita
 - Spec dettagliata in `docs/abbonamenti_spec.md`
 
-#### 🔲 v0.9.0 — Calendario
+#### 🔲 v0.12.0 — Calendario
 - Integrazione FullCalendar (licenza open-source)
 - Visualizzazione interventi per tecnico e per giorno/settimana/mese
-- Creazione e modifica intervento direttamente dal calendario
+- Creazione e modifica intervento direttamente dal calendario (con orario)
 - Evidenziazione per stato e per tecnico (colore da `personale.colore`)
 
-#### 🔲 v0.10.0 — Viaggi
+#### 🔲 v0.13.0 — Viaggi
 - Vista giornaliera per tecnico: elenco interventi ordinato per ora
 - Accesso rapido a scheda cliente e scheda intervento
 - Inserimento materiali consegnati e note a chiusura intervento
 - Aggiornamento stato intervento dal campo (mobile-friendly)
 
-#### 🔲 v0.11.0 — Anagrafica impianti
+#### 🔲 v0.14.0 — Anagrafica impianti
 - Tabella `impianti`: tipo (piscina, addolcitore, acquedotto, trattamento acqua, altro), marca, modello, note
 - Tabella `clienti_impianti`: FK cliente + FK impianto + indirizzo specifico dell'impianto se diverso dal cliente
 - Collegamento impianto agli interventi (popola `impianto_id` lasciato nullable dalla v0.8.0)
 - Scheda cliente: nuovo tab **Impianti**
 
-#### 🔲 v0.12.0 — Richieste di intervento
+#### 🔲 v0.15.0 — Richieste di intervento
 - Tabella `richieste`: cliente, tipo, descrizione, priorità, stato, tecnico suggerito
 - Flusso: richiesta → approvazione → conversione in intervento pianificato
-- Badge notifica in sidebar per richieste in attesa (come nel vecchio progetto)
+- Badge notifica in sidebar per richieste in attesa
 
-#### 🔲 v0.13.0 — Magazzino
-- Tabella `prodotti`: codice, descrizione, categoria (chimici / ricambi piscine / ricambi trattamento), unità misura, giacenza, soglia minima
+#### 🔲 v0.16.0 — Magazzino avanzato
+- Gestione giacenza: movimenti di carico/scarico con tabella `movimenti_magazzino`
 - Scarico automatico giacenza quando si inseriscono materiali su un intervento
-- Alert sottoscorta
+- Soglia minima per articolo; alert sottoscorta in dashboard
+- Import ricambi da DB esterno (integrazione con sistema esistente)
 
-#### 🔲 v0.14.0 — Preventivi
+#### 🔲 v0.17.0 — Preventivi
 - Tabella `preventivi`: cliente, data, stato (bozza/inviato/accettato/rifiutato), totale
-- Righe preventivo: descrizione, quantità, prezzo unitario
+- Righe preventivo: articolo da catalogo o descrizione libera, quantità, prezzo unitario
 - Conversione preventivo accettato → intervento/abbonamento
 
-#### 🔲 v0.15.0 — Dashboard e report
+#### 🔲 v0.18.0 — Dashboard e report
 - Dashboard riepilogativa: interventi oggi, settimana, tecnici in campo, richieste aperte, abbonamenti in scadenza
 - Presenze/assenze tecnici
 - Report PDF: interventi per cliente, materiali consegnati, abbonamenti attivi
 - Statistiche: interventi per tipo/periodo, km percorsi, prodotti consumati
 
-#### 🔲 v0.16.0 — Release
+#### 🔲 v0.19.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
 - Deploy su Nginx (dominio colombini-snc.it)

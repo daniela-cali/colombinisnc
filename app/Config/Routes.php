@@ -28,6 +28,13 @@ $routes->group('impostazioni', function ($routes) {
         $routes->post('(:num)/delete', 'Impostazioni\TipiInterventoController::delete/$1');
     });
 
+    $routes->group('categorie-articoli', function ($routes) {
+        $routes->get('/',              'Impostazioni\CategorieArticoliController::index');
+        $routes->post('store',         'Impostazioni\CategorieArticoliController::store');
+        $routes->post('(:num)/update', 'Impostazioni\CategorieArticoliController::update/$1');
+        $routes->post('(:num)/delete', 'Impostazioni\CategorieArticoliController::delete/$1');
+    });
+
     $routes->group('utenti-app', function ($routes) {
         $routes->get('/',               'Impostazioni\UtentiController::utentiApp');
         $routes->get('nuovo',           'Impostazioni\UtentiController::creaUtenteApp');
@@ -75,6 +82,18 @@ $routes->group('operativo', function ($routes) {
     $routes->group('materiali', function ($routes) {
         $routes->post('store',         'Operativo\MaterialiController::store');
         $routes->post('(:num)/delete', 'Operativo\MaterialiController::delete/$1');
+    });
+});
+
+// Magazzino
+$routes->group('magazzino', function ($routes) {
+    $routes->group('articoli', function ($routes) {
+        $routes->get('/',              'Magazzino\ArticoliController::index');
+        $routes->get('nuovo',          'Magazzino\ArticoliController::nuovo');
+        $routes->post('store',         'Magazzino\ArticoliController::store');
+        $routes->get('(:num)/edit',    'Magazzino\ArticoliController::edit/$1');
+        $routes->post('(:num)/update', 'Magazzino\ArticoliController::update/$1');
+        $routes->post('(:num)/delete', 'Magazzino\ArticoliController::delete/$1');
     });
 });
 

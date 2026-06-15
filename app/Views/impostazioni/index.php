@@ -76,6 +76,20 @@
         </a>
     </div>
 
+    <div class="col-md-4 mb-4">
+        <a href="<?= base_url('impostazioni/categorie-articoli') ?>" class="text-decoration-none">
+            <div class="card card-outline card-primary h-100 settings-card">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                    <i class="bi bi-tags settings-icon"></i>
+                    <h5 class="card-title mt-3">Categorie Articoli</h5>
+                    <p class="text-muted small mb-0">
+                        Raggruppamenti del catalogo (Prodotti, Attrezzature, Apparecchiature, Ricambi…).
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
     <div class="col-12 mt-3 mb-2">
         <p class="text-muted section-header">
             <i class="bi bi-people me-1"></i> Utenti

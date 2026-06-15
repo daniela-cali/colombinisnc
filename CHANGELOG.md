@@ -1,5 +1,23 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.9.0] - 2026-06-15
+
+### Magazzino base
+
+- [APP] Categorie articoli: CRUD mini in Impostazioni (lista + form inline + modal modifica), ordine configurabile con suggerimento automatico del prossimo numero
+- [APP] Articoli: CRUD completo (codice obbligatorio, descrizione, categoria, unità di misura, costo acquisto, prezzo vendita, giacenza, attivo)
+- [APP] Codice e descrizione articolo salvati sempre in maiuscolo
+- [APP] Giacenza mostrata come intero nell'elenco (il DB mantiene DECIMAL per usi futuri)
+- [APP] Voce "Articoli" aggiunta alla sidebar nella sezione Magazzino
+- [APP] Card "Categorie Articoli" aggiunta alla pagina Impostazioni
+- [DEV] Migrazione `categorie_articoli`: id, nome, ordine, created_by, updated_by, timestamp
+- [DEV] Migrazione `articoli`: id, codice, descrizione, categoria_id (FK nullable), unità di misura, costo, vendita, giacenza, attivo, created_by, updated_by, timestamp
+- [DEV] Migrazione `AddArticoloIdToInterventiMateriali`: `articolo_id` nullable con FK verso `articoli` (base per v0.10.0)
+- [DEV] `CategorieArticoliModel`, `ArticoliModel`: callbacks `normalizza()`, metodi `tutteOrdinate()`, `elencoAttivi()`, `elencoCompleto()`, `perCategoria()`
+- [DEV] `ArticoliController` (namespace `Magazzino`) e `CategorieArticoliController` (namespace `Impostazioni`) con sistema `from` completo
+- [DEV] Eliminazione articolo bloccata se usato in `interventi_materiali`; eliminazione categoria bloccata se ha articoli collegati
+- [DEV] CLAUDE.md: aggiunta sezione "Sistema di ritorno from" con flusso completo e pattern anti-open-redirect
+
 ## [0.8.0] - 2026-06-15
 
 ### Interventi

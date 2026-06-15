@@ -50,6 +50,31 @@ Se il diff delle modifiche smette di apparire nell'IDE VSCode:
 2. Eseguire `Ctrl+Shift+P` → **Developer: Reload Window** per ricaricare l'estensione
 3. Se non basta, aprire una nuova sessione di Claude Code
 
+## Sistema di ritorno "from"
+Quando un form (edit o nuovo) può essere aperto da contesti diversi (lista, scheda cliente, ecc.), si usa il parametro `from` per tornare alla pagina di origine dopo salvataggio o eliminazione.
+
+**Flusso:**
+1. Il link di apertura passa `?from=URL%23anchor` come query string (GET).
+2. Il controller legge `$this->request->getGet('from')` e lo passa alla view.
+3. La view lo inserisce come `<input type="hidden" name="from" value="...">` in **ogni form** della pagina (update, delete, e form principale del nuovo). L'input va dopo `csrf_field()`, condizionato a `if ($from)`.
+4. Il bottone Annulla usa `$from ?: base_url('sezione/default')`.
+5. Il controller dopo store/update/delete legge `$this->request->getPost('from')` e valida:
+   ```php
+   $from = $this->request->getPost('from');
+   $dest = ($from && str_starts_with($from, base_url())) ? $from : 'fallback/url';
+   return redirect()->to($dest)->with('success', '...');
+   ```
+   Il controllo `str_starts_with($from, base_url())` impedisce open redirect su domini esterni.
+
+**Tab Bootstrap al ritorno:** se il `from` contiene un hash (`#pane-interventi`), il browser scrollerà all'anchor. Per attivare anche il tab Bootstrap aggiungere nella view di destinazione:
+```js
+const hash = location.hash;
+if (hash) {
+    const trigger = document.querySelector('[data-bs-target="' + hash + '"]');
+    if (trigger) bootstrap.Tab.getOrCreateInstance(trigger).show();
+}
+```
+
 ## Controller CRUD — dati da request
 Le normalizzazioni dei dati (casting, null per stringhe vuote, uppercase, default) appartengono al **model**, non al controller. Usare i callback CI4 `$beforeInsert` / `$beforeUpdate` con un metodo `normalizza()`.
 
