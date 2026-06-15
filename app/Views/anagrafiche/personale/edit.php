@@ -10,13 +10,15 @@
  * @var \CodeIgniter\Shield\Entities\User|null $user
  */
 $this->extend('layouts/admin');
+$nomeCognome = $persona['cognome'] . ' ' . $persona['nome'];
 ?>
-<?= $this->section('title') ?>Modifica Dipendente<?= $this->endSection() ?>
+<?= $this->section('title') ?>Modifica — <?= esc($nomeCognome) ?><?= $this->endSection() ?>
 
 <?= $this->section('breadcrumb') ?>
 <ol class="breadcrumb float-sm-end">
     <li class="breadcrumb-item"><a href="<?= base_url('/') ?>">Home</a></li>
     <li class="breadcrumb-item"><a href="<?= base_url('anagrafiche/personale') ?>">Personale</a></li>
+    <li class="breadcrumb-item"><a href="<?= base_url('anagrafiche/personale/' . $persona['id']) ?>"><?= esc($nomeCognome) ?></a></li>
     <li class="breadcrumb-item active">Modifica</li>
 </ol>
 <?= $this->endSection() ?>
@@ -38,9 +40,25 @@ $this->extend('layouts/admin');
         <div class="card card-outline card-primary">
             <div class="card-header">
                 <h3 class="card-title mb-0">
-                    <i class="bi bi-person-gear me-2"></i>
-                    <?= esc($persona['cognome'] . ' ' . $persona['nome']) ?>
+                    <i class="bi bi-pencil me-2"></i>Modifica — <?= esc($nomeCognome) ?>
                 </h3>
+                <div class="card-tools d-flex gap-2">
+                    <a href="<?= base_url('anagrafiche/personale/' . $persona['id']) ?>"
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i>Annulla
+                    </a>
+                    <form action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/delete') ?>"
+                          method="post" class="d-inline"
+                          onsubmit="return confirm('Eliminare definitivamente questo dipendente e il suo account?')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash me-1"></i>Elimina
+                        </button>
+                    </form>
+                    <button type="submit" form="form-update" class="btn btn-sm btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Salva
+                    </button>
+                </div>
             </div>
             <form id="form-update" action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/update') ?>" method="post">
                 <?= csrf_field() ?>
@@ -135,24 +153,6 @@ $this->extend('layouts/admin');
 
                 </div>
             </form>
-            <div class="card-footer d-flex justify-content-between">
-                <div class="d-flex gap-2">
-                    <a href="<?= base_url('anagrafiche/personale') ?>" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>Annulla
-                    </a>
-                    <form action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/delete') ?>"
-                        method="post" class="d-inline"
-                        onsubmit="return confirm('Eliminare definitivamente questo dipendente e il suo account?')">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i>Elimina
-                        </button>
-                    </form>
-                </div>
-                <button type="submit" form="form-update" class="btn btn-primary ms-auto">
-                    <i class="bi bi-check-lg me-1"></i>Salva
-                </button>
-            </div>
         </div>
 
     </div>

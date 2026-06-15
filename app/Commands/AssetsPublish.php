@@ -45,6 +45,9 @@ class AssetsPublish extends BaseCommand
             ['label' => 'DataTables JS',         'src' => 'node_modules/datatables.net/js',           'dest' => 'datatables',            'pattern' => 'dataTables.min.js'],
             ['label' => 'DataTables BS5 JS',     'src' => 'node_modules/datatables.net-bs5/js',       'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.js'],
             ['label' => 'DataTables BS5 CSS',    'src' => 'node_modules/datatables.net-bs5/css',      'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.css'],
+
+            ['label' => 'Font Awesome CSS',      'src' => 'node_modules/@fortawesome/fontawesome-free/css',      'dest' => 'fontawesome',          'pattern' => 'all.min.css'],
+            ['label' => 'Font Awesome webfonts', 'src' => 'node_modules/@fortawesome/fontawesome-free/webfonts', 'dest' => 'webfonts',            'pattern' => '*.woff2'],
         ];
 
         CLI::write('Pubblicazione assets frontend...', 'yellow');

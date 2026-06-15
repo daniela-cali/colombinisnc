@@ -22,6 +22,7 @@
     <link rel="stylesheet" href="<?= base_url('assets/vendor/overlayscrollbars/overlayscrollbars.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/adminlte/adminlte.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('assets/vendor/fontawesome/all.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('css/custom.css') ?>">
     <?= $this->renderSection('styles') ?>
 </head>
@@ -109,6 +110,14 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                         <a href="<?= base_url('anagrafiche/clienti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/clienti') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-person-lines-fill"></i>
                             <p>Clienti</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-header">Operativo</li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('operativo/interventi') ?>" class="nav-link <?= str_starts_with(uri_string(), 'operativo/interventi') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-tools"></i>
+                            <p>Interventi</p>
                         </a>
                     </li>
 

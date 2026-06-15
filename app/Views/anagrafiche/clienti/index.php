@@ -41,6 +41,7 @@ $this->extend('layouts/admin');
                                 <tr>
                                     <th>Codice</th>
                                     <th>Denominazione</th>
+                                    <th class="text-center">Interventi</th>
                                     <th>Tipo</th>
                                     <th>Città</th>
                                     <th class="text-center">Zona</th>
@@ -60,10 +61,21 @@ $this->extend('layouts/admin');
                                             <?php endif ?>
                                         </td>
                                         <td>
-                                            <a href="<?= base_url('anagrafiche/clienti/' . $c['id'] . '/edit') ?>"
+                                            <a href="<?= base_url('anagrafiche/clienti/' . $c['id']) ?>"
                                                class="text-body fw-semibold text-decoration-none">
                                                 <?= esc($c['denominazione']) ?>
                                             </a>
+                                        </td>
+                                        <td class="text-center" data-order="<?= $c['num_interventi'] ?>">
+                                            <?php
+                                            $n = (int) $c['num_interventi'];
+                                            $colore = $n < 5 ? 'success' : ($n <= 10 ? 'warning text-dark' : 'danger');
+                                            ?>
+                                            <?php if ($n > 0): ?>
+                                                <span class="badge bg-<?= $colore ?>"><?= $n ?></span>
+                                            <?php else: ?>
+                                                <span class="text-muted small">—</span>
+                                            <?php endif ?>
                                         </td>
                                         <td class="text-center text-muted">
                                             <?php if ($c['tipo'] === 'societa'): ?>

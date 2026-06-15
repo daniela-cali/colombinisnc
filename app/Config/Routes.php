@@ -21,6 +21,13 @@ $routes->group('impostazioni', function ($routes) {
     $routes->post('parametri',       'Impostazioni\GeneraleController::salvaParametri');
     $routes->post('parametri/logo',  'Impostazioni\GeneraleController::cambiaLogo');
 
+    $routes->group('tipi-intervento', function ($routes) {
+        $routes->get('/',              'Impostazioni\TipiInterventoController::index');
+        $routes->post('store',         'Impostazioni\TipiInterventoController::store');
+        $routes->post('(:num)/update', 'Impostazioni\TipiInterventoController::update/$1');
+        $routes->post('(:num)/delete', 'Impostazioni\TipiInterventoController::delete/$1');
+    });
+
     $routes->group('utenti-app', function ($routes) {
         $routes->get('/',               'Impostazioni\UtentiController::utentiApp');
         $routes->get('nuovo',           'Impostazioni\UtentiController::creaUtenteApp');
@@ -37,6 +44,7 @@ $routes->group('anagrafiche', function ($routes) {
         $routes->get('/',              'Anagrafiche\PersonaleController::index');
         $routes->get('nuovo',          'Anagrafiche\PersonaleController::nuovo');
         $routes->post('store',         'Anagrafiche\PersonaleController::store');
+        $routes->get('(:num)',         'Anagrafiche\PersonaleController::show/$1');
         $routes->get('(:num)/edit',    'Anagrafiche\PersonaleController::edit/$1');
         $routes->post('(:num)/update', 'Anagrafiche\PersonaleController::update/$1');
         $routes->post('(:num)/delete', 'Anagrafiche\PersonaleController::delete/$1');
@@ -46,9 +54,27 @@ $routes->group('anagrafiche', function ($routes) {
         $routes->get('/',              'Anagrafiche\ClientiController::index');
         $routes->get('nuovo',          'Anagrafiche\ClientiController::nuovo');
         $routes->post('store',         'Anagrafiche\ClientiController::store');
+        $routes->get('(:num)',         'Anagrafiche\ClientiController::show/$1');
         $routes->get('(:num)/edit',    'Anagrafiche\ClientiController::edit/$1');
         $routes->post('(:num)/update', 'Anagrafiche\ClientiController::update/$1');
         $routes->post('(:num)/delete', 'Anagrafiche\ClientiController::delete/$1');
+    });
+});
+
+// Operativo (interventi, futuri: cantieri, ecc.)
+$routes->group('operativo', function ($routes) {
+    $routes->group('interventi', function ($routes) {
+        $routes->get('/',              'Operativo\InterventiController::index');
+        $routes->get('nuovo',          'Operativo\InterventiController::nuovo');
+        $routes->post('store',         'Operativo\InterventiController::store');
+        $routes->get('(:num)/edit',    'Operativo\InterventiController::edit/$1');
+        $routes->post('(:num)/update', 'Operativo\InterventiController::update/$1');
+        $routes->post('(:num)/delete', 'Operativo\InterventiController::delete/$1');
+    });
+
+    $routes->group('materiali', function ($routes) {
+        $routes->post('store',         'Operativo\MaterialiController::store');
+        $routes->post('(:num)/delete', 'Operativo\MaterialiController::delete/$1');
     });
 });
 

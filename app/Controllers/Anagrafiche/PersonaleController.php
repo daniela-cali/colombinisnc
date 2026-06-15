@@ -18,7 +18,7 @@ class PersonaleController extends BaseController
 
     // Scorciatoie colore nel picker profilo (S=75%, L=73% per coerenza con lo slider)
     private const PASTELLI = [
-        '#ee8686', '#eeab86', '#d4a574', '#eec886', '#eee586',
+        '#d73a49', '#ee8686', '#eeab86', '#d4a574', '#eec886', '#eee586',
         '#cfee86', '#98ee86', '#86eebf', 
         '#86e5ee', '#86b5ee', '#9386ee', '#d986ee', '#ee86b5',
     ];
@@ -30,6 +30,28 @@ class PersonaleController extends BaseController
     {
         return view('anagrafiche/personale/index', [
             'personale' => (new PersonaleModel())->elencoCompleto(),
+        ]);
+    }
+
+    /**
+     * Scheda dipendente in sola lettura: anagrafica, account e gruppi.
+     */
+    public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        $persona = (new PersonaleModel())->find($id);
+
+        if (! $persona) {
+            return redirect()->to('anagrafiche/personale')->with('error', 'Dipendente non trovato.');
+        }
+
+        $user  = $persona['user_id'] ? (new UserModel())->findById($persona['user_id']) : null;
+        $email = $user?->getEmailIdentity()?->secret ?? '';
+
+        return view('anagrafiche/personale/show', [
+            'persona' => $persona,
+            'user'    => $user,
+            'email'   => $email,
+            'gruppi'  => $this->gruppi,
         ]);
     }
 

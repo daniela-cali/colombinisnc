@@ -274,3 +274,13 @@
     max-width: 160px;
     object-fit: contain;
 }
+
+/* --- Icona picker --------------------------------------- */
+.icona-picker-field {
+    background: #fff !important;
+    color: #212529 !important;
+    cursor: pointer;
+}
+
+/* --- Utilità testo ------------------------------------- */
+.text-preline { white-space: pre-line; }

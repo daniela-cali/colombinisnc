@@ -6,17 +6,6 @@ use App\Controllers\BaseController;
 
 class GeneraleController extends BaseController
 {
-    // Tipi intervento con le relative chiavi usate in settings (Interventi.durata_*)
-    // Da sostituire con TipoInterventoModel quando arriverà la v0.7.0
-    private const TIPI = [
-        'sale'        => 'Consegna Sale',
-        'filtri'      => 'Cambio Filtri',
-        'piscine'     => 'Piscine',
-        'addolcitori' => 'Addolcitori',
-        'acquedotti'  => 'Acquedotti',
-        'commerciale' => 'Richiesta Commerciale',
-    ];
-
     /**
      * Mostra il form delle impostazioni generali (dati azienda, orari, logo).
      */
@@ -55,13 +44,11 @@ class GeneraleController extends BaseController
     }
 
     /**
-     * Form parametri generali: dati sede, orari aziendali e durate interventi.
+     * Form parametri generali: dati sede e orari aziendali.
      */
     public function parametri(): string
     {
-        return view('impostazioni/parametri', [
-            'tipi' => self::TIPI,
-        ]);
+        return view('impostazioni/parametri');
     }
 
     /**
@@ -84,11 +71,6 @@ class GeneraleController extends BaseController
 
         foreach (['orario_inizio', 'orario_fine', 'pausa_inizio', 'pausa_fine'] as $key) {
             setting()->set('Azienda.' . $key, $post[$key] ?? null);
-        }
-
-        foreach (array_keys(self::TIPI) as $codice) {
-            $val = $post['durata_' . $codice] ?? null;
-            setting()->set('Interventi.durata_' . $codice, ($val !== null && $val !== '') ? (int) $val : null);
         }
 
         return redirect()->to('impostazioni/parametri')->with('success', 'Impostazioni salvate.');

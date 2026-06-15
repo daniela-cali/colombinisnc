@@ -1,7 +1,4 @@
 <?php
-/**
- * @var array $tipi  [codice => nome] dei tipi di intervento
- */
 $this->extend('layouts/admin');
 ?>
 <?= $this->section('title') ?>Parametri Generali<?= $this->endSection() ?>
@@ -17,10 +14,10 @@ $this->extend('layouts/admin');
 <?= $this->section('content') ?>
 <form id="form-parametri" method="post" action="<?= base_url('impostazioni/parametri') ?>">
     <?= csrf_field() ?>
-    <div class="d-flex gap-4 align-items-start">
+    <div class="row g-4 align-items-start">
 
-        <!-- Colonna sinistra: sede + orari -->
-        <div class="flex-fill d-flex flex-column gap-4">
+        <!-- Colonna sinistra: sede -->
+        <div class="col d-flex flex-column gap-4">
             <div class="card card-outline card-primary">
                 <div class="card-header">
                     <h3 class="card-title mb-0"><i class="bi bi-building me-2"></i>Sede aziendale</h3>
@@ -120,6 +117,11 @@ $this->extend('layouts/admin');
                 </div>
             </div>
 
+        </div><!-- /colonna sinistra -->
+
+        <!-- Colonna destra: orari + zone -->
+        <div class="col d-flex flex-column gap-4">
+
             <!-- Orari aziendali -->
             <div class="card card-outline card-primary">
                 <div class="card-header">
@@ -151,10 +153,7 @@ $this->extend('layouts/admin');
                     </div>
                 </div>
             </div>
-        </div><!-- /colonna sinistra -->
 
-        <!-- Colonna destra: zone + durate -->
-        <div class="flex-fill d-flex flex-column gap-4">
             <div class="card card-outline card-primary">
                 <div class="card-header">
                     <h3 class="card-title mb-0"><i class="bi bi-signpost-split me-2"></i>Zone geografiche clienti</h3>
@@ -201,32 +200,6 @@ $this->extend('layouts/admin');
                 </div>
             </div>
 
-            <!-- Durate standard interventi -->
-            <div class="card card-outline card-primary">
-                <div class="card-header">
-                    <h3 class="card-title mb-0"><i class="bi bi-stopwatch me-2"></i>Durata standard interventi</h3>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted small mb-3">Minuti stimati per tipo di intervento, usati nella pianificazione.</p>
-                    <?php foreach ($tipi as $codice => $nome): ?>
-                        <?php $minuti = (int)(setting('Interventi.durata_' . $codice) ?? 0); ?>
-                        <div class="row align-items-center mb-2">
-                            <label class="col-6 col-form-label"><?= esc($nome) ?></label>
-                            <div class="col-4">
-                                <div class="input-group input-group-sm">
-                                    <input type="number" name="durata_<?= esc($codice) ?>" class="form-control durata-input"
-                                           min="5" max="480" step="5"
-                                           value="<?= $minuti ?: '' ?>">
-                                    <span class="input-group-text">min</span>
-                                </div>
-                            </div>
-                            <div class="col-2 text-muted small durata-display">
-                                <?= $minuti ? floor($minuti / 60) . 'h ' . sprintf('%02d', $minuti % 60) . "'" : '' ?>
-                            </div>
-                        </div>
-                    <?php endforeach ?>
-                </div>
-            </div>
         </div>
 
     </div>
@@ -249,16 +222,4 @@ $this->extend('layouts/admin');
 
 <?= $this->section('scripts') ?>
 <script src="<?= base_url('js/geocoding.js') ?>"></script>
-<script>
-(function () {
-    // Aggiorna visualizzazione ore/min in tempo reale
-    document.querySelectorAll('.durata-input').forEach(function (input) {
-        input.addEventListener('input', function () {
-            var m       = parseInt(this.value) || 0;
-            var display = this.closest('.row').querySelector('.durata-display');
-            display.textContent = m ? Math.floor(m / 60) + 'h ' + String(m % 60).padStart(2, '0') + "'" : '';
-        });
-    });
-})();
-</script>
 <?= $this->endSection() ?>

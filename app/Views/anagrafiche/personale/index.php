@@ -48,8 +48,11 @@
                                                       style="background-color:<?= esc($p['colore']) ?>">
                                                 </span>
                                             <?php endif ?>
-                                            <strong><?= esc($p['cognome']) ?></strong>
-                                            <?= esc($p['nome']) ?>
+                                            <a href="<?= base_url('anagrafiche/personale/' . $p['id']) ?>"
+                                               class="text-body text-decoration-none">
+                                                <strong><?= esc($p['cognome']) ?></strong>
+                                                <?= esc($p['nome']) ?>
+                                            </a>
                                         </td>
                                         <td class="text-muted"><?= esc($p['telefono'] ?? '—') ?></td>
                                         <td class="text-muted small"><?= esc($p['username'] ?? '—') ?></td>

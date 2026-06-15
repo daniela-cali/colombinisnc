@@ -4,6 +4,7 @@ namespace App\Controllers\Anagrafiche;
 
 use App\Controllers\BaseController;
 use App\Models\ClientiModel;
+use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
 
 class ClientiController extends BaseController
@@ -15,6 +16,25 @@ class ClientiController extends BaseController
     {
         return view('anagrafiche/clienti/index', [
             'clienti' => (new ClientiModel())->elencoCompleto(),
+        ]);
+    }
+
+    /**
+     * Scheda cliente in sola lettura: tab Anagrafica, Interventi, Materiali.
+     */
+    public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        $cliente = (new ClientiModel())->find($id);
+
+        if (! $cliente) {
+            return redirect()->to('anagrafiche/clienti')->with('error', 'Cliente non trovato.');
+        }
+
+        return view('anagrafiche/clienti/show', [
+            'cliente'     => $cliente,
+            'interventi'  => (new InterventiModel())->perCliente($id),
+            'generiLabel' => InterventiModel::GENERI_LABEL,
+            'statiLabel'  => InterventiModel::STATI_LABEL,
         ]);
     }
 

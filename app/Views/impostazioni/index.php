@@ -58,6 +58,26 @@
 
     <div class="col-12 mt-3 mb-2">
         <p class="text-muted section-header">
+            <i class="bi bi-tools me-1"></i> Operativo
+        </p>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <a href="<?= base_url('impostazioni/tipi-intervento') ?>" class="text-decoration-none">
+            <div class="card card-outline card-primary h-100 settings-card">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                    <i class="bi bi-list-check settings-icon"></i>
+                    <h5 class="card-title mt-3">Tipi Intervento</h5>
+                    <p class="text-muted small mb-0">
+                        Categorie di lavoro (piscine, filtri, addolcitori…) con durata standard.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-12 mt-3 mb-2">
+        <p class="text-muted section-header">
             <i class="bi bi-people me-1"></i> Utenti
         </p>
     </div>

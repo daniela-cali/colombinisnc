@@ -1,5 +1,26 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.8.0] - 2026-06-15
+
+### Interventi
+
+- [APP] CRUD interventi: lista, creazione e modifica con cliente, tecnico, genere, tipo, stato, data pianificata, data scadenza, durata stimata, urgenza, note
+- [APP] Generi intervento: `programmato`, `normale`, `sopralluogo`, `commerciale`
+- [APP] Tipi intervento configurabili: entità separata (`tipi_intervento`) con nome, icona FontAwesome e durata default — select nel form, durata auto-compilata al cambio selezione
+- [APP] Stati intervento: `da_pianificare` (default), `pianificato`, `in_corso`, `completato`, `annullato`
+- [APP] Materiali consegnati: aggiunta e rimozione materiali dalla scheda modifica intervento
+- [APP] Creazione intervento da scheda cliente con cliente pre-selezionato; dopo salvataggio ritorno automatico al tab Interventi
+- [APP] Scheda cliente — tab Interventi: DataTables con filtri rapidi (Aperti / Completati / Annullati / Tutti), badge urgenza, link diretto all'intervento
+- [APP] Lista clienti: badge colorato con numero interventi associati (verde <5 · giallo 5–10 · rosso >10)
+- [APP] Scheda cliente e personale: pagina `show` read-only separata da `edit`; azioni (Annulla · Elimina · Salva) nell'header della card
+- [APP] Data pianificata: solo data nei form manuali; orario visibile nell'elenco per interventi pianificati da calendario (v0.9.0)
+- [DEV] Migrazioni: `tipi_intervento`, `interventi`, `interventi_materiali`; `impianto_id` nullable come FK placeholder per v0.11.0
+- [DEV] `InterventiModel`: costanti `GENERI_LABEL` / `STATI_LABEL`, metodi `elencoCompleto()`, `perCliente()`, `generaCodice()`
+- [DEV] `TipiInterventoModel`, `InterventiMaterialiModel`: nuovi model con metodi dedicati
+- [DEV] `InterventiController` in sottocartella `Operativo/`; rotte raggruppate in `$routes->group('interventi')`
+- [DEV] `ClientiModel::elencoCompleto()`: subquery `num_interventi` per il badge lista
+- [DEV] Sistema `from`: parametro GET/POST che porta il redirect post-azione all'URL di origine con fragment anchor; JS in scheda cliente attiva il tab corrispondente all'hash
+
 ## [0.7.0] - 2026-06-14
 
 ### Anagrafica clienti

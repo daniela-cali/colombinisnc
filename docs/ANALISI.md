@@ -224,18 +224,32 @@ graph TD
 - jQuery + DataTables via npm; sezione `styles` nel layout per CSS page-specific; tooltip Bootstrap inizializzati globalmente
 - Guida di pagina per la sezione clienti rinviata a milestone futura
 
-#### 🔲 v0.8.0 — Interventi e abbonamenti
-- CRUD interventi: cliente, tecnico assegnato, data pianificata, durata stimata, tipo, stato, note
-- Tipi intervento: `programmato`, `urgente`, `normale`, `sopralluogo`, `commerciale` (costanti nel model)
-- Stati intervento: `pianificato`, `confermato`, `in_corso`, `completato`, `annullato` (costanti nel model)
-- Creazione da scheda cliente (link diretto, nessun modal — form completo pre-compilato)
+#### ✅ v0.8.0 — Interventi
+- CRUD interventi: cliente, tecnico assegnato, genere, tipo intervento (entità separata con icona e durata default), stato, data pianificata, data scadenza, durata stimata, urgenza, note
+- Generi intervento: `programmato`, `normale`, `sopralluogo`, `commerciale` (costanti nel model)
+- Stati intervento: `da_pianificare` (default), `pianificato`, `in_corso`, `completato`, `annullato` (costanti nel model)
+- `urgenza`: flag booleano (0/1) indipendente dal genere — qualsiasi intervento può essere marcato urgente
+- `data_scadenza`: entro quando deve essere eseguito (distinta da `data_pianificata`); data pianificata senza orario — l'orario verrà impostato dal calendario (v0.9.0)
+- `durata_stimata` in minuti, nullable — preleva il default dal tipo intervento selezionato
+- Creazione da scheda cliente (link diretto, pre-compilato); sistema `from` per ritorno al tab Interventi dopo modifica/creazione/eliminazione
+- Scheda cliente: pagina `show` read-only separata da `edit`; tab Interventi con DataTables e filtri rapidi; badge numero interventi nella lista
 - `impianto_id` nullable (placeholder per v0.11.0; FK aggiunta subito per evitare ALTER futuri)
-- **Abbonamenti** (vedi `docs/abbonamenti_spec.md`): se tipo = `programmato`, al salvataggio si apre una modal che raccoglie data inizio/fine, frequenza e prezzo; il sistema crea silenziosamente una riga in `abbonamenti` e la collega all'intervento via `abbonamenti_interventi`
-  - Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
-  - Stati abbonamento: attivo, sospeso, scaduto
-  - `durata_mesi` calcolata automaticamente nel model; `abbonamento_precedente_id` per catena storica (CTE ricorsiva MySQL 8+)
-  - `prezzo` = totale abbonamento, non per visita
-- Materiali consegnati: tabella `interventi_materiali` (intervento_id, descrizione, quantità); visibili nella scheda cliente tab Materiali
+- Tabella `interventi_materiali` creata; gestione materiali nell'edit intervento; tab Materiali nella scheda cliente rinviato a v0.8.1
+
+#### 🔲 v0.8.1 — Materiali (scheda cliente)
+- Tab Materiali nella scheda cliente: lista aggregata di tutti i materiali consegnati negli interventi
+- Raggruppamento per descrizione con totale quantità; link all'intervento di origine
+- Possibile filtro per periodo o per intervento
+
+#### 🔲 v0.8.2 — Abbonamenti
+- Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo
+- Il sistema crea automaticamente una riga in `abbonamenti` e la collega all'intervento via `abbonamenti_interventi`
+- Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
+- Stati abbonamento: `attivo`, `sospeso`, `scaduto`, `disdetto` (costanti nel model)
+- `durata_mesi` calcolata automaticamente nel model
+- `abbonamento_precedente_id` per catena storica (navigabile con CTE ricorsiva MySQL 8+)
+- `prezzo` = totale abbonamento, non per visita
+- Spec dettagliata in `docs/abbonamenti_spec.md`
 
 #### 🔲 v0.9.0 — Calendario
 - Integrazione FullCalendar (licenza open-source)
@@ -252,7 +266,7 @@ graph TD
 #### 🔲 v0.11.0 — Anagrafica impianti
 - Tabella `impianti`: tipo (piscina, addolcitore, acquedotto, trattamento acqua, altro), marca, modello, note
 - Tabella `clienti_impianti`: FK cliente + FK impianto + indirizzo specifico dell'impianto se diverso dal cliente
-- Collegamento impianto agli interventi (popola `impianto_id` lasciato nullable in v0.8.0)
+- Collegamento impianto agli interventi (popola `impianto_id` lasciato nullable dalla v0.8.0)
 - Scheda cliente: nuovo tab **Impianti**
 
 #### 🔲 v0.12.0 — Richieste di intervento
