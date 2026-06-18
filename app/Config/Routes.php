@@ -74,6 +74,7 @@ $routes->group('operativo', function ($routes) {
         $routes->get('/',              'Operativo\InterventiController::index');
         $routes->get('nuovo',          'Operativo\InterventiController::nuovo');
         $routes->post('store',         'Operativo\InterventiController::store');
+        $routes->get('(:num)',         'Operativo\InterventiController::show/$1');
         $routes->get('(:num)/edit',    'Operativo\InterventiController::edit/$1');
         $routes->post('(:num)/update', 'Operativo\InterventiController::update/$1');
         $routes->post('(:num)/delete', 'Operativo\InterventiController::delete/$1');

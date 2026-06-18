@@ -284,3 +284,38 @@
 
 /* --- Utilità testo ------------------------------------- */
 .text-preline { white-space: pre-line; }
+
+/* --- Tom Select: adattamento dark mode via variabili Bootstrap --- */
+.ts-control,
+.ts-wrapper.single .ts-control,
+.ts-control input {
+    background-color: var(--bs-body-bg)  !important;
+    color:            var(--bs-body-color) !important;
+    border-color:     var(--bs-border-color) !important;
+}
+
+.ts-dropdown {
+    background-color: var(--bs-body-bg)  !important;
+    color:            var(--bs-body-color) !important;
+    border-color:     var(--bs-border-color) !important;
+}
+
+.ts-dropdown .option {
+    color: var(--bs-body-color) !important;
+}
+
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
+    background-color: var(--bs-primary) !important;
+    color: #fff !important;
+}
+
+.ts-dropdown .optgroup-header {
+    background-color: var(--bs-secondary-bg) !important;
+    color:            var(--bs-secondary-color) !important;
+    font-size:        .7rem;
+    font-weight:      700;
+    letter-spacing:   .08em;
+    text-transform:   uppercase;
+    padding:          .4rem .75rem;
+}

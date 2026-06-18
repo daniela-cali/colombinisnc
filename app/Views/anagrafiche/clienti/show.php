@@ -2,7 +2,8 @@
 /**
  * @var array $cliente     Record clienti con tutti i campi
  * @var array $interventi  Righe da InterventiModel::perCliente()
- * @var array $generiLabel Map genere → label leggibile
+ * @var array $materiali   Righe da InterventiMaterialiModel::perCliente()
+ * @var array $prioritaLabel Map priorita → label leggibile
  * @var array $statiLabel  Map stato  → label leggibile
  */
 $this->extend('layouts/admin');
@@ -33,6 +34,7 @@ $statoBadge = [
 
 <?= $this->section('styles') ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/rowGroup.bootstrap5.min.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -230,14 +232,19 @@ $statoBadge = [
                                 <tbody>
                                     <?php foreach ($interventi as $iv): ?>
                                         <tr>
-                                            <td><code class="text-muted small"><?= esc($iv['codice']) ?></code></td>
+                                            <td>
+                                                <a href="<?= base_url('operativo/interventi/' . $iv['id']) ?>"
+                                                   class="text-decoration-none">
+                                                    <code class="small"><?= esc($iv['codice']) ?></code>
+                                                </a>
+                                            </td>
                                             <td>
                                                 <?php if ($iv['tipo_intervento_icona']): ?>
                                                     <i class="fas <?= esc($iv['tipo_intervento_icona']) ?> me-1 text-muted"></i>
                                                 <?php endif ?>
                                                 <?= esc($iv['tipo_intervento_nome'] ?? '—') ?>
                                             </td>
-                                            <td class="text-muted small"><?= esc($generiLabel[$iv['genere']] ?? $iv['genere']) ?></td>
+                                            <td class="text-muted small"><?= esc($prioritaLabel[$iv['priorita']] ?? $iv['priorita']) ?></td>
                                             <td class="text-muted small"><?= esc($iv['tecnico_nome'] ?? '—') ?></td>
                                             <td data-order="<?= esc($iv['data_pianificata'] ?? '') ?>">
                                                 <?= $iv['data_pianificata'] ? esc(date('d/m/Y', strtotime($iv['data_pianificata']))) : '—' ?>
@@ -272,10 +279,43 @@ $statoBadge = [
 
                 <!-- TAB: Materiali (placeholder) -->
                 <div class="tab-pane fade" id="pane-materiali" role="tabpanel">
-                    <div class="card-body text-center py-5 text-muted">
-                        <i class="bi bi-box-seam" style="font-size:2.5rem"></i>
-                        <p class="mt-3 mb-0">Lo storico materiali sarà disponibile in una versione futura.</p>
-                    </div>
+                    <?php if (empty($materiali)): ?>
+                        <div class="card-body text-center py-5 text-muted">
+                            <i class="bi bi-box-seam fs-1"></i>
+                            <p class="mt-3 mb-0">Nessun materiale consegnato finora.</p>
+                        </div>
+                    <?php else: ?>
+                        <table id="tbl-materiali" class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th></th><!-- data ISO, hidden -->
+                                    <th></th><!-- gruppo label, hidden -->
+                                    <th></th><!-- intervento_id, hidden -->
+                                    <th>Articolo / Descrizione</th>
+                                    <th class="text-center" style="width:70px">Qtà</th>
+                                    <th class="text-center" style="width:110px">Stato</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($materiali as $m): ?>
+                                    <tr>
+                                        <td><?= esc($m['data_pianificata'] ?? '') ?></td>
+                                        <td><?= esc(($m['data_pianificata'] ? date('d/m/Y', strtotime($m['data_pianificata'])) : 'Da pianificare') . ' — ' . $m['codice_intervento']) ?></td>
+                                        <td><?= (int) $m['intervento_id_ref'] ?></td>
+                                        <td><?= esc($m['desc_materiale']) ?></td>
+                                        <td class="text-center"><?= (int) $m['quantita'] ?></td>
+                                        <td class="text-center">
+                                            <?php if ($m['stato'] === \App\Models\InterventiMaterialiModel::STATO_CONSEGNATO): ?>
+                                                <span class="badge bg-success">Consegnato</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">Da portare</span>
+                                            <?php endif ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    <?php endif ?>
                 </div>
 
             </div><!-- /tab-content -->
@@ -295,6 +335,8 @@ $statoBadge = [
 <script src="<?= base_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/datatables/dataTables.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/datatables/dataTables.rowGroup.min.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/datatables/rowGroup.bootstrap5.min.js') ?>"></script>
 <script>
 $(function () {
     var table = $('#tbl-interventi').DataTable({
@@ -340,6 +382,39 @@ $(function () {
     });
 
     setFiltro('aperti');
+
+    // Tab Materiali — DataTables con rowGroup per intervento
+    if (document.getElementById('tbl-materiali')) {
+        var urlIntervento = '<?= base_url('operativo/interventi/') ?>';
+        var tblMat = $('#tbl-materiali').DataTable({
+            order: [[0, 'desc']],
+            rowGroup: {
+                dataSrc: 1,
+                startRender: function (rows, group) {
+                    var id = rows.data()[0][2];
+                    return $('<tr/>').append(
+                        $('<td/>').attr('colspan', 3).html(
+                            '<strong>' + group + '</strong>'
+                            + ' <a href="' + urlIntervento + id + '" class="ms-2 text-muted small">'
+                            + '<i class="bi bi-arrow-right-circle"></i></a>'
+                        )
+                    );
+                }
+            },
+            columnDefs: [
+                { visible: false, targets: [0, 1, 2] },
+                { orderable: false, targets: '_all' }
+            ],
+            paging:    false,
+            searching: false,
+            info:      false,
+            language:  { emptyTable: 'Nessun materiale consegnato.' }
+        });
+
+        document.getElementById('tab-materiali').addEventListener('shown.bs.tab', function () {
+            tblMat.columns.adjust().draw(false);
+        });
+    }
 
     // Attiva il tab corrispondente all'anchor dell'URL (usato dal sistema ?from=)
     var hash = location.hash;

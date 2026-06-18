@@ -1,7 +1,7 @@
 <?php
 /**
  * @var array $interventi  Righe da InterventiModel::elencoCompleto()
- * @var array $generiLabel [codice => etichetta]
+ * @var array $prioritaLabel [codice => etichetta]
  * @var array $statiLabel  [codice => etichetta]
  */
 $this->extend('layouts/admin');
@@ -13,11 +13,10 @@ $statoBadge = [
     'completato'     => 'success',
     'annullato'      => 'danger',
 ];
-$tipoBadge = [
+$prioritaBadge = [
     'programmato' => 'primary',
     'normale'     => 'secondary',
-    'sopralluogo' => 'info text-dark',
-    'commerciale' => 'warning text-dark',
+    'urgente'     => 'danger',
 ];
 ?>
 <?= $this->section('title') ?>Interventi<?= $this->endSection() ?>
@@ -69,7 +68,12 @@ $tipoBadge = [
                             <tbody>
                                 <?php foreach ($interventi as $i): ?>
                                     <tr class="<?= $i['urgenza'] ? 'table-danger' : '' ?>">
-                                        <td class="text-muted small"><?= esc($i['codice']) ?></td>
+                                        <td>
+                                            <a href="<?= base_url('operativo/interventi/' . $i['id']) ?>"
+                                               class="text-decoration-none">
+                                                <code class="small"><?= esc($i['codice']) ?></code>
+                                            </a>
+                                        </td>
                                         <td>
                                             <a href="<?= base_url('anagrafiche/clienti/' . $i['cliente_id']) ?>"
                                                class="text-body text-decoration-none">
@@ -84,8 +88,8 @@ $tipoBadge = [
                                                 <span class="small"><?= esc($i['tipo_intervento_nome']) ?></span>
                                                 <br>
                                             <?php endif ?>
-                                            <span class="badge bg-<?= $tipoBadge[$i['genere']] ?? 'secondary' ?>">
-                                                <?= esc($generiLabel[$i['genere']] ?? $i['genere']) ?>
+                                            <span class="badge bg-<?= $prioritaBadge[$i['priorita']] ?? 'secondary' ?>">
+                                                <?= esc($prioritaLabel[$i['priorita']] ?? $i['priorita']) ?>
                                             </span>
                                         </td>
                                         <td>

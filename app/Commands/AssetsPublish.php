@@ -46,6 +46,13 @@ class AssetsPublish extends BaseCommand
             ['label' => 'DataTables BS5 JS',     'src' => 'node_modules/datatables.net-bs5/js',       'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.js'],
             ['label' => 'DataTables BS5 CSS',    'src' => 'node_modules/datatables.net-bs5/css',      'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.css'],
 
+            ['label' => 'Tom Select JS',              'src' => 'node_modules/tom-select/dist/js',          'dest' => 'tom-select',            'pattern' => 'tom-select.complete.min.js'],
+            ['label' => 'Tom Select CSS (BS5)',       'src' => 'node_modules/tom-select/dist/css',         'dest' => 'tom-select',            'pattern' => 'tom-select.bootstrap5.min.css'],
+
+            ['label' => 'DataTables RowGroup JS',     'src' => 'node_modules/datatables.net-rowgroup/js',        'dest' => 'datatables',            'pattern' => 'dataTables.rowGroup.min.js'],
+            ['label' => 'DataTables RowGroup BS5 JS',  'src' => 'node_modules/datatables.net-rowgroup-bs5/js',    'dest' => 'datatables',            'pattern' => 'rowGroup.bootstrap5.min.js'],
+            ['label' => 'DataTables RowGroup BS5 CSS', 'src' => 'node_modules/datatables.net-rowgroup-bs5/css',   'dest' => 'datatables',            'pattern' => 'rowGroup.bootstrap5.min.css'],
+
             ['label' => 'Font Awesome CSS',      'src' => 'node_modules/@fortawesome/fontawesome-free/css',      'dest' => 'fontawesome',          'pattern' => 'all.min.css'],
             ['label' => 'Font Awesome webfonts', 'src' => 'node_modules/@fortawesome/fontawesome-free/webfonts', 'dest' => 'webfonts',            'pattern' => '*.woff2'],
         ];

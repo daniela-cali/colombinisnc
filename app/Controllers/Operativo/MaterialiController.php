@@ -16,7 +16,8 @@ class MaterialiController extends BaseController
 
         if (! $this->validate([
             'intervento_id' => 'required|is_natural_no_zero',
-            'descrizione'   => 'required|max_length[255]',
+            'articolo_id'   => 'permit_empty|is_natural_no_zero',
+            'descrizione'   => 'permit_empty|required_without[articolo_id]|max_length[255]',
             'quantita'      => 'required|is_natural_no_zero',
             'note'          => 'permit_empty|max_length[255]',
         ])) {
@@ -24,10 +25,11 @@ class MaterialiController extends BaseController
         }
 
         $interventoId = (int) $this->request->getPost('intervento_id');
+        $from         = $this->request->getPost('from');
         $model->insert($this->request->getPost());
 
-        return redirect()->to('operativo/interventi/' . $interventoId . '/edit')
-            ->with('success', 'Materiale aggiunto.');
+        $editUrl = 'operativo/interventi/' . $interventoId . '/edit' . ($from ? '?from=' . urlencode($from) : '');
+        return redirect()->to($editUrl)->with('success', 'Materiale aggiunto.');
     }
 
     /**
@@ -43,9 +45,10 @@ class MaterialiController extends BaseController
         }
 
         $interventoId = $materiale['intervento_id'];
+        $from         = $this->request->getPost('from');
         $model->delete($id);
 
-        return redirect()->to('operativo/interventi/' . $interventoId . '/edit')
-            ->with('success', 'Materiale eliminato.');
+        $editUrl = 'operativo/interventi/' . $interventoId . '/edit' . ($from ? '?from=' . urlencode($from) : '');
+        return redirect()->to($editUrl)->with('success', 'Materiale eliminato.');
     }
 }

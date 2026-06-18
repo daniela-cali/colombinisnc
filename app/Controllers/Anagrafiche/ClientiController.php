@@ -4,6 +4,7 @@ namespace App\Controllers\Anagrafiche;
 
 use App\Controllers\BaseController;
 use App\Models\ClientiModel;
+use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
 
@@ -33,7 +34,8 @@ class ClientiController extends BaseController
         return view('anagrafiche/clienti/show', [
             'cliente'     => $cliente,
             'interventi'  => (new InterventiModel())->perCliente($id),
-            'generiLabel' => InterventiModel::GENERI_LABEL,
+            'materiali'   => (new InterventiMaterialiModel())->perCliente($id),
+            'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
             'statiLabel'  => InterventiModel::STATI_LABEL,
         ]);
     }

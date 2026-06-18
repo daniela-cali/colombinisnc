@@ -1,5 +1,22 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.10.0] - 2026-06-18
+
+### Materiali interventi e scheda cliente
+
+- [APP] Campo priorità negli interventi: `programmato`, `normale`, `urgente` (sostituisce il vecchio campo genere)
+- [APP] Stato materiale: `da portare` (default) / `consegnato` — visibile nella scheda intervento e nella scheda cliente
+- [APP] Selezione materiali con Tom Select: autocomplete da catalogo articoli + testo libero in campo unico
+- [APP] Form nuovo intervento: aggiunta materiali direttamente in fase di creazione, prima del salvataggio
+- [APP] Form edit intervento: materiali inline sotto il form (eliminata la tab separata)
+- [APP] Pagina show intervento: vista read-only con dati, materiali, note materiale e stato
+- [APP] Scheda cliente — tab Materiali: elenco materiali raggruppati per intervento (DataTables rowGroup), con stato e link alla show intervento
+- [DEV] `genere` rinominato `priorita` nella tabella `interventi`; migrazione con rimappatura `sopralluogo`/`commerciale` → `normale`
+- [DEV] Migrazione `AddStatoToInterventiMateriali`: colonna `stato VARCHAR(20) DEFAULT 'da_portare'`
+- [DEV] `InterventiMaterialiModel`: campo `articolo_id` nullificato se stringa vuota (fix FK constraint); costanti `STATO_DA_PORTARE`/`STATO_CONSEGNATO`; metodi `perIntervento()` e `perCliente()` con JOIN articoli e COALESCE descrizione
+- [DEV] `MaterialiController`: `from` propagato nei redirect dopo store/delete per mantenere il contesto di navigazione
+- [DEV] Tom Select dark mode: fix colore testo nell'input mentre si digita
+
 ## [0.9.0] - 2026-06-15
 
 ### Magazzino base

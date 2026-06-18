@@ -243,10 +243,17 @@ graph TD
 - `articolo_id` nullable aggiunto a `interventi_materiali`: selezione da catalogo nel form materiali; descrizione libera ancora possibile per articoli ad hoc
 - Selezione articolo nel form materiali: autocomplete/select per categoria + articolo, prezzo vendita auto-compilato
 
-#### 🔲 v0.10.0 — Tab Materiali scheda cliente
-- Tab Materiali nella scheda cliente: lista di tutti i materiali consegnati negli interventi del cliente
-- Colonne: data intervento, descrizione articolo, quantità, link all'intervento di origine
-- Ordinamento per data decrescente; possibile filtro per periodo
+#### ✅ v0.10.0 — Materiali interventi e scheda cliente
+- `genere` rinominato `priorità` con valori `programmato`, `normale`, `urgente` (rimossi `sopralluogo` e `commerciale`); migrazione con rimappatura valori esistenti
+- Campo `stato` aggiunto a `interventi_materiali` (`da_portare` / `consegnato`); default `da_portare` all'inserimento
+- Tom Select per selezione materiali: autocomplete da catalogo + testo libero in unico campo; `createOnBlur: true` per conferma senza premere Invio
+- Scheda read-only intervento (`show`): dati + materiali con note e stato; link dal codice in index e scheda cliente
+- Form edit intervento: tab materiali eliminata, sezione materiali inline scrollabile sotto il form
+- Form nuovo intervento: sezione materiali con lista JS client-side (aggiungi/rimuovi prima del salvataggio); tutto inviato in una POST
+- Tab Materiali nella scheda cliente: rowGroup per intervento, badge stato, link alla show intervento
+- Sistema `from` esteso attraverso `MaterialiController`: `from` preservato nei redirect aggiunta/eliminazione materiale
+- Contatore "Da portare" per intervento nella scheda cliente
+- Appunti tecnici (da implementare in milestone futura): doppio click sulle righe DataTables, bottone × nell'header delle card, tabelle responsive
 
 #### 🔲 v0.11.0 — Abbonamenti
 - Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo

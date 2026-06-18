@@ -13,7 +13,7 @@ class InterventiModel extends Model
 
     protected $allowedFields = [
         'codice', 'cliente_id', 'tecnico_id',
-        'genere', 'stato', 'tipo_intervento_id',
+        'priorita', 'stato', 'tipo_intervento_id',
         'data_pianificata', 'data_scadenza', 'durata_stimata', 'urgenza',
         'impianto_id', 'note',
         'created_by', 'updated_by',
@@ -22,17 +22,15 @@ class InterventiModel extends Model
     protected $beforeInsert = ['normalizza'];
     protected $beforeUpdate = ['normalizza'];
 
-    // valori del campo `genere` (natura dell'intervento, distinto dal tipo di lavoro)
-    const GENERE_PROGRAMMATO  = 'programmato';
-    const GENERE_NORMALE      = 'normale';
-    const GENERE_SOPRALLUOGO  = 'sopralluogo';
-    const GENERE_COMMERCIALE  = 'commerciale';
+    // valori: programmato, normale, urgente
+    const PRIORITA_PROGRAMMATO = 'programmato';
+    const PRIORITA_NORMALE     = 'normale';
+    const PRIORITA_URGENTE     = 'urgente';
 
-    const GENERI_LABEL = [
+    const PRIORITA_LABEL = [
         'programmato' => 'Programmato',
         'normale'     => 'Normale',
-        'sopralluogo' => 'Sopralluogo',
-        'commerciale' => 'Commerciale',
+        'urgente'     => 'Urgente',
     ];
 
     // valori: da_pianificare, pianificato, in_corso, completato, annullato
@@ -100,7 +98,12 @@ class InterventiModel extends Model
      */
     public function perCliente(int $clienteId): array
     {
-        return $this->select('interventi.*, ti.nome AS tipo_intervento_nome, ti.icona AS tipo_intervento_icona, TRIM(CONCAT_WS(\' \', p.cognome, p.nome)) AS tecnico_nome')
+        return $this->select("interventi.*,
+                ti.nome AS tipo_intervento_nome,
+                ti.icona AS tipo_intervento_icona,
+                TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome,
+                (SELECT COUNT(*) FROM interventi_materiali im
+                 WHERE im.intervento_id = interventi.id AND im.stato = 'da_portare') AS num_da_portare")
             ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
             ->join('personale p',        'p.id = interventi.tecnico_id',          'left')
             ->where('interventi.cliente_id', $clienteId)

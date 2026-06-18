@@ -3,6 +3,7 @@
 namespace App\Controllers\Operativo;
 
 use App\Controllers\BaseController;
+use App\Models\ArticoliModel;
 use App\Models\ClientiModel;
 use App\Models\InterventiModel;
 use App\Models\InterventiMaterialiModel;
@@ -17,9 +18,9 @@ class InterventiController extends BaseController
     public function index(): string
     {
         return view('operativo/interventi/index', [
-            'interventi'  => (new InterventiModel())->elencoCompleto(),
-            'generiLabel' => InterventiModel::GENERI_LABEL,
-            'statiLabel'  => InterventiModel::STATI_LABEL,
+            'interventi'   => (new InterventiModel())->elencoCompleto(),
+            'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
+            'statiLabel'   => InterventiModel::STATI_LABEL,
         ]);
     }
 
@@ -30,13 +31,14 @@ class InterventiController extends BaseController
     public function nuovo(): string
     {
         return view('operativo/interventi/nuovo', [
-            'clienti'     => (new ClientiModel())->elencoCompleto(),
-            'tecnici'     => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
-            'tipi'        => (new TipiInterventoModel())->attivi(),
-            'generiLabel' => InterventiModel::GENERI_LABEL,
-            'statiLabel'  => InterventiModel::STATI_LABEL,
-            'cliente_id'  => (int) $this->request->getGet('cliente_id'),
-            'from'        => $this->request->getGet('from') ?? '',
+            'clienti'       => (new ClientiModel())->elencoCompleto(),
+            'tecnici'       => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
+            'tipi'          => (new TipiInterventoModel())->attivi(),
+            'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
+            'statiLabel'    => InterventiModel::STATI_LABEL,
+            'articoliPerCat' => (new ArticoliModel())->perCategoria(),
+            'cliente_id'    => (int) $this->request->getGet('cliente_id'),
+            'from'          => $this->request->getGet('from') ?? '',
         ]);
     }
 
@@ -57,6 +59,17 @@ class InterventiController extends BaseController
         ]));
         $codice = $model->find($id)['codice'];
 
+        $materialiPost = $this->request->getPost('materiali') ?? [];
+        if ($materialiPost) {
+            $matModel = new InterventiMaterialiModel();
+            foreach ($materialiPost as $m) {
+                if (empty($m['articolo_id']) && empty($m['descrizione'])) {
+                    continue;
+                }
+                $matModel->insert(array_merge($m, ['intervento_id' => $id]));
+            }
+        }
+
         $from = $this->request->getPost('from');
         $dest = ($from && str_starts_with($from, base_url())) ? $from : 'operativo/interventi';
 
@@ -65,6 +78,35 @@ class InterventiController extends BaseController
 
     /**
      * Form modifica intervento con materiali consegnati.
+     */
+    /**
+     * Scheda read-only di un intervento.
+     */
+    public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        $intervento = (new InterventiModel())->find($id);
+
+        if (! $intervento) {
+            return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
+        }
+
+        $cliente  = (new ClientiModel())->find($intervento['cliente_id']);
+        $tecnico  = $intervento['tecnico_id'] ? (new PersonaleModel())->find($intervento['tecnico_id']) : null;
+        $tipo     = $intervento['tipo_intervento_id'] ? (new TipiInterventoModel())->find($intervento['tipo_intervento_id']) : null;
+
+        return view('operativo/interventi/show', [
+            'intervento'   => $intervento,
+            'cliente'      => $cliente,
+            'tecnico'      => $tecnico,
+            'tipo'         => $tipo,
+            'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
+            'statiLabel'   => InterventiModel::STATI_LABEL,
+            'materiali'    => (new InterventiMaterialiModel())->perIntervento($id),
+        ]);
+    }
+
+    /**
+     * Form modifica intervento.
      */
     public function edit(int $id): string|\CodeIgniter\HTTP\RedirectResponse
     {
@@ -77,14 +119,15 @@ class InterventiController extends BaseController
         $cliente = (new ClientiModel())->find($intervento['cliente_id']);
 
         return view('operativo/interventi/edit', [
-            'intervento'  => $intervento,
-            'cliente'     => $cliente,
-            'tecnici'     => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
-            'tipi'        => (new TipiInterventoModel())->attivi(),
-            'generiLabel' => InterventiModel::GENERI_LABEL,
-            'statiLabel'  => InterventiModel::STATI_LABEL,
-            'materiali'   => (new InterventiMaterialiModel())->perIntervento($id),
-            'from'        => $this->request->getGet('from') ?? '',
+            'intervento'    => $intervento,
+            'cliente'       => $cliente,
+            'tecnici'       => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
+            'tipi'          => (new TipiInterventoModel())->attivi(),
+            'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
+            'statiLabel'    => InterventiModel::STATI_LABEL,
+            'materiali'     => (new InterventiMaterialiModel())->perIntervento($id),
+            'articoliPerCat' => (new ArticoliModel())->perCategoria(),
+            'from'          => $this->request->getGet('from') ?? '',
         ]);
     }
 
@@ -154,12 +197,12 @@ class InterventiController extends BaseController
      */
     private function regolaValidazione(): array
     {
-        $generiAmmessi = implode(',', array_keys(InterventiModel::GENERI_LABEL));
-        $statiAmmessi  = implode(',', array_keys(InterventiModel::STATI_LABEL));
+        $prioritaAmmesse = implode(',', array_keys(InterventiModel::PRIORITA_LABEL));
+        $statiAmmessi    = implode(',', array_keys(InterventiModel::STATI_LABEL));
 
         return [
             'cliente_id'         => 'required|is_natural_no_zero',
-            'genere'             => 'required|in_list[' . $generiAmmessi . ']',
+            'priorita'           => 'required|in_list[' . $prioritaAmmesse . ']',
             'stato'              => 'required|in_list[' . $statiAmmessi . ']',
             'tipo_intervento_id' => 'permit_empty|is_natural_no_zero',
             'data_pianificata'   => 'permit_empty|valid_date[Y-m-d]',
