@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.11.0] - 2026-06-18
+
+### Materiali sospesi
+
+- [APP] Scheda cliente — tab Materiali: sezione "Materiali da portare" con elenco sospesi (descrizione, quantità, note) e pulsante elimina
+- [APP] Mini-form aggiunta rapida materiale sospeso nella scheda cliente: Tom Select (articolo da catalogo o testo libero), quantità, note
+- [APP] Tom Select materiali: testo digitato forzato in maiuscolo mentre si scrive (CSS `text-transform`) e al salvataggio item libero
+- [DEV] Migrazione `AddClienteIdToInterventiMateriali`: colonna `cliente_id` NOT NULL con FK CASCADE su `interventi_materiali`; `intervento_id` reso nullable (NULL = materiale sospeso, non ancora legato a un intervento)
+- [DEV] `InterventiMaterialiModel`: `cliente_id` in `allowedFields`; nuovo metodo `sospesiPerCliente()`; `perCliente()` filtra su `intervento_id IS NOT NULL`; `normalizza()` usa `empty()` per nullificare `intervento_id`, `articolo_id` e `note`
+- [DEV] `MaterialiController`: redirect differenziato dopo store/delete — se c'è `intervento_id` torna all'edit intervento, altrimenti alla scheda cliente `#pane-materiali`
+- [DEV] `ClientiController::show()`: aggiunge `sospesi` e `articoliPerCat` alla view
+- [DEV] `docs/schema.html`: schema DB completo creato (tutte le tabelle, relazioni, log modifiche per versione)
+
 ## [0.10.0] - 2026-06-18
 
 ### Materiali interventi e scheda cliente

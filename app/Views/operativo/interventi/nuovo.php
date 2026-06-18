@@ -222,7 +222,11 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
     var materiali = [];
 
     var ts = new TomSelect('#sel-materiale', {
-        create: true,
+        wrapperClass: 'ts-wrapper ts-upper',
+        create: function (input) {
+            var v = input.trim().toUpperCase();
+            return { value: v, text: v };
+        },
         createOnBlur: true,
         placeholder: 'Cerca articolo o digita descrizione libera…',
         allowEmptyOption: true,

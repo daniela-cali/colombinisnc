@@ -12,7 +12,7 @@ class InterventiMaterialiModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'intervento_id', 'articolo_id', 'descrizione', 'quantita', 'note', 'stato',
+        'cliente_id', 'intervento_id', 'articolo_id', 'descrizione', 'quantita', 'note', 'stato',
         'created_by', 'updated_by',
     ];
 
@@ -43,8 +43,8 @@ class InterventiMaterialiModel extends Model
         }
         $data['data']['updated_by'] = $userId;
 
-        foreach (['articolo_id', 'note'] as $campo) {
-            if (isset($data['data'][$campo]) && $data['data'][$campo] === '') {
+        foreach (['intervento_id', 'articolo_id', 'note'] as $campo) {
+            if (array_key_exists($campo, $data['data']) && empty($data['data'][$campo])) {
                 $data['data'][$campo] = null;
             }
         }
@@ -67,8 +67,7 @@ class InterventiMaterialiModel extends Model
     }
 
     /**
-     * Restituisce tutti i materiali consegnati negli interventi di un cliente,
-     * con descrizione articolo da catalogo (fallback su testo libero) e dati intervento.
+     * Materiali con intervento associato per un cliente (usati nel rowGroup della scheda cliente).
      */
     public function perCliente(int $clienteId): array
     {
@@ -84,8 +83,25 @@ class InterventiMaterialiModel extends Model
             ])
             ->join('interventi i', 'i.id = interventi_materiali.intervento_id')
             ->join('articoli a', 'a.id = interventi_materiali.articolo_id', 'left')
-            ->where('i.cliente_id', $clienteId)
+            ->where('interventi_materiali.cliente_id', $clienteId)
+            ->where('interventi_materiali.intervento_id IS NOT NULL', null, false)
             ->orderBy('i.data_pianificata', 'DESC')
+            ->orderBy('interventi_materiali.id', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Materiali sospesi di un cliente: da portare ma non ancora legati a un intervento.
+     */
+    public function sospesiPerCliente(int $clienteId): array
+    {
+        return $this->select([
+                'interventi_materiali.*',
+                'COALESCE(a.descrizione, interventi_materiali.descrizione) AS desc_materiale',
+            ])
+            ->join('articoli a', 'a.id = interventi_materiali.articolo_id', 'left')
+            ->where('interventi_materiali.cliente_id', $clienteId)
+            ->where('interventi_materiali.intervento_id IS NULL', null, false)
             ->orderBy('interventi_materiali.id', 'ASC')
             ->findAll();
     }

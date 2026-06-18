@@ -255,7 +255,19 @@ graph TD
 - Contatore "Da portare" per intervento nella scheda cliente
 - Appunti tecnici (da implementare in milestone futura): doppio click sulle righe DataTables, bottone × nell'header delle card, tabelle responsive
 
-#### 🔲 v0.11.0 — Abbonamenti
+#### ✅ v0.11.0 — Materiali sospesi
+- Un materiale può essere legato al **cliente** senza ancora un intervento, come promemoria "da portare al prossimo giro"
+- `interventi_materiali`: `intervento_id` diventa nullable; si aggiunge `cliente_id` (sempre valorizzato)
+- Eliminazione intervento: cascade delete sui materiali (hard delete — la cancellazione è sempre un errore, non un "rimanda"; il caso "rimanda" si gestisce tenendo l'intervento con stato `da_pianificare`)
+- Scheda cliente — tab Materiali: sezione "Materiali da portare" con elenco sospesi + mini-form aggiunta rapida; i materiali con intervento restano nel rowGroup sottostante
+- ⏳ Non implementato: collegamento dei materiali sospesi a un nuovo intervento dal form di creazione
+
+#### 🔲 v0.11.1 — Dashboard scheda cliente
+- Redesign scheda cliente: da tab a layout verticale scrollabile a sezioni
+- Struttura proposta: Anagrafica → Materiali da portare (con aggiungi rapido) → Interventi (con filtri)
+- Obiettivo: vista operativa completa in una sola pagina, pensata per l'uso durante una telefonata del cliente
+
+#### 🔲 v0.12.0 — Abbonamenti
 - Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo
 - Il sistema crea automaticamente una riga in `abbonamenti` e la collega all'intervento via `abbonamenti_interventi`
 - Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
@@ -265,7 +277,7 @@ graph TD
 - `prezzo` = totale abbonamento, non per visita
 - Spec dettagliata in `docs/abbonamenti_spec.md`
 
-#### 🔲 v0.12.0 — Calendario
+#### 🔲 v0.13.0 — Calendario
 - Integrazione FullCalendar (licenza open-source)
 - Visualizzazione interventi per tecnico e per giorno/settimana/mese
 - Creazione e modifica intervento direttamente dal calendario (con orario)

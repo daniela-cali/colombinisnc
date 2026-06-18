@@ -3,6 +3,7 @@
 namespace App\Controllers\Anagrafiche;
 
 use App\Controllers\BaseController;
+use App\Models\ArticoliModel;
 use App\Models\ClientiModel;
 use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
@@ -31,12 +32,16 @@ class ClientiController extends BaseController
             return redirect()->to('anagrafiche/clienti')->with('error', 'Cliente non trovato.');
         }
 
+        $matModel = new InterventiMaterialiModel();
+
         return view('anagrafiche/clienti/show', [
-            'cliente'     => $cliente,
-            'interventi'  => (new InterventiModel())->perCliente($id),
-            'materiali'   => (new InterventiMaterialiModel())->perCliente($id),
-            'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
-            'statiLabel'  => InterventiModel::STATI_LABEL,
+            'cliente'        => $cliente,
+            'interventi'     => (new InterventiModel())->perCliente($id),
+            'materiali'      => $matModel->perCliente($id),
+            'sospesi'        => $matModel->sospesiPerCliente($id),
+            'articoliPerCat' => (new ArticoliModel())->perCategoria(),
+            'prioritaLabel'  => InterventiModel::PRIORITA_LABEL,
+            'statiLabel'     => InterventiModel::STATI_LABEL,
         ]);
     }
 

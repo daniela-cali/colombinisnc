@@ -285,6 +285,11 @@
 /* --- Utilità testo ------------------------------------- */
 .text-preline { white-space: pre-line; }
 
+/* --- Tom Select: testo uppercase (usato per descrizioni articoli) --- */
+.ts-upper .ts-control input {
+    text-transform: uppercase;
+}
+
 /* --- Tom Select: adattamento dark mode via variabili Bootstrap --- */
 .ts-control,
 .ts-wrapper.single .ts-control,

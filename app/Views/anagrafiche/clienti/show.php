@@ -1,10 +1,12 @@
 <?php
 /**
- * @var array $cliente     Record clienti con tutti i campi
- * @var array $interventi  Righe da InterventiModel::perCliente()
- * @var array $materiali   Righe da InterventiMaterialiModel::perCliente()
- * @var array $prioritaLabel Map priorita → label leggibile
- * @var array $statiLabel  Map stato  → label leggibile
+ * @var array $cliente        Record clienti con tutti i campi
+ * @var array $interventi     Righe da InterventiModel::perCliente()
+ * @var array $materiali      Righe da InterventiMaterialiModel::perCliente()
+ * @var array $sospesi        Righe da InterventiMaterialiModel::sospesiPerCliente()
+ * @var array $articoliPerCat Da ArticoliModel::perCategoria()
+ * @var array $prioritaLabel  Map priorita → label leggibile
+ * @var array $statiLabel     Map stato  → label leggibile
  */
 $this->extend('layouts/admin');
 $denom = \App\Models\ClientiModel::denominazione($cliente);
@@ -35,6 +37,7 @@ $statoBadge = [
 <?= $this->section('styles') ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
 <link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/rowGroup.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -279,10 +282,91 @@ $statoBadge = [
 
                 <!-- TAB: Materiali (placeholder) -->
                 <div class="tab-pane fade" id="pane-materiali" role="tabpanel">
+
+                    <!-- Materiali sospesi (non ancora legati a un intervento) -->
+                    <div class="card-body border-bottom pb-4">
+                        <p class="text-muted section-header mb-3">
+                            <i class="bi bi-box-seam me-1"></i> Materiali da portare
+                            <?php if (! empty($sospesi)): ?>
+                                <span class="badge bg-warning text-dark ms-1"><?= count($sospesi) ?></span>
+                            <?php endif ?>
+                        </p>
+
+                        <?php if (! empty($sospesi)): ?>
+                            <table class="table table-sm align-middle mb-4">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Articolo / Descrizione</th>
+                                        <th class="text-center" style="width:60px">Qtà</th>
+                                        <th>Note</th>
+                                        <th style="width:40px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($sospesi as $s): ?>
+                                        <tr>
+                                            <td><?= esc($s['desc_materiale']) ?></td>
+                                            <td class="text-center"><?= (int) $s['quantita'] ?></td>
+                                            <td class="text-muted small"><?= esc($s['note'] ?? '') ?></td>
+                                            <td>
+                                                <form action="<?= base_url('operativo/materiali/' . $s['id'] . '/delete') ?>"
+                                                      method="post" class="d-inline"
+                                                      onsubmit="return confirm('Eliminare questo materiale?')">
+                                                    <?= csrf_field() ?>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach ?>
+                                </tbody>
+                            </table>
+                        <?php else: ?>
+                            <p class="text-muted small mb-3">Nessun materiale in attesa.</p>
+                        <?php endif ?>
+
+                        <!-- Mini-form aggiunta sospeso -->
+                        <form action="<?= base_url('operativo/materiali/store') ?>" method="post" id="form-sospeso">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="cliente_id" value="<?= $cliente['id'] ?>">
+                            <input type="hidden" name="articolo_id" id="hs-articolo-id">
+                            <input type="hidden" name="descrizione"  id="hs-descrizione">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label small">Articolo / Descrizione <span class="text-danger">*</span></label>
+                                    <select id="sel-sospeso" placeholder="Cerca articolo o digita descrizione libera…">
+                                        <option value=""></option>
+                                        <?php foreach ($articoliPerCat as $cat): ?>
+                                            <optgroup label="<?= esc($cat['nome']) ?>">
+                                                <?php foreach ($cat['articoli'] as $a): ?>
+                                                    <option value="<?= $a['id'] ?>"><?= esc($a['descrizione']) ?></option>
+                                                <?php endforeach ?>
+                                            </optgroup>
+                                        <?php endforeach ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Qtà</label>
+                                    <input type="number" name="quantita" class="form-control form-control-sm" min="1" value="1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small">Note</label>
+                                    <input type="text" name="note" class="form-control form-control-sm" maxlength="255">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="bi bi-plus-lg me-1"></i>Aggiungi
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Storico materiali per intervento (rowGroup) -->
                     <?php if (empty($materiali)): ?>
-                        <div class="card-body text-center py-5 text-muted">
-                            <i class="bi bi-box-seam fs-1"></i>
-                            <p class="mt-3 mb-0">Nessun materiale consegnato finora.</p>
+                        <div class="card-body text-center py-4 text-muted">
+                            <p class="mb-0 small">Nessun materiale ancora associato a un intervento.</p>
                         </div>
                     <?php else: ?>
                         <table id="tbl-materiali" class="table table-hover align-middle mb-0">
@@ -332,12 +416,40 @@ $statoBadge = [
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
+<script src="<?= base_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/datatables/dataTables.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/datatables/dataTables.rowGroup.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/datatables/rowGroup.bootstrap5.min.js') ?>"></script>
 <script>
+// Tom Select — form materiali sospesi
+(function () {
+    var ts = new TomSelect('#sel-sospeso', {
+        wrapperClass: 'ts-wrapper ts-upper',
+        create: function (input) {
+            var v = input.trim().toUpperCase();
+            return { value: v, text: v };
+        },
+        createOnBlur: true,
+        placeholder: 'Cerca articolo o digita descrizione libera…',
+        allowEmptyOption: true,
+        createFilter: function (input) { return input.trim().length > 0; }
+    });
+
+    document.getElementById('form-sospeso').addEventListener('submit', function (e) {
+        var val = ts.getValue();
+        if (! val) { e.preventDefault(); alert('Seleziona un articolo o digita una descrizione.'); return; }
+        if (/^\d+$/.test(val)) {
+            document.getElementById('hs-articolo-id').value = val;
+            document.getElementById('hs-descrizione').value  = '';
+        } else {
+            document.getElementById('hs-articolo-id').value = '';
+            document.getElementById('hs-descrizione').value  = val;
+        }
+    });
+})();
+
 $(function () {
     var table = $('#tbl-interventi').DataTable({
         pageLength: 15,

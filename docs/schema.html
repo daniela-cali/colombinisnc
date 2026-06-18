@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schema DB — Colombini SNC Gestionale</title>
+<style>
+  body { font-family: system-ui, sans-serif; font-size: 14px; color: #1a1a1a; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; border-bottom: 2px solid #1a6fa8; padding-bottom: .4rem; }
+  h2 { font-size: 1.05rem; margin: 2rem 0 .4rem; color: #1a6fa8; }
+  h3 { font-size: .85rem; font-variant: small-caps; letter-spacing: .06em; color: #666; margin: 1.5rem 0 .3rem; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+  th { background: #f0f6fc; text-align: left; padding: .35rem .6rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #555; border-bottom: 2px solid #c9dff0; }
+  td { padding: .3rem .6rem; border-bottom: 1px solid #e8e8e8; vertical-align: top; }
+  tr:hover td { background: #fafcff; }
+  code { font-size: .82rem; background: #f4f4f4; padding: .1rem .3rem; border-radius: 3px; }
+  .pk  { color: #b8860b; font-weight: 700; }
+  .fk  { color: #1a6fa8; }
+  .null { color: #999; font-style: italic; }
+  .badge { display: inline-block; font-size: .7rem; padding: .1rem .4rem; border-radius: 999px; }
+  .badge-pk  { background: #fff3cd; color: #856404; }
+  .badge-fk  { background: #cfe2ff; color: #084298; }
+  .badge-idx { background: #e8f5e9; color: #256029; }
+  .badge-uq  { background: #f3e8ff; color: #5a108f; }
+  .note { font-size: .8rem; color: #666; margin: .25rem 0 0; }
+  .changelog { font-size: .78rem; color: #888; }
+  .rel-table td { font-size: .82rem; }
+  .section-sep { border: none; border-top: 1px solid #e0e0e0; margin: 2rem 0; }
+  .toc { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: .75rem 1rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: .4rem .8rem; }
+  .toc a { color: #1a6fa8; text-decoration: none; font-size: .85rem; }
+  .toc a:hover { text-decoration: underline; }
+  .updated { font-size: .75rem; color: #aaa; float: right; }
+</style>
+</head>
+<body>
+
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.11.0 · 2026-06-18</span></h1>
+
+<div class="toc">
+  <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
+  <a href="#personale">personale</a>
+  <a href="#clienti">clienti</a>
+  <a href="#tipi_intervento">tipi_intervento</a>
+  <a href="#interventi">interventi</a>
+  <a href="#interventi_materiali">interventi_materiali</a>
+  <a href="#categorie_articoli">categorie_articoli</a>
+  <a href="#articoli">articoli</a>
+  <a href="#relazioni">Relazioni</a>
+  <a href="#log">Log modifiche DB</a>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ personale -->
+<h2 id="personale">personale</h2>
+<p class="note">Dipendenti dell'azienda. Collegati a un account Shield tramite <code>user_id</code>.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>user_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ users.id · ON DELETE SET NULL</td></tr>
+  <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>cognome</code></td><td>VARCHAR(100)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>telefono</code></td><td>VARCHAR(20)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>colore</code></td><td>VARCHAR(7)</td><td class="null">NULL</td><td></td><td>Hex #RRGGBB — colore profilo calendario</td></tr>
+  <tr><td><code>attivo</code></td><td>TINYINT</td><td></td><td>1</td><td>0 = disabilitato</td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ clienti -->
+<h2 id="clienti">clienti</h2>
+<p class="note">Anagrafica clienti: possono essere società o persone fisiche.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><code>id_external</code></td><td>INT</td><td class="null">NULL</td><td></td><td>Chiave primaria software contabile esterno</td></tr>
+  <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(15)</td><td></td><td></td><td>Formato INT-xxx per i nuovi, importato per i vecchi</td></tr>
+  <tr><td><code>codice_esterno</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td>Codice contabilità esterna</td></tr>
+  <tr><td><code>tipo</code></td><td>VARCHAR(20)</td><td></td><td>societa</td><td>Valori: <code>societa</code> · <code>persona_fisica</code></td></tr>
+  <tr><td><code>ragsoc</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Valorizzato se tipo = societa</td></tr>
+  <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td>Valorizzato se tipo = persona_fisica</td></tr>
+  <tr><td><code>cognome</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td>Valorizzato se tipo = persona_fisica</td></tr>
+  <tr><td><code>piva</code></td><td>VARCHAR(15)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>cfisc</code></td><td>VARCHAR(16)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>indirizzo</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>citta</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>cap</code></td><td>VARCHAR(10)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>provincia</code></td><td>VARCHAR(5)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>nazione</code></td><td>VARCHAR(50)</td><td></td><td>ITALIA</td><td></td></tr>
+  <tr><td><code>telefono</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>email</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>contatti</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Contatti liberi (testo)</td></tr>
+  <tr><td><code>zona</code></td><td>TINYINT</td><td class="null">NULL</td><td></td><td>-1 = ovest · 0 = limitrofe · 1 = est</td></tr>
+  <tr><td><code>distanza_sede</code></td><td>DECIMAL(6,2)</td><td class="null">NULL</td><td></td><td>Km in linea d'aria, calcolato via haversine</td></tr>
+  <tr><td><code>lat</code></td><td>DECIMAL(10,7)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>lng</code></td><td>DECIMAL(10,7)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>geocoded_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>geocodifica_fallita</code></td><td>TINYINT</td><td></td><td>0</td><td>1 = l'ultimo tentativo Nominatim ha fallito</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>tecnico_preferito_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ personale.id · ON DELETE SET NULL</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>user_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ users.id · ON DELETE SET NULL</td></tr>
+  <tr><td><code>dt_import</code></td><td>DATE</td><td class="null">NULL</td><td></td><td>Data importazione da software esterno</td></tr>
+  <tr><td><code>attivo</code></td><td>TINYINT</td><td></td><td>1</td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ tipi_intervento -->
+<h2 id="tipi_intervento">tipi_intervento</h2>
+<p class="note">Tipi di lavoro configurabili (filtri, piscine, addolcitori…). Gestiti in Impostazioni.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(50)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>icona</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td>Classe Bootstrap Icons</td></tr>
+  <tr><td><code>durata_default</code></td><td>INT UNSIGNED</td><td></td><td>60</td><td>Minuti — pre-compila il form intervento</td></tr>
+  <tr><td><code>attivo</code></td><td>TINYINT(1)</td><td></td><td>1</td><td></td></tr>
+  <tr><td><code>ordine</code></td><td>INT UNSIGNED</td><td></td><td>0</td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ interventi -->
+<h2 id="interventi">interventi</h2>
+<p class="note">Visite tecniche presso i clienti. Codice formato IV-NNNN generato automaticamente.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(20)</td><td></td><td></td><td>Formato IV-0001</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE RESTRICT</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>tecnico_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ personale.id · ON DELETE SET NULL</td></tr>
+  <tr><td><code>priorita</code></td><td>VARCHAR(30)</td><td></td><td>normale</td><td>Valori: <code>programmato</code> · <code>normale</code> · <code>urgente</code></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ tipi_intervento.id · ON DELETE SET NULL</td></tr>
+  <tr><td><code>stato</code></td><td>VARCHAR(30)</td><td></td><td>pianificato</td><td>Valori: <code>da_pianificare</code> · <code>pianificato</code> · <code>in_corso</code> · <code>completato</code> · <code>annullato</code></td></tr>
+  <tr><td><code>data_pianificata</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>data_scadenza</code></td><td>DATE</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>durata_stimata</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Minuti</td></tr>
+  <tr><td><code>urgenza</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>Flag indipendente dalla priorità</td></tr>
+  <tr><td><code>impianto_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Placeholder FK — non referenziata, riservata a versione futura</td></tr>
+  <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ interventi_materiali -->
+<h2 id="interventi_materiali">interventi_materiali</h2>
+<p class="note">
+  Materiali portati o da portare. <code>cliente_id</code> è sempre valorizzato.
+  <code>intervento_id</code> NULL = materiale <strong>sospeso</strong> (promemoria da portare al prossimo giro, non ancora legato a un intervento).
+</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE CASCADE · aggiunto v0.11.0</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>intervento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ interventi.id · ON DELETE CASCADE · nullable da v0.11.0</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>articolo_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ articoli.id · ON DELETE SET NULL; NULL = testo libero</td></tr>
+  <tr><td><code>descrizione</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Usato solo se articolo_id è NULL</td></tr>
+  <tr><td><code>quantita</code></td><td>INT UNSIGNED</td><td></td><td>1</td><td></td></tr>
+  <tr><td><code>note</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>stato</code></td><td>VARCHAR(20)</td><td></td><td>da_portare</td><td>Valori: <code>da_portare</code> · <code>consegnato</code></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ categorie_articoli -->
+<h2 id="categorie_articoli">categorie_articoli</h2>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>ordine</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ articoli -->
+<h2 id="articoli">articoli</h2>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><code>codice</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>descrizione</code></td><td>VARCHAR(255)</td><td></td><td></td><td>Salvata sempre in maiuscolo</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>categoria_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ categorie_articoli.id · ON DELETE SET NULL</td></tr>
+  <tr><td><code>unita_misura</code></td><td>VARCHAR(20)</td><td></td><td>pz</td><td>Valori: <code>pz</code> · <code>kg</code> · <code>lt</code> · <code>m2</code> · <code>m</code> · <code>conf</code></td></tr>
+  <tr><td><code>costo</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td></td><td>Prezzo acquisto</td></tr>
+  <tr><td><code>vendita</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td></td><td>Prezzo vendita</td></tr>
+  <tr><td><code>giacenza</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td>0</td><td>DECIMAL per usi futuri; mostrata come intero nell'UI</td></tr>
+  <tr><td><code>attivo</code></td><td>TINYINT(1)</td><td></td><td>1</td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<hr class="section-sep">
+
+<!-- ═══════════════════════════════════════════════════════ relazioni -->
+<h2 id="relazioni">Relazioni principali</h2>
+<table class="rel-table">
+  <tr><th>Tabella</th><th>Campo</th><th>Riferimento</th><th>ON DELETE</th></tr>
+  <tr><td>personale</td><td>user_id</td><td>users.id</td><td>SET NULL</td></tr>
+  <tr><td>clienti</td><td>user_id</td><td>users.id</td><td>SET NULL</td></tr>
+  <tr><td>clienti</td><td>tecnico_preferito_id</td><td>personale.id</td><td>SET NULL</td></tr>
+  <tr><td>interventi</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
+  <tr><td>interventi</td><td>tecnico_id</td><td>personale.id</td><td>SET NULL</td></tr>
+  <tr><td>interventi</td><td>tipo_intervento_id</td><td>tipi_intervento.id</td><td>SET NULL</td></tr>
+  <tr><td>interventi_materiali</td><td>cliente_id</td><td>clienti.id</td><td>CASCADE</td></tr>
+  <tr><td>interventi_materiali</td><td>intervento_id</td><td>interventi.id</td><td>CASCADE</td></tr>
+  <tr><td>interventi_materiali</td><td>articolo_id</td><td>articoli.id</td><td>SET NULL</td></tr>
+  <tr><td>articoli</td><td>categoria_id</td><td>categorie_articoli.id</td><td>SET NULL</td></tr>
+</table>
+
+<hr class="section-sep">
+
+<!-- ═══════════════════════════════════════════════════════ log -->
+<h2 id="log">Log modifiche DB</h2>
+<table>
+  <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.11.0</td>
+    <td><code>AddClienteIdToInterventiMateriali</code></td>
+    <td>
+      Aggiunta colonna <code>cliente_id NOT NULL FK → clienti.id CASCADE</code> su <code>interventi_materiali</code>.
+      Resa nullable la colonna <code>intervento_id</code>: NULL indica un materiale <em>sospeso</em> (non ancora legato a un intervento).
+      Popolata <code>cliente_id</code> retroattivamente via JOIN su <code>interventi</code>.
+    </td>
+  </tr>
+  <tr>
+    <td>v0.10.0</td>
+    <td><code>RenameGenereToPrioritaInInterventi</code></td>
+    <td>Rinominata colonna <code>genere</code> → <code>priorita</code> in <code>interventi</code>. Valori <code>sopralluogo</code>/<code>commerciale</code> rimappati a <code>normale</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.10.0</td>
+    <td><code>AddStatoToInterventiMateriali</code></td>
+    <td>Aggiunta colonna <code>stato VARCHAR(20) DEFAULT 'da_portare'</code> su <code>interventi_materiali</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.9.0</td>
+    <td><code>AddArticoloIdToInterventiMateriali</code></td>
+    <td>Aggiunta colonna <code>articolo_id INT UNSIGNED NULL FK → articoli.id SET NULL</code> su <code>interventi_materiali</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.9.0</td>
+    <td><code>CreateCategorieArticoliTable</code> · <code>CreateArticoliTable</code></td>
+    <td>Nuove tabelle <code>categorie_articoli</code> e <code>articoli</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.8.0</td>
+    <td><code>UpdateInterventiGenere</code></td>
+    <td>Rinominata colonna <code>tipo</code> → <code>genere</code> in <code>interventi</code>; aggiunta colonna <code>tipo_intervento_id FK → tipi_intervento.id</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.8.0</td>
+    <td><code>CreateTipiInterventoTable</code> · <code>CreateInterventiTable</code> · <code>CreateInterventiMaterialiTable</code></td>
+    <td>Nuove tabelle <code>tipi_intervento</code>, <code>interventi</code>, <code>interventi_materiali</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.7.0</td>
+    <td><code>AddCodiceEsternoToClienti</code></td>
+    <td>Aggiunta colonna <code>codice_esterno VARCHAR(50) NULL</code> su <code>clienti</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.7.0</td>
+    <td><code>CreateClientiTable</code></td>
+    <td>Nuova tabella <code>clienti</code>.</td>
+  </tr>
+  <tr>
+    <td>v0.6.0</td>
+    <td><code>AddUltimaVersioneVistaToUsers</code></td>
+    <td>Aggiunta colonna <code>ultima_versione_vista VARCHAR(20) NULL</code> su <code>users</code> (tabella Shield).</td>
+  </tr>
+  <tr>
+    <td>v0.4.0</td>
+    <td><code>CreatePersonaleTable</code></td>
+    <td>Nuova tabella <code>personale</code>.</td>
+  </tr>
+</table>
+
+</body>
+</html>

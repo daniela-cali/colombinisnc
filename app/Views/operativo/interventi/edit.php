@@ -237,6 +237,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                 <form action="<?= base_url('operativo/materiali/store') ?>" method="post" id="form-materiale">
                     <?= csrf_field() ?>
                     <input type="hidden" name="intervento_id" value="<?= $intervento['id'] ?>">
+                    <input type="hidden" name="cliente_id"   value="<?= $intervento['cliente_id'] ?>">
                     <input type="hidden" name="articolo_id"  id="h-articolo-id">
                     <input type="hidden" name="descrizione"  id="h-descrizione">
                     <?php if ($from): ?>
@@ -313,7 +314,11 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
     var durateDefault = <?= json_encode($durateDefault) ?>;
 
     var ts = new TomSelect('#sel-materiale', {
-        create: true,
+        wrapperClass: 'ts-wrapper ts-upper',
+        create: function (input) {
+            var v = input.trim().toUpperCase();
+            return { value: v, text: v };
+        },
         createOnBlur: true,
         placeholder: 'Cerca articolo o digita descrizione libera…',
         allowEmptyOption: true,
