@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.11.2] - 2026-06-19
+
+### Chiudi intervento + fix dark mode
+
+- [APP] Pulsante "Chiudi intervento" nella scheda read-only di un intervento: apre modal con conferma; se ci sono materiali chiede se sono stati consegnati (Sì / No)
+- [APP] Materiali non consegnati alla chiusura: tornano automaticamente tra i sospesi del cliente con nota `[Da INT-XXX]` per conservare traccia dell'intervento di origine
+- [DEV] `InterventiController::chiudi()`: nuovo metodo POST con guardia di sicurezza su stati già chiusi
+- [DEV] `InterventiMaterialiModel`: nuovi metodi `consegnaPerIntervento()` e `liberaPerIntervento()`
+- [DEV] Rotta `operativo/interventi/(:num)/chiudi` (POST)
+- [DEV] Rimosso `table-light` da tutti i `<thead>` del progetto — fix compatibilità dark mode Bootstrap 5
+- [DEV] ID database visibile al passaggio del mouse su ogni riga/elemento nelle view di lista e dettaglio (debug)
+- [DEV] Anchor `#pane-interventi` → `#sec-interventi` nel back link della scheda intervento
+
 ## [0.11.1] - 2026-06-19
 
 ### Redesign scheda cliente

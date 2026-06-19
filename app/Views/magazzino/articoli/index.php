@@ -37,7 +37,7 @@ $this->extend('layouts/admin');
                 <?php else: ?>
                     <div class="table-responsive">
                         <table id="tabella-articoli" class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Codice</th>
                                     <th>Descrizione</th>
@@ -52,7 +52,7 @@ $this->extend('layouts/admin');
                             </thead>
                             <tbody>
                                 <?php foreach ($articoli as $a): ?>
-                                    <tr class="<?= $a['attivo'] ? '' : 'text-muted' ?>">
+                                    <tr class="<?= $a['attivo'] ? '' : 'text-muted' ?>" title="ID articolo: <?= $a['id'] ?>"><?php // ID utile per debug DB ?>
                                         <td class="small text-muted"><?= esc($a['codice'] ?? '—') ?></td>
                                         <td class="fw-semibold"><?= esc($a['descrizione']) ?></td>
                                         <td class="small text-muted"><?= esc($a['categoria_nome'] ?? '—') ?></td>

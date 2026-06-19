@@ -29,7 +29,7 @@
                 <?php else: ?>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Nominativo</th>
                                     <th>Telefono</th>
@@ -41,7 +41,7 @@
                             </thead>
                             <tbody>
                                 <?php foreach ($personale as $p): ?>
-                                    <tr>
+                                    <tr title="ID persona: <?= $p['id'] ?>"><?php // ID utile per debug DB ?>
                                         <td>
                                             <?php if ($p['colore']): ?>
                                                 <span class="badge me-1 rounded-circle p-2"

@@ -77,9 +77,6 @@ class InterventiController extends BaseController
     }
 
     /**
-     * Form modifica intervento con materiali consegnati.
-     */
-    /**
      * Scheda read-only di un intervento.
      */
     public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
@@ -103,6 +100,45 @@ class InterventiController extends BaseController
             'statiLabel'   => InterventiModel::STATI_LABEL,
             'materiali'    => (new InterventiMaterialiModel())->perIntervento($id),
         ]);
+    }
+
+    /**
+     * Chiude l'intervento (stato → completato).
+     * Se il POST contiene materiali_consegnati=1, segna tutti i materiali come consegnati.
+     */
+    public function chiudi(int $id)
+    {
+        $model      = new InterventiModel();
+        $intervento = $model->find($id);
+
+        if (! $intervento) {
+            return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
+        }
+
+        // Guardia di sicurezza: la UI nasconde il pulsante in questi stati,
+        // ma un POST diretto all'URL bypasserebbe il controllo visivo.
+        if (in_array($intervento['stato'], [InterventiModel::STATO_COMPLETATO, InterventiModel::STATO_ANNULLATO])) {
+            return redirect()->to('operativo/interventi/' . $id)
+                ->with('error', 'L\'intervento è già chiuso o annullato.');
+        }
+
+        $model->update($id, ['stato' => InterventiModel::STATO_COMPLETATO]);
+
+        $materialiConsegnati = $this->request->getPost('materiali_consegnati');
+        $matModel = new InterventiMaterialiModel();
+
+        if ($materialiConsegnati === '1') {
+            // Tecnico ha consegnato tutto: segna ogni riga come consegnata.
+            $matModel->consegnaPerIntervento($id);
+        } elseif ($materialiConsegnati === '0') {
+            // Materiali non portati: tornano tra i sospesi del cliente
+            // con una nota che ricorda da quale intervento provenivano.
+            $matModel->liberaPerIntervento($id, $intervento['codice']);
+        }
+        // Se materialiConsegnati è null l'intervento non aveva materiali: nessuna azione.
+
+        return redirect()->to('operativo/interventi/' . $id)
+            ->with('success', 'Intervento ' . esc($intervento['codice']) . ' chiuso.');
     }
 
     /**

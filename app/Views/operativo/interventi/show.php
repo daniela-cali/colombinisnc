@@ -122,7 +122,7 @@ $statoBadge = [
 
                     <p class="text-muted section-header mb-3"><i class="bi bi-box-seam me-1"></i> Materiali</p>
                     <table class="table table-sm align-middle mb-0">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Articolo / Descrizione</th>
                                 <th class="text-center" style="width:60px">Qtà</th>
@@ -132,7 +132,7 @@ $statoBadge = [
                         </thead>
                         <tbody>
                             <?php foreach ($materiali as $m): ?>
-                                <tr>
+                                <tr title="ID materiale: <?= $m['id'] ?>"><?php // ID utile per debug DB ?>
                                     <td><?= esc($m['desc_materiale']) ?></td>
                                     <td class="text-center"><?= (int) $m['quantita'] ?></td>
                                     <td class="text-muted small"><?= esc($m['note'] ?? '') ?></td>
@@ -151,9 +151,9 @@ $statoBadge = [
 
             </div>
 
-            <div class="card-footer d-flex justify-content-between">
+            <div class="card-footer d-flex justify-content-between align-items-center">
                 <?php if ($cliente): ?>
-                    <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '#pane-interventi') ?>"
+                    <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi') ?>"
                        class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-arrow-left me-1"></i>Scheda cliente
                     </a>
@@ -163,18 +163,79 @@ $statoBadge = [
                         <i class="bi bi-arrow-left me-1"></i>Interventi
                     </a>
                 <?php endif ?>
-                <?php
-                    $editFrom = $cliente
-                        ? base_url('anagrafiche/clienti/' . $cliente['id'] . '#pane-interventi')
-                        : base_url('operativo/interventi');
-                ?>
-                <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
-                   class="btn btn-sm btn-primary ms-auto">
-                    <i class="bi bi-pencil me-1"></i>Modifica
-                </a>
+                <div class="d-flex gap-2 ms-auto">
+                    <?php if (! in_array($intervento['stato'], ['completato', 'annullato'])): ?>
+                        <button type="button" class="btn btn-sm btn-success"
+                                data-bs-toggle="modal" data-bs-target="#modal-chiudi">
+                            <i class="bi bi-check-circle me-1"></i>Chiudi intervento
+                        </button>
+                    <?php endif ?>
+                    <?php
+                        $editFrom = $cliente
+                            ? base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')
+                            : base_url('operativo/interventi');
+                    ?>
+                    <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
+                       class="btn btn-sm btn-primary">
+                        <i class="bi bi-pencil me-1"></i>Modifica
+                    </a>
+                </div>
             </div>
         </div>
 
     </div>
 </div>
+
+<!-- Modal: chiudi intervento -->
+<div class="modal fade" id="modal-chiudi" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Chiudi intervento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    Confermi la chiusura dell'intervento
+                    <strong><?= esc($intervento['codice']) ?></strong>?
+                </p>
+                <?php if (! empty($materiali)): ?>
+                    <p class="mt-3 mb-0">Hai consegnato i materiali al cliente?</p>
+                <?php endif ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <?php if (! empty($materiali)): ?>
+                    <form method="post"
+                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>"
+                          class="d-inline">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="materiali_consegnati" value="0">
+                        <button type="submit" class="btn btn-outline-success">
+                            <i class="bi bi-x-circle me-1"></i>No, non portati
+                        </button>
+                    </form>
+                    <form method="post"
+                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>"
+                          class="d-inline">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="materiali_consegnati" value="1">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i>Sì, consegnati
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <form method="post"
+                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-1"></i>Chiudi
+                        </button>
+                    </form>
+                <?php endif ?>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?= $this->endSection() ?>

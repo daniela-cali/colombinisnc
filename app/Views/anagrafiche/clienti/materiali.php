@@ -67,7 +67,7 @@ $statoBadgeInt = [
                             </td>
                         </tr>
                         <?php foreach ($sospesi as $s): ?>
-                            <tr>
+                            <tr title="ID materiale: <?= $s['id'] ?>"><?php // ID utile per debug DB ?>
                                 <td class="text-center"><?= (int) $s['quantita'] ?></td>
                                 <td><?= esc($s['desc_materiale']) ?></td>
                                 <td class="text-muted small"><?= esc($s['note'] ?? '') ?></td>
@@ -105,7 +105,7 @@ $statoBadgeInt = [
                             </td>
                         </tr>
                     <?php endif ?>
-                        <tr>
+                        <tr title="ID materiale: <?= $m['id'] ?>"><?php // ID utile per debug DB ?>
                             <td class="text-center"><?= (int) $m['quantita'] ?></td>
                             <td><?= esc($m['desc_materiale']) ?></td>
                             <td class="text-muted small"><?= esc($m['note'] ?? '') ?></td>

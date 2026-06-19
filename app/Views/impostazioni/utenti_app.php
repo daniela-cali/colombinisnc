@@ -25,7 +25,7 @@
                 <?php else: ?>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Username</th>
                                     <th>Nominativo</th>
@@ -36,7 +36,7 @@
                             </thead>
                             <tbody>
                                 <?php foreach ($utenti as $u): ?>
-                                    <tr>
+                                    <tr title="ID utente: <?= $u['id'] ?>"><?php // ID utile per debug DB ?>
                                         <td><?= esc($u['username']) ?></td>
                                         <td class="text-muted">
                                             <?= esc(trim(($u['cognome'] ?? '') . ' ' . ($u['nome'] ?? '')) ?: '—') ?>

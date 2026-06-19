@@ -192,7 +192,7 @@ $statoBadge = [
                 <?php if (! empty($sospesi)): ?>
                     <div class="mb-3">
                         <?php foreach ($sospesi as $s): ?>
-                            <div class="sospeso-row">
+                            <div class="sospeso-row" title="ID materiale: <?= $s['id'] ?>"><?php // ID utile per debug DB ?>
                                 <span class="sospeso-desc"><?= esc($s['desc_materiale']) ?></span>
                                 <span class="sospeso-qty">× <?= (int) $s['quantita'] ?></span>
                                 <?php if ($s['note']): ?>
@@ -292,7 +292,7 @@ $statoBadge = [
 
                 <div class="table-responsive">
                     <table id="tbl-interventi" class="table table-hover table-sm align-middle">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Codice</th>
                                 <th>Tipo</th>
@@ -307,7 +307,7 @@ $statoBadge = [
                         </thead>
                         <tbody>
                             <?php foreach ($interventi as $iv): ?>
-                                <tr>
+                                <tr title="ID intervento: <?= $iv['id'] ?>"><?php // ID utile per debug DB ?>
                                     <td>
                                         <a href="<?= base_url('operativo/interventi/' . $iv['id']) ?>"
                                            class="text-decoration-none">

@@ -52,7 +52,7 @@ $prioritaBadge = [
                 <?php else: ?>
                     <div class="table-responsive">
                         <table id="tabella-interventi" class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Codice</th>
                                     <th>Cliente</th>
@@ -67,14 +67,14 @@ $prioritaBadge = [
                             </thead>
                             <tbody>
                                 <?php foreach ($interventi as $i): ?>
-                                    <tr class="<?= $i['urgenza'] ? 'table-danger' : '' ?>">
+                                    <tr class="<?= $i['urgenza'] ? 'table-danger' : '' ?>" title="ID intervento: <?= $i['id'] ?>"><?php // ID utile per debug DB ?>
                                         <td>
                                             <a href="<?= base_url('operativo/interventi/' . $i['id']) ?>"
                                                class="text-decoration-none">
                                                 <code class="small"><?= esc($i['codice']) ?></code>
                                             </a>
                                         </td>
-                                        <td>
+                                        <td title="ID cliente: <?= $i['cliente_id'] ?>">
                                             <a href="<?= base_url('anagrafiche/clienti/' . $i['cliente_id']) ?>"
                                                class="text-body text-decoration-none">
                                                 <?= esc($i['cliente_denominazione']) ?>

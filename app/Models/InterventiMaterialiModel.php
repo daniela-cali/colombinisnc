@@ -92,6 +92,35 @@ class InterventiMaterialiModel extends Model
     }
 
     /**
+     * Segna come consegnati tutti i materiali di un intervento.
+     */
+    public function consegnaPerIntervento(int $interventoId): void
+    {
+        $this->where('intervento_id', $interventoId)
+             ->set('stato', self::STATO_CONSEGNATO)
+             ->update();
+    }
+
+    /**
+     * Riporta tra i sospesi i materiali non consegnati di un intervento.
+     * Prepende "[Da {codice}]" alla nota per conservare la traccia dell'origine.
+     */
+    public function liberaPerIntervento(int $interventoId, string $codice): void
+    {
+        $materiali = $this->where('intervento_id', $interventoId)
+                          ->where('stato', self::STATO_DA_PORTARE)
+                          ->findAll();
+
+        foreach ($materiali as $m) {
+            $nota = trim('[Da ' . $codice . '] ' . ($m['note'] ?? ''));
+            $this->update($m['id'], [
+                'intervento_id' => null,
+                'note'          => $nota ?: null,
+            ]);
+        }
+    }
+
+    /**
      * Materiali sospesi di un cliente: da portare ma non ancora legati a un intervento.
      */
     public function sospesiPerCliente(int $clienteId): array

@@ -270,7 +270,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
 
         if (materiali.length === 0) return;
 
-        var html = '<table class="table table-sm align-middle mb-2"><thead class="table-light"><tr>'
+        var html = '<table class="table table-sm align-middle mb-2"><thead><tr>'
             + '<th>Descrizione</th><th class="text-center" style="width:60px">Qtà</th>'
             + '<th>Note</th><th style="width:40px"></th></tr></thead><tbody>';
 

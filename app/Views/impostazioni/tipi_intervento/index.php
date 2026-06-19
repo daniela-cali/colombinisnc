@@ -28,7 +28,7 @@ $this->extend('layouts/admin');
                     <p class="text-muted text-center py-4 mb-0">Nessun tipo configurato.</p>
                 <?php else: ?>
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th style="width:50px">Ord.</th>
                                 <th style="width:40px"></th>
@@ -41,7 +41,7 @@ $this->extend('layouts/admin');
                         </thead>
                         <tbody>
                             <?php foreach ($tipi as $t): ?>
-                                <tr>
+                                <tr title="ID tipo intervento: <?= $t['id'] ?>"><?php // ID utile per debug DB ?>
                                     <td class="text-muted small text-center"><?= esc($t['ordine']) ?></td>
                                     <td class="text-center text-muted">
                                         <?php if ($t['icona']): ?>

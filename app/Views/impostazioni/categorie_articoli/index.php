@@ -28,7 +28,7 @@ $this->extend('layouts/admin');
                     <p class="text-muted text-center py-4 mb-0">Nessuna categoria configurata.</p>
                 <?php else: ?>
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th style="width:60px" class="text-center">Ord.</th>
                                 <th>Nome</th>
@@ -37,7 +37,7 @@ $this->extend('layouts/admin');
                         </thead>
                         <tbody>
                             <?php foreach ($categorie as $c): ?>
-                                <tr>
+                                <tr title="ID categoria: <?= $c['id'] ?>"><?php // ID utile per debug DB ?>
                                     <td class="text-center text-muted small"><?= esc($c['ordine']) ?></td>
                                     <td class="fw-semibold"><?= esc($c['nome']) ?></td>
                                     <td class="text-end">

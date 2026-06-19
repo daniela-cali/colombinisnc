@@ -37,7 +37,7 @@ $this->extend('layouts/admin');
                 <?php else: ?>
                     <div class="table-responsive">
                         <table id="tabella-clienti" class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Codice</th>
                                     <th>Denominazione</th>
@@ -53,7 +53,7 @@ $this->extend('layouts/admin');
                             </thead>
                             <tbody>
                                 <?php foreach ($clienti as $c): ?>
-                                    <tr>
+                                    <tr title="ID cliente: <?= $c['id'] ?>"><?php // ID utile per debug DB ?>
                                         <td class="text-muted small">
                                             <?= esc($c['codice']) ?>
                                             <?php if ($c['codice_esterno']): ?>

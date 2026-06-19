@@ -192,7 +192,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
 
                 <?php if (! empty($materiali)): ?>
                     <table class="table table-sm align-middle mb-4">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Descrizione</th>
                                 <th class="text-center" style="width:70px">Qtà</th>

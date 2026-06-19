@@ -268,6 +268,12 @@ graph TD
 - Nav anchor laterale (≥1400px) con highlight sezione attiva via IntersectionObserver
 - Nuova pagina storico materiali `/clienti/{id}/materiali`: sospesi + materiali per intervento raggruppati con group header e spacer row; Qtà in prima colonna per indentazione visiva
 
+#### ✅ v0.11.2 — Chiudi intervento + fix dark mode
+- Pulsante "Chiudi intervento" nella scheda read-only: modal con domanda sui materiali (Sì/No)
+- Materiali non consegnati → tornano sospesi con nota `[Da INT-XXX]`
+- Rimosso `table-light` da tutti i `<thead>` (dark mode)
+- ID DB visibile on hover su righe e cross-reference nelle view
+
 #### 🔲 v0.12.0 — Abbonamenti
 - Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo
 - Il sistema crea automaticamente una riga in `abbonamenti` e la collega all'intervento via `abbonamenti_interventi`
