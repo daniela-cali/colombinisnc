@@ -262,10 +262,11 @@ graph TD
 - Scheda cliente — tab Materiali: sezione "Materiali da portare" con elenco sospesi + mini-form aggiunta rapida; i materiali con intervento restano nel rowGroup sottostante
 - ⏳ Non implementato: collegamento dei materiali sospesi a un nuovo intervento dal form di creazione
 
-#### 🔲 v0.11.1 — Dashboard scheda cliente
-- Redesign scheda cliente: da tab a layout verticale scrollabile a sezioni
-- Struttura proposta: Anagrafica → Materiali da portare (con aggiungi rapido) → Interventi (con filtri)
-- Obiettivo: vista operativa completa in una sola pagina, pensata per l'uso durante una telefonata del cliente
+#### ✅ v0.11.1 — Redesign scheda cliente
+- Layout verticale scrollabile a sezioni sticky (Anagrafica · Materiali da portare · Interventi) — rimosso il sistema a tab Bootstrap
+- Header compatto con denominazione, badge stato, azioni e back link
+- Nav anchor laterale (≥1400px) con highlight sezione attiva via IntersectionObserver
+- Nuova pagina storico materiali `/clienti/{id}/materiali`: sospesi + materiali per intervento raggruppati con group header e spacer row; Qtà in prima colonna per indentazione visiva
 
 #### 🔲 v0.12.0 — Abbonamenti
 - Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo

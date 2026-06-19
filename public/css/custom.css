@@ -285,6 +285,127 @@
 /* --- Utilità testo ------------------------------------- */
 .text-preline { white-space: pre-line; }
 
+/* --- Tabella materiali cliente: bordo sinistro sui group header ------ */
+.mat-spacer td {
+    padding: 0;
+    height: 10px;
+    border-style: hidden !important;
+}
+.mat-group td {
+    border-left: 3px solid transparent;
+    border-bottom: 3px solid transparent;
+}
+.mat-group-sospesi td {
+    border-left-color: var(--bs-warning);
+    border-bottom-color: var(--bs-warning);
+}
+.mat-group-intervento td {
+    border-left-color: var(--bs-primary);
+    border-bottom-color: var(--bs-primary);
+}
+
+/* --- Scheda cliente v0.11.1 — layout verticale scrollabile ---------- */
+.section-anchor {
+    position: sticky;
+    top: 57px;
+    z-index: 10;
+    background: var(--bs-body-bg);
+    padding: .5rem 0 .25rem;
+    margin-bottom: .5rem;
+    scroll-margin-top: 70px;
+}
+
+.section-title {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--bs-primary);
+    border-bottom: 2px solid var(--bs-primary);
+    padding-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: .5rem 1.5rem;
+}
+
+.info-item label {
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--bs-secondary-color);
+    display: block;
+    margin-bottom: 1px;
+}
+
+.info-item span {
+    font-size: .86rem;
+    color: var(--bs-body-color);
+}
+
+.info-grid-full { grid-column: 1 / -1; }
+
+.sospeso-row {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .4rem 0;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+}
+
+.sospeso-row:last-child { border-bottom: none; }
+
+.sospeso-desc { flex: 1; font-size: .86rem; }
+.sospeso-qty  { font-size: .78rem; color: var(--bs-secondary-color); white-space: nowrap; }
+.sospeso-note {
+    font-size: .76rem;
+    color: var(--bs-secondary-color);
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.page-nav {
+    position: sticky;
+    top: 73px;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+}
+
+.page-nav a {
+    font-size: .76rem;
+    color: var(--bs-secondary-color);
+    text-decoration: none;
+    padding: .28rem .6rem;
+    border-left: 3px solid transparent;
+    border-radius: 0 4px 4px 0;
+    transition: color .15s, background .15s, border-left-color .15s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.page-nav a:hover {
+    color: var(--bs-primary);
+    background: rgba(var(--bs-primary-rgb), .08);
+    border-left-color: var(--bs-primary);
+}
+
+.page-nav a.active {
+    color: var(--bs-primary);
+    border-left-color: var(--bs-primary);
+    font-weight: 600;
+    background: rgba(var(--bs-primary-rgb), .08);
+}
+
 /* --- Tom Select: testo uppercase (usato per descrizioni articoli) --- */
 .ts-upper .ts-control input {
     text-transform: uppercase;

@@ -80,6 +80,7 @@ class InterventiMaterialiModel extends Model
                 'i.id AS intervento_id_ref',
                 'i.codice AS codice_intervento',
                 'i.data_pianificata',
+                'i.stato AS stato_intervento',
             ])
             ->join('interventi i', 'i.id = interventi_materiali.intervento_id')
             ->join('articoli a', 'a.id = interventi_materiali.articolo_id', 'left')

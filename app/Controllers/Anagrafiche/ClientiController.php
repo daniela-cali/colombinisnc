@@ -22,7 +22,7 @@ class ClientiController extends BaseController
     }
 
     /**
-     * Scheda cliente in sola lettura: tab Anagrafica, Interventi, Materiali.
+     * Scheda cliente in sola lettura: layout verticale scrollabile.
      */
     public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
     {
@@ -37,11 +37,31 @@ class ClientiController extends BaseController
         return view('anagrafiche/clienti/show', [
             'cliente'        => $cliente,
             'interventi'     => (new InterventiModel())->perCliente($id),
-            'materiali'      => $matModel->perCliente($id),
             'sospesi'        => $matModel->sospesiPerCliente($id),
             'articoliPerCat' => (new ArticoliModel())->perCategoria(),
             'prioritaLabel'  => InterventiModel::PRIORITA_LABEL,
             'statiLabel'     => InterventiModel::STATI_LABEL,
+        ]);
+    }
+
+    /**
+     * Storico materiali del cliente: sospesi + per intervento, raggruppati via PHP.
+     */
+    public function materiali(int $id): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        $cliente = (new ClientiModel())->find($id);
+
+        if (! $cliente) {
+            return redirect()->to('anagrafiche/clienti')->with('error', 'Cliente non trovato.');
+        }
+
+        $matModel = new InterventiMaterialiModel();
+
+        return view('anagrafiche/clienti/materiali', [
+            'cliente'   => $cliente,
+            'sospesi'   => $matModel->sospesiPerCliente($id),
+            'materiali' => $matModel->perCliente($id),
+            'statiLabel' => InterventiModel::STATI_LABEL,
         ]);
     }
 

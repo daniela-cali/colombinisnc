@@ -1,5 +1,19 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.11.1] - 2026-06-19
+
+### Redesign scheda cliente
+
+- [APP] Scheda cliente: layout verticale scrollabile a sezioni (Anagrafica · Materiali da portare · Interventi) — sostituisce il precedente layout a tab Bootstrap
+- [APP] Header compatto con back link, denominazione, badge attivo/inattivo e azioni (Modifica · Nuovo intervento)
+- [APP] Nav anchor laterale sticky (visibile da ≥1400px) con highlight automatico della sezione visibile via IntersectionObserver
+- [APP] Nuova pagina storico materiali `/clienti/{id}/materiali`: tutti i materiali del cliente (sospesi + legati a interventi) con group header per gruppo, codice intervento, data, badge stato e link all'edit; colonne Qtà prima di descrizione per simulare indentazione visiva
+- [APP] Pulsante "Storico materiali" nella card sospesi della scheda cliente
+- [DEV] `ClientiController::materiali()`: nuovo metodo; rotta `anagrafiche/clienti/(:num)/materiali`
+- [DEV] `InterventiMaterialiModel::perCliente()`: aggiunto `i.stato AS stato_intervento` al select per la pagina storico
+- [DEV] `MaterialiController`: anchor redirect aggiornato da `#pane-materiali` a `#sec-materiali`
+- [DEV] `custom.css`: classi layout scheda cliente (`.section-anchor`, `.section-title`, `.info-grid`, `.info-item`, `.sospeso-row`, `.page-nav`); classi tabella storico (`.mat-group`, `.mat-group-sospesi`, `.mat-group-intervento`, `.mat-spacer` con `border-style: hidden` per sopprimere bordi adiacenti in border-collapse)
+
 ## [0.11.0] - 2026-06-18
 
 ### Materiali sospesi

@@ -33,7 +33,7 @@ class MaterialiController extends BaseController
         if ($interventoId) {
             $dest = 'operativo/interventi/' . $interventoId . '/edit' . ($from ? '?from=' . urlencode($from) : '');
         } else {
-            $dest = 'anagrafiche/clienti/' . $clienteId . '#pane-materiali';
+            $dest = 'anagrafiche/clienti/' . $clienteId . '#sec-materiali';
         }
 
         return redirect()->to($dest)->with('success', 'Materiale aggiunto.');
@@ -59,7 +59,7 @@ class MaterialiController extends BaseController
         if ($interventoId) {
             $dest = 'operativo/interventi/' . $interventoId . '/edit' . ($from ? '?from=' . urlencode($from) : '');
         } else {
-            $dest = 'anagrafiche/clienti/' . $clienteId . '#pane-materiali';
+            $dest = 'anagrafiche/clienti/' . $clienteId . '#sec-materiali';
         }
 
         return redirect()->to($dest)->with('success', 'Materiale eliminato.');

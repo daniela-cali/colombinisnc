@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Scheda Cliente v0.11.1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; }
+  body { background: #f4f6f9; font-size: .9rem; display: flex; flex-direction: column; }
+
+  /* === LAYOUT SHELL === */
+  .app-wrap   { display: flex; flex: 1; overflow: hidden; height: 100vh; }
+  .app-main   { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+  .app-content { flex: 1; overflow-y: auto; padding: 1.25rem 1.5rem; }
+
+  /* === NAVBAR === */
+  .app-navbar {
+    background: #1a6fa8;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    color: #fff;
+    flex-shrink: 0;
+    gap: .75rem;
+  }
+  .app-navbar .brand { font-weight: 700; font-size: .95rem; }
+  .app-navbar .ms-auto { display: flex; align-items: center; gap: .75rem; }
+  .app-navbar .nav-icon { color: rgba(255,255,255,.8); font-size: 1.1rem; cursor: pointer; }
+  .app-navbar .nav-icon:hover { color: #fff; }
+  .app-navbar .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: .8rem; font-weight: 700; color: #fff; cursor: pointer;
+  }
+
+  /* === SIDEBAR === */
+  .app-sidebar {
+    width: 230px;
+    background: #1a2d4a;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .sidebar-brand {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    border-bottom: 1px solid #00bcd4;
+    color: #fff;
+    font-weight: 700;
+    font-size: .95rem;
+    gap: .5rem;
+    flex-shrink: 0;
+  }
+  .sidebar-brand .bi { color: #00bcd4; }
+
+  .sidebar-user {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    color: rgba(255,255,255,.65);
+    font-size: .8rem;
+  }
+  .sidebar-user .avatar-lg {
+    font-size: 1.5rem; color: rgba(255,255,255,.5);
+  }
+  .sidebar-user-name  { font-weight: 600; color: rgba(255,255,255,.8); }
+  .sidebar-user-role  { font-size: .68rem; color: #00bcd4; }
+
+  .nav-section {
+    font-size: .65rem; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: #00bcd4;
+    padding: .9rem 1rem .3rem;
+  }
+  .sidebar-nav { list-style: none; padding: 0; margin: 0; }
+  .sidebar-nav li a {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .45rem 1rem;
+    color: rgba(255,255,255,.65);
+    text-decoration: none; font-size: .83rem;
+    transition: background .15s, color .15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-nav li a:hover { background: rgba(0,188,212,.12); color: #fff; }
+  .sidebar-nav li a.active { background: #1a6fa8; color: #fff; border-left-color: #00bcd4; }
+  .sidebar-nav li a .bi { font-size: .95rem; }
+
+  /* === MAIN CONTENT === */
+  .section-anchor {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f4f6f9;
+    padding: .5rem 0 .25rem;
+    margin-bottom: .5rem;
+  }
+  .section-title {
+    font-size: .68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: #1a6fa8;
+    border-bottom: 2px solid #1a6fa8;
+    padding-bottom: 4px;
+    display: flex; align-items: center; gap: .4rem;
+  }
+  .section-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    margin-bottom: 1.25rem;
+  }
+  .section-card .card-body { padding: 1rem 1.25rem; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+    gap: .5rem 1.5rem;
+  }
+  .info-item label { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: #888; display: block; margin-bottom: 1px; }
+  .info-item span  { font-size: .86rem; color: #222; }
+
+  .sospeso-row {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .35rem 0; border-bottom: 1px solid #f0f0f0;
+  }
+  .sospeso-row:last-child { border-bottom: none; }
+  .sospeso-desc { flex: 1; font-size: .86rem; }
+  .sospeso-qty  { font-size: .78rem; color: #555; white-space: nowrap; }
+  .sospeso-note { font-size: .76rem; color: #999; white-space: nowrap; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+
+  .btn-filtro { font-size: .73rem; padding: .18rem .6rem; border-radius: 999px; }
+  .btn-filtro.active { background: #1a6fa8; color: #fff; border-color: #1a6fa8; }
+
+  .tbl-int td, .tbl-int th { font-size: .8rem; padding: .38rem .55rem; vertical-align: middle; }
+  .tbl-int th { background: #f8f9fa; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: #666; }
+
+  .badge-stato { font-size: .68rem; padding: .22rem .48rem; border-radius: 4px; font-weight: 600; }
+  .stato-pianificato { background:#cfe2ff; color:#084298; }
+  .stato-in_corso    { background:#fff3cd; color:#856404; }
+  .stato-completato  { background:#d1e7dd; color:#0f5132; }
+
+  /* === SIDE NAV (anchor links) === */
+  .page-nav {
+    position: sticky;
+    top: 16px;
+    display: flex; flex-direction: column; gap: .2rem;
+    padding-left: .5rem;
+  }
+  .page-nav a {
+    font-size: .76rem; color: #666;
+    text-decoration: none;
+    padding: .28rem .6rem;
+    border-left: 3px solid transparent;
+    border-radius: 0 4px 4px 0;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .page-nav a:hover { color: #1a6fa8; background: #e8f0fa; border-left-color: #1a6fa8; }
+  .page-nav a.active { color: #1a6fa8; border-left-color: #1a6fa8; font-weight: 600; background: #e8f0fa; }
+</style>
+</head>
+<body>
+
+<div class="app-wrap">
+
+  <!-- ═══ SIDEBAR ════════════════════════════════════════════════ -->
+  <aside class="app-sidebar">
+    <div class="sidebar-brand">
+      <i class="bi bi-droplet-half"></i> Colombini SNC
+    </div>
+
+    <div class="sidebar-user">
+      <i class="bi bi-person-circle avatar-lg"></i>
+      <div>
+        <div class="sidebar-user-name">Daniela C.</div>
+        <div class="sidebar-user-role">admin</div>
+      </div>
+    </div>
+
+    <div class="nav-section">Operativo</div>
+    <ul class="sidebar-nav">
+      <li><a href="#"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+      <li><a href="#"><i class="bi bi-tools"></i> Interventi</a></li>
+      <li><a href="#"><i class="bi bi-calendar3"></i> Calendario</a></li>
+    </ul>
+
+    <div class="nav-section">Anagrafiche</div>
+    <ul class="sidebar-nav">
+      <li><a href="#" class="active"><i class="bi bi-people"></i> Clienti</a></li>
+      <li><a href="#"><i class="bi bi-person-badge"></i> Personale</a></li>
+    </ul>
+
+    <div class="nav-section">Magazzino</div>
+    <ul class="sidebar-nav">
+      <li><a href="#"><i class="bi bi-box-seam"></i> Articoli</a></li>
+    </ul>
+
+    <div class="nav-section">Sistema</div>
+    <ul class="sidebar-nav">
+      <li><a href="#"><i class="bi bi-gear"></i> Impostazioni</a></li>
+    </ul>
+  </aside>
+
+  <!-- ═══ MAIN ════════════════════════════════════════════════════ -->
+  <div class="app-main">
+
+    <!-- Navbar -->
+    <div class="app-navbar">
+      <i class="bi bi-list nav-icon"></i>
+      <span class="brand">Gestionale</span>
+      <div class="ms-auto">
+        <i class="bi bi-moon nav-icon"></i>
+        <i class="bi bi-bell nav-icon"></i>
+        <div class="avatar">DC</div>
+      </div>
+    </div>
+
+    <!-- Contenuto scrollabile -->
+    <div class="app-content">
+      <div class="row g-0" style="max-width:1050px">
+
+        <!-- Colonna contenuto -->
+        <div class="col">
+
+          <!-- Header cliente -->
+          <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+            <a href="#" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-arrow-left me-1"></i>Clienti
+            </a>
+            <div class="ms-1">
+              <h5 class="mb-0 fw-bold">Rossi Mario</h5>
+              <small class="text-muted">CLI-0042 &nbsp;·&nbsp; Persona fisica &nbsp;·&nbsp; Zona Est</small>
+            </div>
+            <div class="ms-auto d-flex gap-2">
+              <a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Modifica</a>
+              <a href="#" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Nuovo intervento</a>
+            </div>
+          </div>
+
+          <!-- ── ANAGRAFICA ──────────────────────────────────── -->
+          <div class="section-anchor" id="sec-anagrafica">
+            <div class="section-title"><i class="bi bi-person-lines-fill"></i> Anagrafica</div>
+          </div>
+          <div class="section-card">
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item"><label>Telefono</label><span>333 1234567</span></div>
+                <div class="info-item"><label>Email</label><span class="text-muted">—</span></div>
+                <div class="info-item"><label>Indirizzo</label><span>Via Roma 12, Savona</span></div>
+                <div class="info-item"><label>Zona</label><span><span class="badge bg-success" style="font-size:.7rem">Est</span></span></div>
+                <div class="info-item"><label>Distanza sede</label><span>8,3 km</span></div>
+                <div class="info-item"><label>Tecnico preferito</label><span>Bianchi Luca</span></div>
+                <div class="info-item" style="grid-column:1/-1">
+                  <label>Note</label>
+                  <span>Accesso dal cancello laterale. Citofono non funziona.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── MATERIALI DA PORTARE ───────────────────────── -->
+          <div class="section-anchor" id="sec-materiali">
+            <div class="section-title">
+              <i class="bi bi-box-seam"></i> Materiali da portare
+              <span class="badge bg-warning text-dark ms-1" style="font-size:.62rem">2</span>
+            </div>
+          </div>
+          <div class="section-card">
+            <div class="card-body">
+              <div class="mb-3">
+                <div class="sospeso-row">
+                  <span class="sospeso-desc">FILTRO CARTUCCIA 10" STANDARD</span>
+                  <span class="sospeso-qty">× 2</span>
+                  <span class="sospeso-note">da controllare anche la testa</span>
+                  <button class="btn btn-sm btn-outline-danger ms-auto py-0 px-1"><i class="bi bi-trash"></i></button>
+                </div>
+                <div class="sospeso-row">
+                  <span class="sospeso-desc">SALE RIGENERAZIONE KG 25</span>
+                  <span class="sospeso-qty">× 1</span>
+                  <span class="sospeso-note"></span>
+                  <button class="btn btn-sm btn-outline-danger ms-auto py-0 px-1"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+              <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                  <label class="form-label mb-1" style="font-size:.73rem">Articolo / Descrizione</label>
+                  <input type="text" class="form-control form-control-sm" placeholder="Cerca o digita…" style="text-transform:uppercase">
+                </div>
+                <div class="col-md-2 col-4">
+                  <label class="form-label mb-1" style="font-size:.73rem">Qtà</label>
+                  <input type="number" class="form-control form-control-sm" value="1" min="1">
+                </div>
+                <div class="col-md-3 col-8">
+                  <label class="form-label mb-1" style="font-size:.73rem">Note</label>
+                  <input type="text" class="form-control form-control-sm" placeholder="opzionale">
+                </div>
+                <div class="col-md-2 col-12">
+                  <button class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-plus-lg me-1"></i>Aggiungi</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── INTERVENTI ─────────────────────────────────── -->
+          <div class="section-anchor" id="sec-interventi">
+            <div class="section-title"><i class="bi bi-tools"></i> Interventi</div>
+          </div>
+          <div class="section-card">
+            <div class="card-body pb-2">
+              <div class="d-flex gap-1 flex-wrap mb-3">
+                <button class="btn btn-sm btn-outline-secondary btn-filtro active">Aperti</button>
+                <button class="btn btn-sm btn-outline-secondary btn-filtro">Completati</button>
+                <button class="btn btn-sm btn-outline-secondary btn-filtro">Annullati</button>
+                <button class="btn btn-sm btn-outline-secondary btn-filtro">Tutti</button>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hover tbl-int mb-0">
+                  <thead>
+                    <tr>
+                      <th>Codice</th><th>Tipo</th><th>Priorità</th><th>Data</th><th>Tecnico</th><th>Stato</th><th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>IV-0042</strong></td>
+                      <td>Filtri</td>
+                      <td><span class="badge bg-secondary" style="font-size:.66rem">Normale</span></td>
+                      <td>12/06/2026</td><td>Bianchi L.</td>
+                      <td><span class="badge-stato stato-pianificato">Pianificato</span></td>
+                      <td><a href="#" class="text-muted"><i class="bi bi-arrow-right-circle"></i></a></td>
+                    </tr>
+                    <tr>
+                      <td><strong>IV-0031</strong></td>
+                      <td>Addolcitore</td>
+                      <td><span class="badge bg-danger" style="font-size:.66rem">Urgente</span></td>
+                      <td>05/06/2026</td><td>Verdi G.</td>
+                      <td><span class="badge-stato stato-in_corso">In corso</span></td>
+                      <td><a href="#" class="text-muted"><i class="bi bi-arrow-right-circle"></i></a></td>
+                    </tr>
+                    <tr>
+                      <td><strong>IV-0018</strong></td>
+                      <td>—</td>
+                      <td><span class="badge bg-info text-dark" style="font-size:.66rem">Programmato</span></td>
+                      <td>20/05/2026</td><td>Bianchi L.</td>
+                      <td><span class="badge-stato stato-completato">Completato</span></td>
+                      <td><a href="#" class="text-muted"><i class="bi bi-arrow-right-circle"></i></a></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /col contenuto -->
+
+        <!-- Colonna anchor nav (solo schermi larghi) -->
+        <div class="col-auto d-none d-xxl-block ps-3" style="width:120px">
+          <nav class="page-nav">
+            <a href="#sec-anagrafica" class="active">Anagrafica</a>
+            <a href="#sec-materiali">Da portare</a>
+            <a href="#sec-interventi">Interventi</a>
+          </nav>
+        </div>
+
+      </div><!-- /row -->
+    </div><!-- /app-content -->
+  </div><!-- /app-main -->
+</div><!-- /app-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const sections = document.querySelectorAll('.section-anchor');
+const navLinks  = document.querySelectorAll('.page-nav a');
+const scroller  = document.querySelector('.app-content');
+
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            navLinks.forEach(a => a.classList.remove('active'));
+            const link = document.querySelector('.page-nav a[href="#' + entry.target.id + '"]');
+            if (link) link.classList.add('active');
+        }
+    });
+}, { root: scroller, rootMargin: '-10% 0px -80% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+document.querySelectorAll('.btn-filtro').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+</script>
+</body>
+</html>
