@@ -15,7 +15,7 @@ class InterventiModel extends Model
         'codice', 'cliente_id', 'tecnico_id',
         'priorita', 'stato', 'tipo_intervento_id',
         'data_pianificata', 'data_scadenza', 'durata_stimata', 'urgenza',
-        'impianto_id', 'note',
+        'descrizione', 'impianto_id', 'note',
         'created_by', 'updated_by',
     ];
 
@@ -80,17 +80,35 @@ class InterventiModel extends Model
      */
     public function generaCodice(): string
     {
-        $row = $this->select('codice')
-            ->like('codice', 'IV-', 'after')
-            ->orderBy('id', 'DESC')
-            ->first();
+        // Usiamo un contatore atomico in settings anziché MAX(codice) o AUTO_INCREMENT.
+        //
+        // MAX(codice) regredisce dopo una cancellazione: se elimini IV-0010, il prossimo
+        // sarebbe di nuovo IV-0010. AUTO_INCREMENT letto da information_schema è inaffidabile
+        // perché InnoDB aggiorna quella vista in modo asincrono (può essere stale).
+        //
+        // La riga settings(class='Interventi', key='progressivo') funge da sequenza dedicata.
+        // Contiene l'ultimo numero assegnato.
+        // La chiave è: leggerla con SELECT FOR UPDATE dentro una transazione.
+        // FOR UPDATE blocca la riga finché il COMMIT non rilascia il lock, quindi se due
+        // utenti generano un codice contemporaneamente il secondo aspetta che il primo
+        // abbia già incrementato e salvato — nessun duplicato possibile.
+        $db = $this->db;
+        $db->transStart();
 
-        if (! $row) {
-            return 'IV-0001';
-        }
+        $row = $db->query(
+            "SELECT value FROM settings WHERE class = 'Interventi' AND `key` = 'progressivo' FOR UPDATE"
+        )->getRowArray();
 
-        $numero = (int) substr($row['codice'], 3);
-        return 'IV-' . str_pad($numero + 1, 4, '0', STR_PAD_LEFT);
+        $numero = (int) ($row['value'] ?? 0) + 1;
+
+        $db->query(
+            "UPDATE settings SET value = ?, updated_at = NOW() WHERE class = 'Interventi' AND `key` = 'progressivo'",
+            [$numero]
+        );
+
+        $db->transComplete();
+
+        return 'IV-' . str_pad($numero, 4, '0', STR_PAD_LEFT);
     }
 
     /**

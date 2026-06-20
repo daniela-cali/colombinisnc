@@ -97,6 +97,16 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         </div>
                     </div>
 
+                    <!-- Descrizione -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-card-text me-1"></i> Descrizione</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <input type="text" name="descrizione" class="form-control"
+                                   maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
+                                   value="<?= esc(old('descrizione', $intervento['descrizione'] ?? '')) ?>">
+                        </div>
+                    </div>
+
                     <!-- Classificazione -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-tag me-1"></i> Classificazione</p>
                     <div class="row g-3 mb-4">
@@ -112,9 +122,9 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Tipo intervento</label>
+                            <label class="form-label">Tipo intervento <span class="text-danger">*</span></label>
                             <select name="tipo_intervento_id" id="tipo_intervento_id" class="form-select">
-                                <option value="">— nessuno —</option>
+                                <option value="">— seleziona —</option>
                                 <?php foreach ($tipi as $t): ?>
                                     <option value="<?= $t['id'] ?>"
                                             <?= old('tipo_intervento_id', $intervento['tipo_intervento_id']) == $t['id'] ? 'selected' : '' ?>>
@@ -126,7 +136,8 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         <div class="col-md-3">
                             <label class="form-label">Stato <span class="text-danger">*</span></label>
                             <select name="stato" class="form-select">
-                                <?php foreach ($statiLabel as $codice => $etichetta): ?>
+                                <?php foreach ($statiLabel as $codice => $etichetta):
+                                    if ($codice === \App\Models\InterventiModel::STATO_ANNULLATO) continue; ?>
                                     <option value="<?= $codice ?>"
                                             <?= old('stato', $intervento['stato']) === $codice ? 'selected' : '' ?>>
                                         <?= esc($etichetta) ?>

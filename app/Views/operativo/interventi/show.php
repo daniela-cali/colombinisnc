@@ -63,6 +63,14 @@ $statoBadge = [
                     </div>
                 </div>
 
+                <!-- Descrizione -->
+                <?php if ($intervento['descrizione']): ?>
+                    <div class="mb-4">
+                        <p class="text-muted small mb-1">Descrizione</p>
+                        <span class="fw-semibold"><?= esc($intervento['descrizione']) ?></span>
+                    </div>
+                <?php endif ?>
+
                 <!-- Tipo, stato, urgenza -->
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
@@ -164,7 +172,25 @@ $statoBadge = [
                     </a>
                 <?php endif ?>
                 <div class="d-flex gap-2 ms-auto">
-                    <?php if (! in_array($intervento['stato'], ['completato', 'annullato'])): ?>
+                    <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_ANNULLATO): ?>
+                        <form method="post"
+                              action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
+                              onsubmit="return confirm('Eliminare definitivamente <?= esc($intervento['codice']) ?>?')">
+                            <?= csrf_field() ?>
+                            <?php if ($cliente): ?>
+                                <input type="hidden" name="from"
+                                       value="<?= esc(base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')) ?>">
+                            <?php endif ?>
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i>Elimina
+                            </button>
+                        </form>
+                    <?php endif ?>
+                    <?php if (! in_array($intervento['stato'], [\App\Models\InterventiModel::STATO_COMPLETATO, \App\Models\InterventiModel::STATO_ANNULLATO])): ?>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal" data-bs-target="#modal-annulla">
+                            <i class="bi bi-x-circle me-1"></i>Annulla intervento
+                        </button>
                         <button type="button" class="btn btn-sm btn-success"
                                 data-bs-toggle="modal" data-bs-target="#modal-chiudi">
                             <i class="bi bi-check-circle me-1"></i>Chiudi intervento
@@ -183,6 +209,40 @@ $statoBadge = [
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- Modal: annulla intervento -->
+<div class="modal fade" id="modal-annulla" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-x-circle me-2"></i>Annulla intervento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    Confermi l'annullamento dell'intervento
+                    <strong><?= esc($intervento['codice']) ?></strong>?
+                </p>
+                <?php if (! empty($materiali)): ?>
+                    <p class="mt-2 mb-0 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        I materiali non ancora consegnati torneranno tra i sospesi del cliente.
+                    </p>
+                <?php endif ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                <form method="post"
+                      action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/annulla') ?>">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i>Annulla intervento
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -329,9 +329,13 @@
 }
 
 .info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
-    gap: .5rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 2rem;
+}
+
+.info-item {
+    flex: 0 0 auto;
 }
 
 .info-item label {
@@ -348,7 +352,7 @@
     color: var(--bs-body-color);
 }
 
-.info-grid-full { grid-column: 1 / -1; }
+.info-grid-full { flex: 0 0 100%; }
 
 .sospeso-row {
     display: flex;

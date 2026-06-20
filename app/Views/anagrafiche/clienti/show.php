@@ -39,7 +39,7 @@ $statoBadge = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div class="row g-0 flex-nowrap" style="max-width:1100px">
+<div class="row g-0 flex-nowrap">
 
     <!-- ── Colonna contenuto ──────────────────────────────────── -->
     <div class="col" style="min-width:0">
@@ -193,8 +193,8 @@ $statoBadge = [
                     <div class="mb-3">
                         <?php foreach ($sospesi as $s): ?>
                             <div class="sospeso-row" title="ID materiale: <?= $s['id'] ?>"><?php // ID utile per debug DB ?>
+                                <span class="sospeso-qty"><?= (int) $s['quantita'] ?> ×</span>
                                 <span class="sospeso-desc"><?= esc($s['desc_materiale']) ?></span>
-                                <span class="sospeso-qty">× <?= (int) $s['quantita'] ?></span>
                                 <?php if ($s['note']): ?>
                                     <span class="sospeso-note" title="<?= esc($s['note']) ?>"><?= esc($s['note']) ?></span>
                                 <?php endif ?>
@@ -295,6 +295,7 @@ $statoBadge = [
                         <thead>
                             <tr>
                                 <th>Codice</th>
+                                <th>Descrizione</th>
                                 <th>Tipo</th>
                                 <th>Genere</th>
                                 <th>Tecnico</th>
@@ -314,6 +315,7 @@ $statoBadge = [
                                             <code class="small"><?= esc($iv['codice']) ?></code>
                                         </a>
                                     </td>
+                                    <td class="text-muted small"><?= esc($iv['descrizione'] ?? '') ?></td>
                                     <td>
                                         <?php if ($iv['tipo_intervento_icona']): ?>
                                             <i class="fas <?= esc($iv['tipo_intervento_icona']) ?> me-1 text-muted"></i>
@@ -417,8 +419,8 @@ $(function () {
         pageLength: 15,
         order: [[4, 'desc']],
         columnDefs: [
-            { targets: 7, visible: false },
-            { targets: 8, orderable: false, searchable: false }
+            { targets: 8, visible: false },
+            { targets: 9, orderable: false, searchable: false }
         ],
         language: {
             emptyTable:   'Nessun intervento registrato.',
@@ -441,7 +443,7 @@ $(function () {
 
     function setFiltro(nome) {
         var f = filtri[nome];
-        table.column(7).search(f.q, f.regex, false).draw();
+        table.column(8).search(f.q, f.regex, false).draw();
         document.querySelectorAll('[data-filtro]').forEach(function (b) {
             b.classList.toggle('active', b.dataset.filtro === nome);
         });

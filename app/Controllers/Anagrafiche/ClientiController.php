@@ -45,6 +45,16 @@ class ClientiController extends BaseController
     }
 
     /**
+     * Endpoint AJAX: restituisce i materiali sospesi del cliente come JSON.
+     * Usato dal form "Nuovo intervento" per proporre i sospesi alla selezione del cliente.
+     */
+    public function sospesiJson(int $id): \CodeIgniter\HTTP\ResponseInterface
+    {
+        $sospesi = (new InterventiMaterialiModel())->sospesiPerCliente($id);
+        return $this->response->setJSON($sospesi);
+    }
+
+    /**
      * Storico materiali del cliente: sospesi + per intervento, raggruppati via PHP.
      */
     public function materiali(int $id): string|\CodeIgniter\HTTP\RedirectResponse

@@ -1,5 +1,25 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.11.3] - 2026-06-20
+
+### Sospesi nel nuovo intervento + Annulla intervento + Descrizione + migliorie UX
+
+- [APP] Form "Nuovo intervento": se il cliente ha materiali sospesi, appare una sezione con checkbox pre-selezionati — i sospesi selezionati vengono spostati sull'intervento al salvataggio
+- [APP] Campo "Descrizione" aggiunto agli interventi (VARCHAR 255): visibile nel form di creazione/modifica, nella scheda intervento e nella tabella interventi della scheda cliente
+- [APP] Bottone "Annulla intervento" nella scheda show: apre modale con conferma; i materiali da portare tornano automaticamente tra i sospesi del cliente con nota `[Da IV-XXXX]`
+- [APP] Eliminazione intervento spostata dalla pagina edit alla pagina show (visibile solo quando annullato)
+- [APP] Tipo intervento ora obbligatorio nel form (era facoltativo)
+- [APP] Elenco interventi: filtri rapidi Aperti / Completati / Annullati / Tutti (default: Aperti)
+- [APP] Scheda cliente — sospesi: quantità mostrata prima della descrizione articolo
+- [APP] Scheda cliente — layout info-grid adattivo al contenuto (nessun allargamento forzato delle colonne)
+- [DEV] Fix: `cliente_id` mancante nell'insert materiali da nuovo intervento causava FK error #1216
+- [DEV] `InterventiController::annulla()`: nuovo metodo POST; guardia blocca edit di interventi annullati con redirect a show
+- [DEV] Rotta `operativo/interventi/(:num)/annulla` (POST)
+- [DEV] Endpoint AJAX `anagrafiche/clienti/(:num)/sospesi` (GET) — restituisce sospesi del cliente come JSON
+- [DEV] `generaCodice()`: contatore atomico in `settings` con `SELECT FOR UPDATE` in transazione — nessun duplicato possibile con utenti concorrenti; sostituisce lettura da `information_schema` (inaffidabile su InnoDB)
+- [DEV] Migration: colonna `descrizione` in `interventi`; seed `progressivo_interventi` in `settings`
+- [DEV] "annullato" rimosso dal select stato nel form edit — impostabile solo tramite il bottone dedicato
+
 ## [0.11.2] - 2026-06-19
 
 ### Chiudi intervento + fix dark mode

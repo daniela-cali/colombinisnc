@@ -260,7 +260,7 @@ graph TD
 - `interventi_materiali`: `intervento_id` diventa nullable; si aggiunge `cliente_id` (sempre valorizzato)
 - Eliminazione intervento: cascade delete sui materiali (hard delete — la cancellazione è sempre un errore, non un "rimanda"; il caso "rimanda" si gestisce tenendo l'intervento con stato `da_pianificare`)
 - Scheda cliente — tab Materiali: sezione "Materiali da portare" con elenco sospesi + mini-form aggiunta rapida; i materiali con intervento restano nel rowGroup sottostante
-- ⏳ Non implementato: collegamento dei materiali sospesi a un nuovo intervento dal form di creazione
+- ✅ Implementato in v0.11.3: collegamento dei materiali sospesi a un nuovo intervento dal form di creazione
 
 #### ✅ v0.11.1 — Redesign scheda cliente
 - Layout verticale scrollabile a sezioni sticky (Anagrafica · Materiali da portare · Interventi) — rimosso il sistema a tab Bootstrap
@@ -273,6 +273,13 @@ graph TD
 - Materiali non consegnati → tornano sospesi con nota `[Da INT-XXX]`
 - Rimosso `table-light` da tutti i `<thead>` (dark mode)
 - ID DB visibile on hover su righe e cross-reference nelle view
+
+#### ✅ v0.11.3 — Sospesi nel nuovo intervento
+- Nel form "Nuovo intervento", dopo la selezione del cliente, se esistono materiali sospesi appare una sezione con la lista e checkbox per selezionare quali portare
+- I sospesi selezionati vengono **spostati** (non copiati): al salvataggio viene impostato `intervento_id` sulla riga esistente — nessuna riga nuova creata
+- I sospesi non selezionati rimangono sospesi e continuano ad apparire nella scheda cliente
+- **Edge case — eliminazione intervento**: prima del hard delete, i materiali dell'intervento vengono liberati (`intervento_id = NULL`) così sopravvivono al CASCADE e tornano sospesi automaticamente
+- La sezione sospesi è visibile solo se il cliente ha almeno un sospeso; non appare se cliente non ancora selezionato
 
 #### 🔲 v0.12.0 — Abbonamenti
 - Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo
@@ -353,7 +360,7 @@ preventivi ───────────────────────
 
 ### 7.3 Funzionalità versioni future (post-release)
 - Portale clienti: accesso autonomo a storico interventi e abbonamenti (`user_id` già in `clienti`)
-- Portale tecnici mobile dedicato (PWA o app nativa)
+- Portale tecnici mobile dedicato (PWA o app nativa) — prima di svilupparlo, rivedere tutto il gestionale in ottica mobile-first: layout, tabelle, form. Il gestionale attuale è progettato per desktop (schermi fino a 27"); il check mobile è rimandato intenzionalmente a questa fase.
 - Notifiche push/email per promemoria interventi e abbonamenti in scadenza
 - Firma digitale cliente a chiusura intervento
 

@@ -77,6 +77,16 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         </div>
                     </div>
 
+                    <!-- Descrizione -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-card-text me-1"></i> Descrizione</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <input type="text" name="descrizione" class="form-control"
+                                   maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
+                                   value="<?= esc(old('descrizione')) ?>">
+                        </div>
+                    </div>
+
                     <!-- Classificazione -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-tag me-1"></i> Classificazione</p>
                     <div class="row g-3 mb-4">
@@ -92,9 +102,9 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Tipo intervento</label>
+                            <label class="form-label">Tipo intervento <span class="text-danger">*</span></label>
                             <select name="tipo_intervento_id" id="tipo_intervento_id" class="form-select">
-                                <option value="">— nessuno —</option>
+                                <option value="">— seleziona —</option>
                                 <?php foreach ($tipi as $t): ?>
                                     <option value="<?= $t['id'] ?>"
                                             <?= old('tipo_intervento_id') == $t['id'] ? 'selected' : '' ?>>
@@ -162,6 +172,15 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <!-- Materiali -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-box-seam me-1"></i> Materiali da portare</p>
 
+                    <!-- Sospesi del cliente: appare solo se il cliente ha materiali in attesa -->
+                    <div id="sospesi-section" class="d-none mb-4">
+                        <p class="small text-muted mb-2">
+                            <i class="bi bi-clock-history text-warning me-1"></i>
+                            Questo cliente ha materiali sospesi — seleziona quelli da portare in questo intervento:
+                        </p>
+                        <div id="sospesi-lista"></div>
+                    </div>
+
                     <div id="lista-materiali" class="mb-3"></div>
                     <div id="hidden-materiali"></div>
 
@@ -199,7 +218,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <a href="<?= esc($from ?: base_url('operativo/interventi')) ?>" class="btn btn-secondary btn-sm">
                         <i class="bi bi-arrow-left me-1"></i>Annulla
                     </a>
-                    <button type="submit" class="btn btn-primary btn-sm">
+                    <button type="submit" class="btn btn-primary btn-sm ms-auto">
                         <i class="bi bi-check-lg me-1"></i>Salva
                     </button>
                 </div>
@@ -233,6 +252,38 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
         createFilter: function (input) { return input.trim().length > 0; }
     });
 
+    // ── Sospesi del cliente ──────────────────────────────────────────────────
+    var clienteSelect = document.querySelector('[name="cliente_id"]');
+
+    function fetchSospesi(clienteId) {
+        var section = document.getElementById('sospesi-section');
+        if (! clienteId) { section.classList.add('d-none'); return; }
+
+        fetch('<?= base_url('anagrafiche/clienti/') ?>' + clienteId + '/sospesi')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (! data.length) { section.classList.add('d-none'); return; }
+                var html = '';
+                data.forEach(function (s) {
+                    var label = escHtml(s.desc_materiale) + ' &times; ' + s.quantita;
+                    if (s.note) { label += ' <span class="text-muted small">— ' + escHtml(s.note) + '</span>'; }
+                    html += '<div class="form-check mb-1">'
+                        + '<input class="form-check-input" type="checkbox" name="sospesi_ids[]"'
+                        + ' value="' + s.id + '" id="sp-' + s.id + '" checked>'
+                        + '<label class="form-check-label small" for="sp-' + s.id + '">' + label + '</label>'
+                        + '</div>';
+                });
+                document.getElementById('sospesi-lista').innerHTML = html;
+                section.classList.remove('d-none');
+            });
+    }
+
+    clienteSelect.addEventListener('change', function () { fetchSospesi(this.value); });
+
+    // Se il cliente è già pre-selezionato (flusso dalla scheda cliente), carica subito i sospesi.
+    if (clienteSelect.value) { fetchSospesi(clienteSelect.value); }
+
+    // ── Durata default dal tipo intervento ───────────────────────────────────
     document.getElementById('tipo_intervento_id').addEventListener('change', function () {
         var durata = document.getElementById('durata_stimata');
         if (! durata.value && durateDefault[this.value]) {

@@ -41,6 +41,9 @@ Il comando `app/Commands/AssetsPublish.php` legge un manifest e copia i file `di
 
 AdminLTE 4 non ha jQuery come dipendenza — è un rewrite su Bootstrap 5 puro.
 
+## Go-live in produzione
+Il database di sviluppo dovrà essere **completamente svuotato** prima del go-live. Tutti i dati attuali sono dati di test — clienti, interventi, materiali. Non migrare nessun record dal dev al prod.
+
 ## Note ambiente e troubleshooting
 Questa sezione raccoglie note tecniche sull'ambiente di sviluppo e soluzioni a problemi ricorrenti. Non sono regole di progetto ma vanno tenute qui perché il file viene pushato ed è disponibile su qualsiasi macchina.
 

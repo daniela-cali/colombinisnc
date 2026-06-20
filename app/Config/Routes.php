@@ -63,6 +63,7 @@ $routes->group('anagrafiche', function ($routes) {
         $routes->post('store',         'Anagrafiche\ClientiController::store');
         $routes->get('(:num)',           'Anagrafiche\ClientiController::show/$1');
         $routes->get('(:num)/materiali','Anagrafiche\ClientiController::materiali/$1');
+        $routes->get('(:num)/sospesi',  'Anagrafiche\ClientiController::sospesiJson/$1');
         $routes->get('(:num)/edit',    'Anagrafiche\ClientiController::edit/$1');
         $routes->post('(:num)/update', 'Anagrafiche\ClientiController::update/$1');
         $routes->post('(:num)/delete', 'Anagrafiche\ClientiController::delete/$1');
@@ -78,7 +79,8 @@ $routes->group('operativo', function ($routes) {
         $routes->get('(:num)',         'Operativo\InterventiController::show/$1');
         $routes->get('(:num)/edit',    'Operativo\InterventiController::edit/$1');
         $routes->post('(:num)/update', 'Operativo\InterventiController::update/$1');
-        $routes->post('(:num)/chiudi', 'Operativo\InterventiController::chiudi/$1');
+        $routes->post('(:num)/chiudi',  'Operativo\InterventiController::chiudi/$1');
+        $routes->post('(:num)/annulla', 'Operativo\InterventiController::annulla/$1');
         $routes->post('(:num)/delete', 'Operativo\InterventiController::delete/$1');
     });
 

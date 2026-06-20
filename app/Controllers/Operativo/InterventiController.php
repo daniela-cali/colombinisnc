@@ -59,15 +59,22 @@ class InterventiController extends BaseController
         ]));
         $codice = $model->find($id)['codice'];
 
+        $matModel      = new InterventiMaterialiModel();
         $materialiPost = $this->request->getPost('materiali') ?? [];
-        if ($materialiPost) {
-            $matModel = new InterventiMaterialiModel();
-            foreach ($materialiPost as $m) {
-                if (empty($m['articolo_id']) && empty($m['descrizione'])) {
-                    continue;
-                }
-                $matModel->insert(array_merge($m, ['intervento_id' => $id]));
+        foreach ($materialiPost as $m) {
+            if (empty($m['articolo_id']) && empty($m['descrizione'])) {
+                continue;
             }
+            $matModel->insert(array_merge($m, [
+                'intervento_id' => $id,
+                'cliente_id'    => $this->request->getPost('cliente_id'),
+            ]));
+        }
+
+        // Collega i materiali sospesi selezionati dal dispatcher al nuovo intervento.
+        $sospesiIds = array_filter(array_map('intval', $this->request->getPost('sospesi_ids') ?? []));
+        foreach ($sospesiIds as $sospId) {
+            $matModel->update($sospId, ['intervento_id' => $id]);
         }
 
         $from = $this->request->getPost('from');
@@ -152,6 +159,11 @@ class InterventiController extends BaseController
             return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
         }
 
+        if ($intervento['stato'] === InterventiModel::STATO_ANNULLATO) {
+            return redirect()->to('operativo/interventi/' . $id)
+                ->with('error', 'Un intervento annullato non può essere modificato.');
+        }
+
         $cliente = (new ClientiModel())->find($intervento['cliente_id']);
 
         return view('operativo/interventi/edit', [
@@ -194,9 +206,36 @@ class InterventiController extends BaseController
     }
 
     /**
+     * Annulla l'intervento: stato → annullato e libera i materiali non consegnati verso i sospesi.
+     * Unico punto in cui lo stato "annullato" viene impostato: non è più selezionabile dal form di modifica.
+     */
+    public function annulla(int $id)
+    {
+        $model      = new InterventiModel();
+        $intervento = $model->find($id);
+
+        if (! $intervento) {
+            return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
+        }
+
+        if (in_array($intervento['stato'], [InterventiModel::STATO_COMPLETATO, InterventiModel::STATO_ANNULLATO])) {
+            return redirect()->to('operativo/interventi/' . $id)
+                ->with('error', 'L\'intervento è già chiuso o annullato.');
+        }
+
+        $model->update($id, ['stato' => InterventiModel::STATO_ANNULLATO]);
+        (new InterventiMaterialiModel())->liberaPerIntervento($id, $intervento['codice']);
+
+        return redirect()->to('operativo/interventi/' . $id)
+            ->with('success', 'Intervento ' . esc($intervento['codice']) . ' annullato.');
+    }
+
+    /**
      * Elimina l'intervento (hard delete).
      * Consentito solo se lo stato è "annullato" — impedisce la cancellazione di interventi attivi.
-     * I materiali collegati vengono eliminati a cascata dalla FK.
+     * Guard difensivo: libera i materiali prima del CASCADE per coprire record storici impostati
+     * ad "annullato" prima dell'introduzione del bottone dedicato (quando era possibile farlo
+     * dal dropdown del form). Sul DB di produzione (svuotato al go-live) questo non servirà.
      */
     public function delete(int $id)
     {
@@ -214,6 +253,9 @@ class InterventiController extends BaseController
 
         $codice    = $intervento['codice'];
         $clienteId = $intervento['cliente_id'];
+
+        // Libera i materiali prima del CASCADE: tornano sospesi con nota dell'intervento di origine.
+        (new InterventiMaterialiModel())->liberaPerIntervento($id, $codice);
         $model->delete($id);
 
         $from = $this->request->getPost('from');
@@ -240,7 +282,7 @@ class InterventiController extends BaseController
             'cliente_id'         => 'required|is_natural_no_zero',
             'priorita'           => 'required|in_list[' . $prioritaAmmesse . ']',
             'stato'              => 'required|in_list[' . $statiAmmessi . ']',
-            'tipo_intervento_id' => 'permit_empty|is_natural_no_zero',
+            'tipo_intervento_id' => 'required|is_natural_no_zero',
             'data_pianificata'   => 'permit_empty|valid_date[Y-m-d]',
             'data_scadenza'      => 'permit_empty|valid_date[Y-m-d]',
             'durata_stimata'     => 'permit_empty|is_natural',

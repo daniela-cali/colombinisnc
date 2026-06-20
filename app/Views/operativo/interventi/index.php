@@ -46,7 +46,21 @@ $prioritaBadge = [
                     </a>
                 </div>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body">
+                <div class="mb-3 d-flex gap-2 flex-wrap">
+                    <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
+                        <i class="bi bi-folder2-open me-1"></i>Aperti
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" data-filtro="completati">
+                        <i class="bi bi-check-circle me-1"></i>Completati
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
+                        <i class="bi bi-x-circle me-1"></i>Annullati
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
+                        Tutti (<?= count($interventi) ?>)
+                    </button>
+                </div>
                 <?php if (empty($interventi)): ?>
                     <p class="text-muted text-center py-4 mb-0">Nessun intervento trovato.</p>
                 <?php else: ?>
@@ -63,6 +77,7 @@ $prioritaBadge = [
                                     <th>Tecnico</th>
                                     <th class="text-center">Urg.</th>
                                     <th></th>
+                                    <th></th><!-- stato raw — nascosto, usato dal filtro -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,6 +135,7 @@ $prioritaBadge = [
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         </td>
+                                        <td><?= esc($i['stato']) ?></td>
                                     </tr>
                                 <?php endforeach ?>
                             </tbody>
@@ -138,7 +154,7 @@ $prioritaBadge = [
 <script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
 <script>
 $(function () {
-    $('#tabella-interventi').DataTable({
+    var table = $('#tabella-interventi').DataTable({
         language: {
             search:       'Cerca:',
             lengthMenu:   'Mostra _MENU_ righe',
@@ -151,8 +167,32 @@ $(function () {
         orderMulti: true,
         pageLength:  25,
         order:       [[4, 'desc']],
-        columnDefs:  [{ orderable: false, targets: [-1] }]
+        columnDefs:  [
+            { orderable: false, searchable: false, targets: 8 },
+            { visible: false, targets: 9 }
+        ]
     });
+
+    var filtri = {
+        aperti:     { q: '^(da_pianificare|pianificato|in_corso)$', regex: true  },
+        completati: { q: '^completato$',                            regex: true  },
+        annullati:  { q: '^annullato$',                             regex: true  },
+        tutti:      { q: '',                                        regex: false }
+    };
+
+    function setFiltro(nome) {
+        var f = filtri[nome];
+        table.column(9).search(f.q, f.regex, false).draw();
+        document.querySelectorAll('[data-filtro]').forEach(function (b) {
+            b.classList.toggle('active', b.dataset.filtro === nome);
+        });
+    }
+
+    document.querySelectorAll('[data-filtro]').forEach(function (b) {
+        b.addEventListener('click', function () { setFiltro(this.dataset.filtro); });
+    });
+
+    setFiltro('aperti');
 });
 </script>
 <?= $this->endSection() ?>
