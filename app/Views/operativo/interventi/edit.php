@@ -101,6 +101,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <p class="text-muted section-header mb-3"><i class="bi bi-card-text me-1"></i> Descrizione</p>
                     <div class="row g-3 mb-4">
                         <div class="col-12">
+                            <label class="form-label">Descrizione <span class="text-danger">*</span></label>
                             <input type="text" name="descrizione" class="form-control"
                                    maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
                                    value="<?= esc(old('descrizione', $intervento['descrizione'] ?? '')) ?>">
@@ -162,10 +163,10 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label">Data pianificata</label>
-                            <input type="date" name="data_pianificata" class="form-control"
+                            <input type="datetime-local" name="data_pianificata" class="form-control"
                                    value="<?= esc(old('data_pianificata',
                                        $intervento['data_pianificata']
-                                           ? date('Y-m-d', strtotime($intervento['data_pianificata']))
+                                           ? date('Y-m-d\TH:i', strtotime($intervento['data_pianificata']))
                                            : ''
                                    )) ?>">
                         </div>

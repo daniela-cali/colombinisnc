@@ -266,6 +266,64 @@ class InterventiController extends BaseController
         return redirect()->to($dest)->with('success', 'Intervento ' . esc($codice) . ' eliminato.');
     }
 
+    /**
+     * Pianifica l'intervento: imposta data_pianificata, tecnico_id facoltativo e stato → pianificato.
+     * Chiamato via AJAX dal drag-and-drop sul calendario.
+     */
+    public function pianifica(int $id)
+    {
+        $model      = new InterventiModel();
+        $intervento = $model->find($id);
+
+        if (! $intervento || $intervento['stato'] !== InterventiModel::STATO_DA_PIANIFICARE) {
+            return $this->response->setJSON(['ok' => false, 'msg' => 'Intervento non pianificabile.']);
+        }
+
+        $dataPian = $this->request->getPost('data_pianificata');
+        if (! $dataPian) {
+            return $this->response->setJSON(['ok' => false, 'msg' => 'Data mancante.']);
+        }
+
+        $dati = [
+            'data_pianificata' => date('Y-m-d H:i:s', strtotime($dataPian)),
+            'stato'            => InterventiModel::STATO_PIANIFICATO,
+        ];
+        $tecnicoId = (int) $this->request->getPost('tecnico_id');
+        if ($tecnicoId) {
+            $dati['tecnico_id'] = $tecnicoId;
+        }
+
+        $model->update($id, $dati);
+
+        return $this->response->setJSON(['ok' => true, 'csrf' => csrf_hash()]);
+    }
+
+    /**
+     * Rimuove la pianificazione: azzera data_pianificata e tecnico_id, stato → da_pianificare.
+     * Chiamato via AJAX dal bottone × sugli eventi del calendario.
+     */
+    public function annullaPianificazione(int $id)
+    {
+        $model      = new InterventiModel();
+        $intervento = $model->find($id);
+
+        if (! $intervento) {
+            return $this->response->setJSON(['ok' => false, 'msg' => 'Intervento non trovato.']);
+        }
+
+        if (! in_array($intervento['stato'], [InterventiModel::STATO_PIANIFICATO, InterventiModel::STATO_IN_CORSO])) {
+            return $this->response->setJSON(['ok' => false, 'msg' => 'Impossibile rimuovere la pianificazione in questo stato.']);
+        }
+
+        $model->update($id, [
+            'data_pianificata' => null,
+            'tecnico_id'       => null,
+            'stato'            => InterventiModel::STATO_DA_PIANIFICARE,
+        ]);
+
+        return $this->response->setJSON(['ok' => true, 'csrf' => csrf_hash()]);
+    }
+
     // -------------------------------------------------------------------------
 
     /**
@@ -280,10 +338,11 @@ class InterventiController extends BaseController
 
         return [
             'cliente_id'         => 'required|is_natural_no_zero',
+            'descrizione'        => 'required|min_length[3]',
             'priorita'           => 'required|in_list[' . $prioritaAmmesse . ']',
             'stato'              => 'required|in_list[' . $statiAmmessi . ']',
             'tipo_intervento_id' => 'required|is_natural_no_zero',
-            'data_pianificata'   => 'permit_empty|valid_date[Y-m-d]',
+            'data_pianificata'   => 'permit_empty|valid_date[Y-m-d\TH:i]',
             'data_scadenza'      => 'permit_empty|valid_date[Y-m-d]',
             'durata_stimata'     => 'permit_empty|is_natural',
         ];

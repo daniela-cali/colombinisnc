@@ -1,5 +1,29 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.12.0] - 2026-06-21
+
+### Calendario interventi
+
+- [APP] Calendario interventi: griglia FullCalendar con viste giorno/settimana/mese; eventi colorati per tecnico assegnato
+- [APP] Pool "Da pianificare": sidebar affiancata alla griglia con interventi non pianificati, raggruppati per zona geografica (barra colorata giallo/verde/blu corrispondente all'index clienti); sezioni collassabili per zona
+- [APP] Drag & drop dal pool al calendario: apre modal di pianificazione con selezione tecnico e orario; salva `data_pianificata` e porta lo stato a `pianificato`
+- [APP] Drag & drop degli eventi sul calendario: sposta data/ora dell'intervento con persistenza immediata
+- [APP] Bottone × sugli eventi: annulla la pianificazione e riporta l'intervento nel pool (`da_pianificare`)
+- [APP] Click sull'evento: modal dettaglio con tecnico, tipo, stato, descrizione, link a scheda intervento e modifica
+- [APP] Filtro per tecnico: pill buttons nella barra sopra il calendario
+- [APP] Elenco interventi: nuovi filtri "Da pianificare" (default), "Pianificati", "Completati", "Annullati" — rimosso il filtro generico "Aperti"
+- [APP] Form modifica intervento: campo data pianificata include ora (datetime-local)
+- [APP] Descrizione intervento obbligatoria (minimo 3 caratteri)
+- [APP] Scheda cliente — colonna "Data pianificata": mostra anche l'orario
+- [DEV] `CalendarioController`: `index()`, `eventi()` JSON per FullCalendar, `sposta()`, `generaViaggio()` placeholder v0.13.0
+- [DEV] `InterventiController`: `pianifica()` e `annullaPianificazione()` via AJAX POST
+- [DEV] FullCalendar 6 installato via npm; bundle global + locale IT in `public/assets/vendor/fullcalendar/`
+- [DEV] `public/css/calendario.css`: layout flex sidebar+griglia, resize handle, pool card, dark mode FullCalendar via `--fc-*` CSS custom properties
+- [DEV] Rotte `operativo/calendario` (GET/POST) e `operativo/interventi/(:num)/pianifica|annulla-pianificazione` (POST)
+- [DEV] Validazione `data_pianificata` aggiornata a `valid_date[Y-m-d\TH:i]`
+- [DEV] DataTables scheda cliente: `type:'string'` su colonne data per disabilitare auto-rilevamento tipo e ripristinare allineamento corretto
+- [DEV] ANALISI.md: capitolo v0.15.0 Cantieri; nota architettura zone configurabili
+
 ## [0.11.3] - 2026-06-20
 
 ### Sospesi nel nuovo intervento + Annulla intervento + Descrizione + migliorie UX

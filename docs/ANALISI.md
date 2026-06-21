@@ -217,6 +217,7 @@ graph TD
 - CRUD clienti completo (società e persone fisiche)
 - Geocodifica automatica via Nominatim; `distanza_sede` calcolata con haversine ad ogni salvataggio
 - Auto-assegnazione zona (Ventimiglia/Ceriale/Savona) da soglie longitudine configurabili in Parametri; zona manuale ha la precedenza
+- ⚠️ **Zone da rivedere in versione futura**: il sistema attuale a 3 zone fisse è una macro-semplificazione — nella pratica le zone si suddividono ulteriormente (es. Varazze-Loano dentro Savona). Architettura target: tabella `zone` con `nome`, `lng_min`, `lng_max`, `ordine`; ogni cliente si auto-assegna alla zona il cui range contiene la sua longitudine. Stessa logica geolocalizzazione, numero zone libero, nomi configurabili dall'utente. Il pool del calendario raggrupperà per zona quando questo sarà implementato.
 - Scheda cliente a tab: Anagrafica (attiva) · Interventi · Materiali (placeholder v0.8.0)
 - Lista clienti con DataTables: ricerca testuale, ordinamento multi-colonna, paginazione
 - `codice_esterno` per collegamento con software di contabilità esterno
@@ -281,57 +282,99 @@ graph TD
 - **Edge case — eliminazione intervento**: prima del hard delete, i materiali dell'intervento vengono liberati (`intervento_id = NULL`) così sopravvivono al CASCADE e tornano sospesi automaticamente
 - La sezione sospesi è visibile solo se il cliente ha almeno un sospeso; non appare se cliente non ancora selezionato
 
-#### 🔲 v0.12.0 — Abbonamenti
-- Modal post-salvataggio per interventi di genere `programmato`: raccoglie data inizio/fine, frequenza e prezzo
-- Il sistema crea automaticamente una riga in `abbonamenti` e la collega all'intervento via `abbonamenti_interventi`
-- Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
-- Stati abbonamento: `attivo`, `sospeso`, `scaduto`, `disdetto` (costanti nel model)
-- `durata_mesi` calcolata automaticamente nel model
-- `abbonamento_precedente_id` per catena storica (navigabile con CTE ricorsiva MySQL 8+)
-- `prezzo` = totale abbonamento, non per visita
-- Spec dettagliata in `docs/abbonamenti_spec.md`
-
-#### 🔲 v0.13.0 — Calendario
-- Integrazione FullCalendar (licenza open-source)
-- Visualizzazione interventi per tecnico e per giorno/settimana/mese
-- Creazione e modifica intervento direttamente dal calendario (con orario)
-- Evidenziazione per stato e per tecnico (colore da `personale.colore`)
+#### ✅ v0.12.0 — Calendario
+- FullCalendar 6 via npm (bundle global + locale IT); `public/css/calendario.css` dedicato con dark mode override via `--fc-*`
+- Griglia con viste giorno/settimana/mese; slot 07:00–20:00; eventi colorati per tecnico (`personale.colore`)
+- Pool "Da pianificare": sidebar affiancata, interventi raggruppati per zona geografica con barra colorata collassabile
+- Drag & drop dal pool → modal pianifica (tecnico + ora) → AJAX POST → stato `da_pianificare` → `pianificato`
+- Click evento → modal dettaglio; drag interno → sposta data/ora; bottone × → annulla pianificazione e riporta nel pool
+- Filtro pill per tecnico; `data_pianificata` a `datetime-local` in form edit; descrizione intervento resa obbligatoria
+- Elenco interventi: filtri "Da pianificare" / Pianificati / Completati / Annullati ("In corso" accorpato a Pianificati fino a v0.13.0)
+- *Nota: il pool mostra tutti gli interventi `da_pianificare` senza filtro per periodo — variante più semplice e operativamente più utile della specifica originale*
+- *Nota: milestone anticipata rispetto ad Abbonamenti perché ne è prerequisito operativo*
 
 #### 🔲 v0.13.0 — Viaggi
 - Vista giornaliera per tecnico: elenco interventi ordinato per ora
 - Accesso rapido a scheda cliente e scheda intervento
 - Inserimento materiali consegnati e note a chiusura intervento
 - Aggiornamento stato intervento dal campo (mobile-friendly)
+- *Nota: numerazione invariata, ma ora segue il Calendario invece di precederlo — Viaggi consuma gli orari assegnati dal Calendario*
 
-#### 🔲 v0.14.0 — Anagrafica impianti
+#### 🔲 v0.14.0 — Abbonamenti
+- **Flusso invertito rispetto alla concezione iniziale**: l'abbonamento nasce a livello di cliente (non più come effetto collaterale silenzioso del salvataggio di un intervento) e da esso vengono generati gli interventi collegati
+- Genere/priorità intervento `programmato` rinominato `abbonamento`; non modificabile dalla scheda intervento quando l'intervento è già collegato a un abbonamento (il campo è "di proprietà" dell'abbonamento, non dell'intervento)
+- Nuova FK **`abbonamento_id` nullable diretta su `interventi`** (one-to-many: un abbonamento → molti interventi). Sostituisce la precedente ipotesi di tabella pivot `abbonamenti_interventi`, non più necessaria: un intervento appartiene a un solo abbonamento
+- Form/UI di creazione abbonamento (a livello cliente): raccoglie data inizio/fine validità, frequenza, prezzo totale
+- Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
+- Stati abbonamento: `attivo`, `sospeso`, `scaduto`, `disdetto` (costanti nel model)
+- `durata_mesi` calcolata automaticamente nel model
+- `abbonamento_precedente_id` per catena storica (navigabile con CTE ricorsiva MySQL 8+)
+- `prezzo` = totale abbonamento, non per visita
+- **Generazione interventi**: tutti gli interventi previsti dalla durata dell'abbonamento vengono creati in un'unica passata al momento della creazione dell'abbonamento (batch, non uno alla volta a chiusura del precedente)
+- Per **ogni** intervento generato, indipendentemente dalla frequenza: `data_pianificata = NULL` e `data_scadenza` = fine del periodo di competenza (es. fine settimana per i settimanali, fine mese per i mensili, ecc.), stato iniziale `da_pianificare`. Il giorno/orario preciso viene assegnato in seguito dal dispatcher tramite la vista "pool non pianificati" del Calendario
+- Spec dettagliata in `docs/abbonamenti_spec.md` — **da rivedere**: la versione attuale dello spec descrive ancora il vecchio flusso (creazione silenziosa da intervento `programmato`) e va riscritta per il nuovo modello prima di passare il documento a Claude Code
+
+#### 🔲 v0.15.0 — Cantieri
+
+Un **cantiere** raggruppa più interventi legati a un unico progetto per un cliente (nuova costruzione o ristrutturazione). Si distingue dagli interventi "standalone" (manutenzioni, abbonamenti) che non appartengono a nessun progetto.
+
+**Tabella `cantieri`**
+- `cliente_id` FK, `titolo`, `tipo` (nuova_costruzione / ristrutturazione), `stato` (aperto / sospeso / chiuso)
+- `data_inizio`, `data_fine_prevista`, `note` generali
+- Campi standard: `created_by`, `updated_by`, `created_at`, `updated_at`
+
+**Tabella `fasi_cantiere`** (1:N su cantieri)
+Ogni riga è una nota/task del journal di cantiere — corrisponde alle singole righe operative scritte dal titolare (es. "posizionati passanti per bocchette, far lasciare cassonetti per faretti").
+- `cantiere_id` FK, `descrizione` TEXT, `data_nota`
+- `intervento_id` nullable FK — **pattern identico ai materiali sospesi**: `IS NULL` = fase ancora da fare; `IS NOT NULL` = fase collegata a un intervento pianificabile
+- Nessun campo `subappaltatore` strutturato: eventuali subappaltatori si citano nel testo libero della descrizione
+- Campi standard: `created_by`, `updated_by`, `created_at`, `updated_at`
+
+**Flusso operativo**
+1. Si apre un cantiere sul cliente con titolo e tipo
+2. Si aggiungono righe al journal man mano che avanza il lavoro
+3. Le righe con `intervento_id IS NULL` appaiono come "da fare" (pool simile ai materiali sospesi)
+4. Bottone "Crea intervento" su ogni riga sospesa: pre-compila cliente + descrizione, al salvataggio popola `fasi_cantiere.intervento_id`
+5. L'intervento generato entra nel pool "Da pianificare" del Calendario e segue il flusso normale
+
+**Calendario**
+I cantieri non appaiono direttamente — vi appaiono gli interventi generati dalle fasi. Il titolo del cantiere sarà visibile come extendedProp nell'evento (modal dettaglio).
+
+**Navigazione**
+- Lista cantieri globale filtrabile per stato e cliente
+- Scheda cantiere: header (titolo, cliente, stato, date) + lista fasi cronologica con indicatore sospesa/collegata
+- Scheda cliente: sezione **Cantieri** con elenco cantieri attivi
+- Scheda intervento: se collegato a una fase, mostra titolo cantiere con link
+
+#### 🔲 v0.16.0 — Anagrafica impianti
 - Tabella `impianti`: tipo (piscina, addolcitore, acquedotto, trattamento acqua, altro), marca, modello, note
 - Tabella `clienti_impianti`: FK cliente + FK impianto + indirizzo specifico dell'impianto se diverso dal cliente
 - Collegamento impianto agli interventi (popola `impianto_id` lasciato nullable dalla v0.8.0)
 - Scheda cliente: nuovo tab **Impianti**
 
-#### 🔲 v0.15.0 — Richieste di intervento
+#### 🔲 v0.17.0 — Richieste di intervento
 - Tabella `richieste`: cliente, tipo, descrizione, priorità, stato, tecnico suggerito
 - Flusso: richiesta → approvazione → conversione in intervento pianificato
 - Badge notifica in sidebar per richieste in attesa
 
-#### 🔲 v0.16.0 — Magazzino avanzato
+#### 🔲 v0.18.0 — Magazzino avanzato
 - Gestione giacenza: movimenti di carico/scarico con tabella `movimenti_magazzino`
 - Scarico automatico giacenza quando si inseriscono materiali su un intervento
 - Soglia minima per articolo; alert sottoscorta in dashboard
 - Import ricambi da DB esterno (integrazione con sistema esistente)
 
-#### 🔲 v0.17.0 — Preventivi
+#### 🔲 v0.19.0 — Preventivi
 - Tabella `preventivi`: cliente, data, stato (bozza/inviato/accettato/rifiutato), totale
 - Righe preventivo: articolo da catalogo o descrizione libera, quantità, prezzo unitario
 - Conversione preventivo accettato → intervento/abbonamento
 
-#### 🔲 v0.18.0 — Dashboard e report
+#### 🔲 v0.20.0 — Dashboard e report
 - Dashboard riepilogativa: interventi oggi, settimana, tecnici in campo, richieste aperte, abbonamenti in scadenza
 - Presenze/assenze tecnici
 - Report PDF: interventi per cliente, materiali consegnati, abbonamenti attivi
 - Statistiche: interventi per tipo/periodo, km percorsi, prodotti consumati
 
-#### 🔲 v0.19.0 — Release
+#### 🔲 v0.21.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
 - Deploy su Nginx (dominio colombini-snc.it)
@@ -350,7 +393,7 @@ clienti ──→ clienti_impianti ──→ impianti               interventi
 preventivi ──────────────────────────────────────────────→ ┤
                                                             │
                                                             ├──→ abbonamenti
-                                                            │       └──→ abbonamenti_interventi
+                                                            │       └──→ interventi (FK abbonamento_id)
                                                             │
                                                             └──→ interventi_materiali
                                                                         │
@@ -362,15 +405,15 @@ preventivi ───────────────────────
 - Portale clienti: accesso autonomo a storico interventi e abbonamenti (`user_id` già in `clienti`)
 - Portale tecnici mobile dedicato (PWA o app nativa) — prima di svilupparlo, rivedere tutto il gestionale in ottica mobile-first: layout, tabelle, form. Il gestionale attuale è progettato per desktop (schermi fino a 27"); il check mobile è rimandato intenzionalmente a questa fase.
 - Notifiche push/email per promemoria interventi e abbonamenti in scadenza
-- Firma digitale cliente a chiusura intervento
+- Firma digitale cliente a chiusura intervento (libreria: Signature Pad; salvata come base64 in colonna DB — es. `firma_cliente` MEDIUMTEXT su `interventi` — non come file su disco)
 
-### 7.3 Rischi e mitigazioni
+### 7.4 Rischi e mitigazioni
 
 | Rischio | Probabilità | Mitigazione |
 |---------|-------------|-------------|
 | Scope creep prima della v1.0 | Alta | Rispettare le milestone, rimandare tutto il resto alle versioni future |
 | Complessità FullCalendar + API REST | Media | Prototipare prima con dati statici |
-| Usabilità mobile per i tecnici | Media | Test sul campo dalla v0.7.0 |
+| Usabilità mobile per i tecnici | Media | Test sul campo rimandato a data da definirsi — presumibilmente dopo l'entrata in funzione del sistema in ufficio, in vista del Portale tecnici mobile dedicato (vedi 7.3) |
 
 ## 8. Decisioni tecniche
 
@@ -398,3 +441,15 @@ per navigazione sul campo dai tecnici.
 ### OpenRouteService rimandato
 Integrazione per percorsi ottimali rimandata a versioni future — 
 funzionalità utile ma non bloccante per il MVP.
+
+### Abbonamenti: flusso invertito (cliente → abbonamento → interventi)
+Concezione iniziale (creazione silenziosa di un abbonamento al salvataggio 
+di un intervento `programmato`) abbandonata: semanticamente invertita, 
+un abbonamento è il contratto e l'intervento è la sua esecuzione, non 
+il contrario. Il nuovo flusso parte dalla gestione abbonamenti a livello 
+cliente, che genera in batch tutti gli interventi previsti dalla durata 
+del contratto. FK diretta `abbonamento_id` su `interventi` al posto della 
+pivot `abbonamenti_interventi` (relazione one-to-many, non many-to-many). 
+Questo richiede che il Calendario (v0.12.0) preceda Abbonamenti (v0.14.0), 
+poiché la generazione batch si appoggia sul concetto di "pool non 
+pianificati" introdotto dal Calendario stesso.

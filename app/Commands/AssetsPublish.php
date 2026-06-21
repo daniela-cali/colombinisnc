@@ -55,6 +55,9 @@ class AssetsPublish extends BaseCommand
 
             ['label' => 'Font Awesome CSS',      'src' => 'node_modules/@fortawesome/fontawesome-free/css',      'dest' => 'fontawesome',          'pattern' => 'all.min.css'],
             ['label' => 'Font Awesome webfonts', 'src' => 'node_modules/@fortawesome/fontawesome-free/webfonts', 'dest' => 'webfonts',            'pattern' => '*.woff2'],
+
+            ['label' => 'FullCalendar JS',       'src' => 'node_modules/fullcalendar',                          'dest' => 'fullcalendar',         'pattern' => 'index.global.min.js'],
+            ['label' => 'FullCalendar locale IT', 'src' => 'node_modules/@fullcalendar/core/locales',           'dest' => 'fullcalendar/locales', 'pattern' => 'it.global.min.js'],
         ];
 
         CLI::write('Pubblicazione assets frontend...', 'yellow');

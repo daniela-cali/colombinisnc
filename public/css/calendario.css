@@ -1,0 +1,111 @@
+/* ============================================================
+   Calendario — layout, pool sidebar, pool card, resize handle
+   ============================================================ */
+
+/* Layout flex principale */
+#cal-layout {
+    display: flex;
+    gap: .75rem;
+    align-items: flex-start;
+}
+
+#pool-panel {
+    width: 230px;
+    min-width: 180px;
+    max-width: 450px;
+    flex-shrink: 0;
+}
+
+#resize-handle {
+    width: 5px;
+    min-height: 60px;
+    align-self: stretch;
+    cursor: col-resize;
+    background: var(--bs-border-color);
+    border-radius: 3px;
+    opacity: .35;
+    transition: opacity .15s;
+}
+#resize-handle:hover { opacity: 1; }
+
+#cal-column {
+    flex: 1;
+    min-width: 0; /* evita overflow in flexbox */
+}
+
+/* Pool — stato vuoto */
+.pool-empty {
+    text-align: center;
+    padding: 1.5rem .5rem;
+    color: var(--bs-secondary-color);
+    font-size: .85rem;
+}
+
+/* Pool — card draggabile */
+.pool-card {
+    border-left: 3px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    border-radius: 0 4px 4px 0;
+    padding: .4rem .5rem;
+    margin: .25rem 0;
+    cursor: grab;
+    user-select: none;
+}
+.pool-card:active  { cursor: grabbing; }
+.pool-card.urgente     { border-left-color: var(--bs-danger); }
+.pool-card.normale     { border-left-color: var(--bs-secondary); }
+.pool-card.programmato { border-left-color: var(--bs-primary); }
+
+/* Impedisce che FullCalendar assegni stili di evento al clone del drag */
+body.fc-dragging .fc-event { pointer-events: none; }
+
+/* Evidenzia la colonna giorno selezionata (Genera viaggio) */
+.fc-day-selected {
+    background: rgba(var(--bs-warning-rgb), .12) !important;
+}
+
+/* ============================================================
+   FullCalendar — dark mode
+   FC non legge data-bs-theme; si usano le sue variabili --fc-*
+   ============================================================ */
+[data-bs-theme="dark"] .fc {
+    --fc-page-bg-color:       transparent;
+    --fc-border-color:        rgba(255, 255, 255, .12);
+    --fc-neutral-bg-color:    rgba(255, 255, 255, .05);
+    --fc-non-business-color:  rgba(255, 255, 255, .03);
+    --fc-today-bg-color:      rgba(var(--bs-warning-rgb), .1);
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .fc .fc-col-header-cell a,
+[data-bs-theme="dark"] .fc .fc-daygrid-day-number,
+[data-bs-theme="dark"] .fc .fc-daygrid-week-number {
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .fc .fc-timegrid-slot-label {
+    color: var(--bs-secondary-color);
+}
+[data-bs-theme="dark"] .fc .fc-scrollgrid,
+[data-bs-theme="dark"] .fc .fc-scrollgrid td,
+[data-bs-theme="dark"] .fc .fc-scrollgrid th {
+    border-color: rgba(255, 255, 255, .12);
+}
+[data-bs-theme="dark"] .fc .fc-button {
+    background-color: var(--bs-secondary-bg);
+    border-color:     var(--bs-border-color);
+    color:            var(--bs-body-color);
+}
+[data-bs-theme="dark"] .fc .fc-button:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+[data-bs-theme="dark"] .fc .fc-button-primary:not(:disabled).fc-button-active,
+[data-bs-theme="dark"] .fc .fc-button-primary:not(:disabled):active {
+    background-color: var(--bs-primary);
+    border-color:     var(--bs-primary);
+    color:            #fff;
+}
+[data-bs-theme="dark"] .fc .fc-toolbar-title {
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .fc .fc-day-today {
+    background: rgba(var(--bs-warning-rgb), .1) !important;
+}

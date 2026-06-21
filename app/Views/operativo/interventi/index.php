@@ -48,8 +48,11 @@ $prioritaBadge = [
             </div>
             <div class="card-body">
                 <div class="mb-3 d-flex gap-2 flex-wrap">
-                    <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
-                        <i class="bi bi-folder2-open me-1"></i>Aperti
+                    <button class="btn btn-sm btn-outline-warning" data-filtro="da_pianificare">
+                        <i class="bi bi-hourglass-split me-1"></i>Da pianificare
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" data-filtro="pianificati">
+                        <i class="bi bi-calendar-check me-1"></i>Pianificati
                     </button>
                     <button class="btn btn-sm btn-outline-success" data-filtro="completati">
                         <i class="bi bi-check-circle me-1"></i>Completati
@@ -174,10 +177,11 @@ $(function () {
     });
 
     var filtri = {
-        aperti:     { q: '^(da_pianificare|pianificato|in_corso)$', regex: true  },
-        completati: { q: '^completato$',                            regex: true  },
-        annullati:  { q: '^annullato$',                             regex: true  },
-        tutti:      { q: '',                                        regex: false }
+        da_pianificare: { q: '^da_pianificare$',              regex: true  },
+        pianificati:    { q: '^(pianificato|in_corso)$',      regex: true  },
+        completati:     { q: '^completato$',                  regex: true  },
+        annullati:      { q: '^annullato$',                   regex: true  },
+        tutti:          { q: '',                              regex: false }
     };
 
     function setFiltro(nome) {
@@ -192,7 +196,7 @@ $(function () {
         b.addEventListener('click', function () { setFiltro(this.dataset.filtro); });
     });
 
-    setFiltro('aperti');
+    setFiltro('da_pianificare');
 });
 </script>
 <?= $this->endSection() ?>

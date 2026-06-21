@@ -300,7 +300,7 @@ $statoBadge = [
                                 <th>Genere</th>
                                 <th>Tecnico</th>
                                 <th>Data pianificata</th>
-                                <th>Scadenza</th>
+                                <th class="ps-4">Scadenza</th>
                                 <th>Stato</th>
                                 <th></th><!-- stato raw — nascosto, usato dal filtro -->
                                 <th></th><!-- azioni -->
@@ -325,10 +325,10 @@ $statoBadge = [
                                     <td class="text-muted small"><?= esc($prioritaLabel[$iv['priorita']] ?? $iv['priorita']) ?></td>
                                     <td class="text-muted small"><?= esc($iv['tecnico_nome'] ?? '—') ?></td>
                                     <td data-order="<?= esc($iv['data_pianificata'] ?? '') ?>">
-                                        <?= $iv['data_pianificata'] ? esc(date('d/m/Y', strtotime($iv['data_pianificata']))) : '—' ?>
+                                        <?= $iv['data_pianificata'] ? esc(date('d/m/Y H:i', strtotime($iv['data_pianificata']))) : '<span class="text-muted">--/--/---- --:--</span>' ?>
                                     </td>
-                                    <td data-order="<?= esc($iv['data_scadenza'] ?? '') ?>">
-                                        <?= $iv['data_scadenza'] ? esc(date('d/m/Y', strtotime($iv['data_scadenza']))) : '—' ?>
+                                    <td class="ps-4" data-order="<?= esc($iv['data_scadenza'] ?? '') ?>">
+                                        <?= $iv['data_scadenza'] ? esc(date('d/m/Y', strtotime($iv['data_scadenza']))) : '<span class="text-muted">--/--/----</span>' ?>
                                     </td>
                                     <td>
                                         <span class="badge <?= $statoBadge[$iv['stato']] ?? 'bg-secondary' ?>">
@@ -419,6 +419,7 @@ $(function () {
         pageLength: 15,
         order: [[4, 'desc']],
         columnDefs: [
+            { targets: [5, 6], className: 'text-start', type: 'string' },
             { targets: 8, visible: false },
             { targets: 9, orderable: false, searchable: false }
         ],

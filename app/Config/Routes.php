@@ -82,6 +82,15 @@ $routes->group('operativo', function ($routes) {
         $routes->post('(:num)/chiudi',  'Operativo\InterventiController::chiudi/$1');
         $routes->post('(:num)/annulla', 'Operativo\InterventiController::annulla/$1');
         $routes->post('(:num)/delete', 'Operativo\InterventiController::delete/$1');
+        $routes->post('(:num)/pianifica',              'Operativo\InterventiController::pianifica/$1');
+        $routes->post('(:num)/annulla-pianificazione', 'Operativo\InterventiController::annullaPianificazione/$1');
+    });
+
+    $routes->group('calendario', function ($routes) {
+        $routes->get('/',               'Operativo\CalendarioController::index');
+        $routes->get('eventi',          'Operativo\CalendarioController::eventi');
+        $routes->post('sposta',         'Operativo\CalendarioController::sposta');
+        $routes->post('genera-viaggio', 'Operativo\CalendarioController::generaViaggio');
     });
 
     $routes->group('materiali', function ($routes) {

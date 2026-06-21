@@ -54,7 +54,7 @@ class ClientiModel extends Model
         $data['data']['updated_by'] = $userId;
 
         // Denominazione e città sempre in maiuscolo per coerenza visiva e ricerche
-        foreach (['ragsoc', 'cognome', 'nome', 'citta'] as $campo) {
+        foreach (['ragsoc', 'cognome', 'nome', 'citta', 'provincia'] as $campo) {
             if (isset($data['data'][$campo]) && $data['data'][$campo] !== '') {
                 $data['data'][$campo] = mb_strtoupper($data['data'][$campo], 'UTF-8');
             }

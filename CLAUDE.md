@@ -7,7 +7,7 @@
 - **Review del codice**: creare i file direttamente con Write/Edit e lasciare che l'utente approvi i diff nell'IDE. Non mostrare l'intero file o blocchi lunghi di codice in chat — la spiegazione descrive le modifiche a parole, non ripete il codice verbatim.
 - **Spiegazioni passo per passo**: prima di ogni modifica, spiegare passo per passo e riga per riga cosa si sta per fare e perché, come farebbe un insegnante — cosa cambia, perché si sceglie quell'approccio, quali effetti produce. Solo dopo usare Write/Edit. Eccezione: per modifiche di una sola riga o correzioni ovvie basta una frase di contesto.
 - **Commit solo dopo test**: non proporre mai il commit finché l'utente non conferma di aver testato le modifiche. Aspettare esplicita conferma prima di eseguire `git add` / `git commit`.
-- **CSS sempre in `public/css/custom.css`**: mai scrivere `<style>` inline nelle view né aggiungere attributi `style=` per regole riutilizzabili. Tutte le personalizzazioni CSS vanno in `custom.css`.
+- **CSS sempre in `public/css/custom.css`**: mai scrivere `<style>` inline nelle view né aggiungere attributi `style=` per regole riutilizzabili. Tutte le personalizzazioni CSS vanno in `custom.css`. Eccezione: le sezioni con molte regole specifiche (es. calendario) usano un file dedicato `public/css/<sezione>.css` caricato via `section('styles')` nella view.
 - **Nomenclatura controller**: ogni classe controller termina sempre con il suffisso `Controller`
 
 - **Rotte raggruppate**: in `Routes.php` usare sempre `$routes->group()` per raggruppare le rotte per sezione. Mantiene il file ordinato e leggibile. (es. `DashboardController`, `GeneraleController`, `UtentiController`). Vale anche per i controller in sottocartelle.
