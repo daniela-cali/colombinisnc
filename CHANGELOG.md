@@ -1,5 +1,21 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.13.0] - 2026-06-21
+
+### Viaggi — Foglio di viaggio giornaliero
+
+- [APP] Vista "Viaggi": elenco di tutti gli interventi pianificati per il giorno selezionato, raggruppati per zona geografica con barre colorate (stessa palette dell'index clienti e del pool calendario)
+- [APP] Navigazione per data: frecce precedente/successiva, selettore data e bottone "Oggi"
+- [APP] Materiali "da portare" mostrati come lista puntata nella cella tipo/descrizione — quantità sempre visibile (es. "2×"), nessuna riga separata
+- [APP] Bottone "PDF": genera un foglio di viaggio A4 landscape con dompdf; intestazione azienda, intestazione zona colorata, colonna Firma vuota; materiali come lista con bordo giallo a sinistra
+- [APP] Bottone "Stampa" per stampa diretta della vista web (`@media print`)
+- [DEV] `ViaggioController`: metodi `index()`, `pdf()` e `fetchGiornata()` privata condivisa tra i due; `dataValida()` per sanitizzazione formato data
+- [DEV] dompdf 3.1.5 via Composer; view `pdf.php` HTML puro A4 landscape; margini via `padding` su `body` (la regola `@page` non viene applicata da dompdf)
+- [DEV] `InterventiMaterialiModel::normalizza()`: al `$beforeInsert`, se `articolo_id` è presente e `descrizione` è vuota, copia automaticamente `articoli.descrizione` — elimina il JOIN su `articoli` da tutte le query sui materiali
+- [DEV] Seeder `BackfillMaterialiDescrizione`: `UPDATE … JOIN` una-tantum per popolare `descrizione` sui record già esistenti (`php spark db:seed BackfillMaterialiDescrizione`)
+- [DEV] Rotte `operativo/viaggi` (GET) e `operativo/viaggi/pdf` (GET) in gruppo; `operativo/calendario/genera-viaggio` (POST) reindirizza alla vista viaggi
+- [DEV] `public/css/viaggio.css`: stili tabella e regole `@media print`
+
 ## [0.12.0] - 2026-06-21
 
 ### Calendario interventi

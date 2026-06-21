@@ -86,6 +86,11 @@ $routes->group('operativo', function ($routes) {
         $routes->post('(:num)/annulla-pianificazione', 'Operativo\InterventiController::annullaPianificazione/$1');
     });
 
+    $routes->group('viaggi', function ($routes) {
+        $routes->get('/',    'Operativo\ViaggioController::index');
+        $routes->get('pdf',  'Operativo\ViaggioController::pdf');
+    });
+
     $routes->group('calendario', function ($routes) {
         $routes->get('/',               'Operativo\CalendarioController::index');
         $routes->get('eventi',          'Operativo\CalendarioController::eventi');

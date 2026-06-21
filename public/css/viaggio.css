@@ -1,0 +1,93 @@
+.zona-header {
+    border-radius: 4px 4px 0 0;
+}
+
+.viaggio-table th {
+    font-size: .8rem;
+    white-space: nowrap;
+}
+
+.btn-xs {
+    padding: .1rem .35rem;
+    font-size: .75rem;
+}
+
+@media print {
+    /* Nascondi tutto tranne il contenuto */
+    .app-header,
+    .app-sidebar,
+    .app-footer,
+    .no-print,
+    .breadcrumb,
+    .app-content-header {
+        display: none !important;
+    }
+
+    .app-wrapper,
+    .app-main,
+    .app-content {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+    }
+
+    body {
+        font-size: 11px;
+        color: #000;
+        background: #fff !important;
+    }
+
+    .print-header {
+        border-bottom: 2px solid #000;
+        padding-bottom: .5rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Ogni zona su una nuova pagina */
+    .zona-block {
+        page-break-after: always;
+    }
+    .zona-block:last-child {
+        page-break-after: avoid;
+    }
+
+    /* Header zona colorato → sfondo grigio in stampa BN */
+    .zona-header {
+        background: #eee !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .viaggio-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .viaggio-table th,
+    .viaggio-table td {
+        border: 1px solid #999;
+        padding: 4px 6px;
+    }
+
+    .viaggio-table thead th {
+        background: #ddd !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Riga urgente */
+    .table-danger td {
+        background: #ffe0e0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+}

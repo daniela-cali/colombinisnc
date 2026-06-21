@@ -293,12 +293,14 @@ graph TD
 - *Nota: il pool mostra tutti gli interventi `da_pianificare` senza filtro per periodo — variante più semplice e operativamente più utile della specifica originale*
 - *Nota: milestone anticipata rispetto ad Abbonamenti perché ne è prerequisito operativo*
 
-#### 🔲 v0.13.0 — Viaggi
-- Vista giornaliera per tecnico: elenco interventi ordinato per ora
-- Accesso rapido a scheda cliente e scheda intervento
-- Inserimento materiali consegnati e note a chiusura intervento
-- Aggiornamento stato intervento dal campo (mobile-friendly)
-- *Nota: numerazione invariata, ma ora segue il Calendario invece di precederlo — Viaggi consuma gli orari assegnati dal Calendario*
+#### ✅ v0.13.0 — Viaggi
+- Vista giornaliera di tutti gli interventi pianificati, ordinati per ora e raggruppati per zona geografica (stessa palette colori dell'index clienti e del pool calendario)
+- Navigazione per data con frecce e selettore; bottone "Oggi"
+- Materiali "da portare" come lista puntata nella cella tipo/descrizione; quantità sempre mostrata
+- PDF foglio di viaggio (dompdf 3.1.5): A4 landscape, intestazioni zona colorate, colonna Firma
+- `InterventiMaterialiModel::normalizza()`: copia automatica di `articoli.descrizione` al `$beforeInsert`; seeder backfill per i record esistenti
+- *Nota: la vista è di sola lettura (nessun salvataggio a DB) — gli interventi sono già in DB; la stampa fisica è lo snapshot per il campo*
+- *Nota: la vista per tecnico mobile è rinviata a versione successiva*
 
 #### 🔲 v0.14.0 — Abbonamenti
 - **Flusso invertito rispetto alla concezione iniziale**: l'abbonamento nasce a livello di cliente (non più come effetto collaterale silenzioso del salvataggio di un intervento) e da esso vengono generati gli interventi collegati

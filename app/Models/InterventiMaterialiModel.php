@@ -43,6 +43,17 @@ class InterventiMaterialiModel extends Model
         }
         $data['data']['updated_by'] = $userId;
 
+        // Copia la descrizione dall'articolo se il campo è vuoto
+        if (! empty($data['data']['articolo_id']) && empty($data['data']['descrizione'])) {
+            $articolo = db()->table('articoli')
+                ->select('descrizione')
+                ->where('id', (int) $data['data']['articolo_id'])
+                ->get()->getRowArray();
+            if ($articolo) {
+                $data['data']['descrizione'] = $articolo['descrizione'];
+            }
+        }
+
         foreach (['intervento_id', 'articolo_id', 'note'] as $campo) {
             if (array_key_exists($campo, $data['data']) && empty($data['data'][$campo])) {
                 $data['data'][$campo] = null;

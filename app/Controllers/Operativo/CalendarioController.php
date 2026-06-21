@@ -174,7 +174,7 @@ class CalendarioController extends BaseController
      */
     public function generaViaggio()
     {
-        return redirect()->to('operativo/calendario')
-            ->with('info', 'Funzionalità disponibile dalla v0.13.0 — Viaggi.');
+        $data = $this->request->getPost('data') ?? date('Y-m-d');
+        return redirect()->to('operativo/viaggi?data=' . urlencode($data));
     }
 }
