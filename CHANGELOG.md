@@ -1,5 +1,11 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.14.1] - 2026-06-23
+
+### Fix
+
+- [DEV] DataTables 2.x: frecce di ordinamento centrate per le colonne Interventi e Zona in lista clienti — DataTables usa `flex-direction:row-reverse` su `div.dt-column-header` per le colonne numeriche; override a `row` via CSS per i `<th class="text-center">`
+
 ## [0.14.0] - 2026-06-23
 
 ### Abbonamenti

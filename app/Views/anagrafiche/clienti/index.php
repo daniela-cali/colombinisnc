@@ -41,7 +41,7 @@ $this->extend('layouts/admin');
                                 <tr>
                                     <th>Codice</th>
                                     <th>Denominazione</th>
-                                    <th>
+                                    <th class="text-center">
                                         Interventi
                                         <i class="bi bi-info-circle text-muted ms-1"
                                            style="font-size:.8rem; font-weight:normal"
@@ -50,7 +50,7 @@ $this->extend('layouts/admin');
                                     </th>
                                     <th>Tipo</th>
                                     <th>Città</th>
-                                    <th>Zona</th>
+                                    <th class="text-center">Zona</th>
                                     <th class="text-end">Km sede</th>
                                     <th>Tecnico pref.</th>
                                     <th class="text-center">Attivo</th>

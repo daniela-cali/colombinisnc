@@ -323,6 +323,9 @@ graph TD
 - *Fix v0.14.0: disdetta abbonamento avvolta in transazione; interventi figli in `da_pianificare` marcati `annullato` in batch*
 - *Fix v0.14.0: subquery `num_interventi` in `ClientiModel` filtrata su `abbonamento_id IS NULL AND stato NOT IN ('completato','annullato')`*
 
+#### ✅ v0.14.1 — Fix frecce DataTables
+- *Fix: DataTables 2.x imposta `flex-direction:row-reverse` su `div.dt-column-header` per le colonne `dt-type-numeric`, mettendo le frecce a sinistra del testo. Override a `flex-direction:row` via CSS per i `<th class="text-center">` (Interventi e Zona in lista clienti)*
+
 #### 🔲 v0.15.0 — Cantieri
 
 Un **cantiere** raggruppa più interventi legati a un unico progetto per un cliente (nuova costruzione o ristrutturazione). Si distingue dagli interventi "standalone" (manutenzioni, abbonamenti) che non appartengono a nessun progetto.

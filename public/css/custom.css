@@ -451,9 +451,9 @@
 }
 
 /* --- DataTables 2.x ------------------------------------ */
-/* Le colonne numeriche (dt-type-numeric) ricevono l'icona di ordinamento
-   a sinistra per convenzione (tipo Excel). Nelle intestazioni centrate
-   questo fa apparire l'icona prima del testo. `order:1` la sposta dopo. */
-table.dataTable thead th.dt-type-numeric.text-center .dt-column-order {
-    order: 1;
+/* DataTables imposta flex-direction:row-reverse su div.dt-column-header per le colonne
+   dt-type-numeric, mettendo le frecce a sinistra del testo. Per le colonne centrate
+   vogliamo le frecce a destra: forziamo row (ordine DOM naturale: testo → freccia). */
+table.dataTable th.dt-type-numeric.text-center div.dt-column-header {
+    flex-direction: row;
 }
