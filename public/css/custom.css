@@ -449,3 +449,11 @@
     text-transform:   uppercase;
     padding:          .4rem .75rem;
 }
+
+/* --- DataTables 2.x ------------------------------------ */
+/* Le colonne numeriche (dt-type-numeric) ricevono l'icona di ordinamento
+   a sinistra per convenzione (tipo Excel). Nelle intestazioni centrate
+   questo fa apparire l'icona prima del testo. `order:1` la sposta dopo. */
+table.dataTable thead th.dt-type-numeric.text-center .dt-column-order {
+    order: 1;
+}

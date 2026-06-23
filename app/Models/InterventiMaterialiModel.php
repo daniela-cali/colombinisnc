@@ -45,7 +45,7 @@ class InterventiMaterialiModel extends Model
 
         // Copia la descrizione dall'articolo se il campo è vuoto
         if (! empty($data['data']['articolo_id']) && empty($data['data']['descrizione'])) {
-            $articolo = db()->table('articoli')
+            $articolo = (new('App/Model/ArticoliModel'))
                 ->select('descrizione')
                 ->where('id', (int) $data['data']['articolo_id'])
                 ->get()->getRowArray();

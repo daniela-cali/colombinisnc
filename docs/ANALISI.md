@@ -302,19 +302,26 @@ graph TD
 - *Nota: la vista è di sola lettura (nessun salvataggio a DB) — gli interventi sono già in DB; la stampa fisica è lo snapshot per il campo*
 - *Nota: la vista per tecnico mobile è rinviata a versione successiva*
 
-#### 🔲 v0.14.0 — Abbonamenti
+#### ✅ v0.14.0 — Abbonamenti
 - **Flusso invertito rispetto alla concezione iniziale**: l'abbonamento nasce a livello di cliente (non più come effetto collaterale silenzioso del salvataggio di un intervento) e da esso vengono generati gli interventi collegati
 - Genere/priorità intervento `programmato` rinominato `abbonamento`; non modificabile dalla scheda intervento quando l'intervento è già collegato a un abbonamento (il campo è "di proprietà" dell'abbonamento, non dell'intervento)
 - Nuova FK **`abbonamento_id` nullable diretta su `interventi`** (one-to-many: un abbonamento → molti interventi). Sostituisce la precedente ipotesi di tabella pivot `abbonamenti_interventi`, non più necessaria: un intervento appartiene a un solo abbonamento
-- Form/UI di creazione abbonamento (a livello cliente): raccoglie data inizio/fine validità, frequenza, prezzo totale
-- Frequenze: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
+- Form/UI di creazione abbonamento (a livello cliente): raccoglie data inizio/fine validità, prezzo totale e uno o più **periodi di frequenza**
+- **`abbonamenti_periodi`**: un abbonamento ha N periodi, ciascuno con `data_inizio`, `data_fine`, `frequenza`, `con_pulizia_fondo`. Sostituisce il campo `frequenza` singolo sull'abbonamento. La generazione batch itera sui periodi in sequenza
+- Frequenze per periodo: settimanale, quindicinale, mensile, bimestrale, trimestrale, semestrale, annuale
+- `con_pulizia_fondo TINYINT` su `abbonamenti_periodi`: opzione specifica piscine, visibile nel form solo quando il tipo abbonamento è piscine. Campo booleano, default 0
 - Stati abbonamento: `attivo`, `sospeso`, `scaduto`, `disdetto` (costanti nel model)
 - `durata_mesi` calcolata automaticamente nel model
 - `abbonamento_precedente_id` per catena storica (navigabile con CTE ricorsiva MySQL 8+)
 - `prezzo` = totale abbonamento, non per visita
 - **Generazione interventi**: tutti gli interventi previsti dalla durata dell'abbonamento vengono creati in un'unica passata al momento della creazione dell'abbonamento (batch, non uno alla volta a chiusura del precedente)
-- Per **ogni** intervento generato, indipendentemente dalla frequenza: `data_pianificata = NULL` e `data_scadenza` = fine del periodo di competenza (es. fine settimana per i settimanali, fine mese per i mensili, ecc.), stato iniziale `da_pianificare`. Il giorno/orario preciso viene assegnato in seguito dal dispatcher tramite la vista "pool non pianificati" del Calendario
-- Spec dettagliata in `docs/abbonamenti_spec.md` — **da rivedere**: la versione attuale dello spec descrive ancora il vecchio flusso (creazione silenziosa da intervento `programmato`) e va riscritta per il nuovo modello prima di passare il documento a Claude Code
+- Per **ogni** intervento generato: `data_pianificata = NULL` e `data_scadenza` = fine del sotto-periodo di competenza; stato iniziale `da_pianificare`. Il giorno/orario preciso viene assegnato in seguito dal dispatcher tramite il pool "Da pianificare" del Calendario
+- Scheda cliente: la sezione Abbonamenti mostra **una riga per abbonamento** (contratto). Il dettaglio dei periodi è nella scheda abbonamento dedicata
+- `tipi_intervento.abbonabile TINYINT`: flag che indica se un tipo può essere usato negli abbonamenti; la select di creazione abbonamento mostra solo i tipi con `abbonabile = 1`
+- Spec dettagliata in `docs/abbonamenti_spec.md`
+- *Fix v0.14.0: `InterventiModel::normalizza()` usava `!isset()` che è `true` anche con `id = null` in bulk UPDATE → duplicati su UNIQUE constraint; corretto con `!array_key_exists()`*
+- *Fix v0.14.0: disdetta abbonamento avvolta in transazione; interventi figli in `da_pianificare` marcati `annullato` in batch*
+- *Fix v0.14.0: subquery `num_interventi` in `ClientiModel` filtrata su `abbonamento_id IS NULL AND stato NOT IN ('completato','annullato')`*
 
 #### 🔲 v0.15.0 — Cantieri
 
@@ -455,3 +462,24 @@ pivot `abbonamenti_interventi` (relazione one-to-many, non many-to-many).
 Questo richiede che il Calendario (v0.12.0) preceda Abbonamenti (v0.14.0), 
 poiché la generazione batch si appoggia sul concetto di "pool non 
 pianificati" introdotto dal Calendario stesso.
+
+### Abbonamenti: periodi multipli per frequenza variabile
+La frequenza di visita può variare all'interno dello stesso contratto annuale
+(es. piscine: quindicinale in primavera/autunno, settimanale in estate).
+Alternativa scartata: abbonamenti separati collegati da `gruppo_id` — spezzava
+il contratto in N record, rendendo rumorosa la scheda cliente e scomodo il
+rinnovo annuale. Soluzione adottata: tabella `abbonamenti_periodi` (N periodi
+per abbonamento, ognuno con `data_inizio`, `data_fine`, `frequenza`). La
+generazione batch itera sui periodi. La scheda cliente mostra sempre una riga
+per abbonamento; il dettaglio dei periodi è nella scheda abbonamento.
+
+### Abbonamenti: opzioni per-periodo (`con_pulizia_fondo`)
+Alcune tipologie di abbonamento (piscine) prevedono opzioni operative che
+variano per periodo (es. pulizia del fondo solo in estate). Soluzione adottata:
+campo booleano `con_pulizia_fondo TINYINT` su `abbonamenti_periodi`, visibile
+nel form solo quando il tipo abbonamento è piscine.
+**Opzione alternativa per future esigenze**: se proliferano le opzioni
+per-periodo (es. `con_dosaggio_chimico`, `con_analisi_acqua`) valutare un
+campo `opzioni JSON` su `abbonamenti_periodi` + `opzioni_config JSON` su
+`tipi_intervento` per rendere le opzioni configurabili senza migrazioni.
+Giustificato solo con ≥3 tipi di opzioni eterogenee.

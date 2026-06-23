@@ -41,10 +41,16 @@ $this->extend('layouts/admin');
                                 <tr>
                                     <th>Codice</th>
                                     <th>Denominazione</th>
-                                    <th class="text-center">Interventi</th>
+                                    <th>
+                                        Interventi
+                                        <i class="bi bi-info-circle text-muted ms-1"
+                                           style="font-size:.8rem; font-weight:normal"
+                                           data-bs-toggle="tooltip"
+                                           title="Interventi manuali aperti (esclusi completati, annullati e quelli da abbonamento)"></i>
+                                    </th>
                                     <th>Tipo</th>
                                     <th>Città</th>
-                                    <th class="text-center">Zona</th>
+                                    <th>Zona</th>
                                     <th class="text-end">Km sede</th>
                                     <th>Tecnico pref.</th>
                                     <th class="text-center">Attivo</th>
@@ -144,8 +150,16 @@ $(function () {
         orderMulti: true,
         pageLength:  25,
         columnDefs: [
-            { orderable: false, targets: [-1] }
+            { orderable: false, targets: [-1] },
+            // type:'num' + orderSequence: le colonne con data-order numerico vengono auto-rilevate come 'html'
+            // dai badge, il che inverte la sequenza di ordinamento (desc prima) rispetto alle colonne testo.
+            { className: 'text-center', type: 'num', orderSequence: ['asc', 'desc'], targets: [2, 5] }
         ]
+    });
+
+    // Tooltip Bootstrap sulle intestazioni colonna
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        new bootstrap.Tooltip(el);
     });
 });
 </script>

@@ -22,20 +22,7 @@ class CalendarioController extends BaseController
             $tipiPerId[(int) $t['id']] = $t;
         }
 
-        $pool = (new InterventiModel())
-            ->select("interventi.id, interventi.tipo_intervento_id, interventi.priorita,
-                      interventi.urgenza, interventi.data_scadenza, interventi.durata_stimata,
-                      interventi.descrizione,
-                      CASE WHEN c.tipo = 'persona_fisica'
-                           THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                           ELSE c.ragsoc
-                      END AS cliente_denominazione,
-                      c.citta AS cliente_citta,
-                      c.zona AS cliente_zona,
-                      c.distanza_sede")
-            ->join('clienti c', 'c.id = interventi.cliente_id', 'left')
-            ->where('interventi.stato', InterventiModel::STATO_DA_PIANIFICARE)
-            ->findAll();
+        $pool = (new InterventiModel())->poolDaPianificare();
 
         // Ordinamento PHP: urgenza desc, scadenza asc (null in fondo), distanza asc (null in fondo)
         usort($pool, function ($a, $b) {
@@ -62,18 +49,7 @@ class CalendarioController extends BaseController
         $zonaOrdini = [-1 => 0, 0 => 1, 1 => 2, 'nessuna' => 3];
         uksort($poolPerZona, fn($a, $b) => ($zonaOrdini[$a] ?? 99) <=> ($zonaOrdini[$b] ?? 99));
 
-        $scadenze = (new InterventiModel())
-            ->select("interventi.id, interventi.data_scadenza,
-                      CASE WHEN c.tipo = 'persona_fisica'
-                           THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                           ELSE c.ragsoc
-                      END AS cliente_denominazione")
-            ->join('clienti c', 'c.id = interventi.cliente_id', 'left')
-            ->where('interventi.data_scadenza IS NOT NULL', null, false)
-            ->where('interventi.stato !=', InterventiModel::STATO_COMPLETATO)
-            ->where('interventi.stato !=', InterventiModel::STATO_ANNULLATO)
-            ->orderBy('interventi.data_scadenza', 'ASC')
-            ->findAll();
+        $scadenze = (new InterventiModel())->scadenzeAperte();
 
         return view('operativo/calendario/index', [
             'title'      => 'Calendario',

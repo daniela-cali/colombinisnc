@@ -123,6 +123,9 @@ class ClientiModel extends Model
      * Lista completa con denominazione calcolata (CASE SQL) e nome del tecnico preferito.
      * Il campo `denominazione` è ragione sociale per le società,
      * cognome + nome per le persone fisiche — già ordinato alfabeticamente.
+     * `num_interventi` conta solo gli interventi manuali aperti (abbonamento_id IS NULL, stato non completato/annullato):
+     * gli abbonamenti generano decine di figli upfront e gonfierebbero il badge; i completati/annullati
+     * non rappresentano lavoro ancora da fare.
      */
     public function elencoCompleto(): array
     {
@@ -132,7 +135,7 @@ class ClientiModel extends Model
                  ELSE clienti.ragsoc
             END AS denominazione,
             TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_preferito_nome,
-            (SELECT COUNT(*) FROM interventi WHERE interventi.cliente_id = clienti.id) AS num_interventi")
+            (SELECT COUNT(*) FROM interventi WHERE interventi.cliente_id = clienti.id AND interventi.abbonamento_id IS NULL AND interventi.stato NOT IN ('completato','annullato')) AS num_interventi")
             ->join('personale p', 'p.id = clienti.tecnico_preferito_id', 'left')
             ->orderBy("CASE WHEN clienti.tipo = 'persona_fisica'
                 THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))

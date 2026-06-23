@@ -70,6 +70,18 @@ $routes->group('anagrafiche', function ($routes) {
     });
 });
 
+// Abbonamenti
+$routes->group('abbonamenti', function ($routes) {
+    $routes->get('/',               'AbbonamentiController::index');
+    $routes->get('nuovo',           'AbbonamentiController::nuovo');
+    $routes->post('store',          'AbbonamentiController::store');
+    $routes->get('(:num)',          'AbbonamentiController::show/$1');
+    $routes->get('(:num)/edit',     'AbbonamentiController::edit/$1');
+    $routes->post('(:num)/update',  'AbbonamentiController::update/$1');
+    $routes->post('(:num)/stato',   'AbbonamentiController::cambiaStato/$1');
+    $routes->get('(:num)/rinnova',  'AbbonamentiController::rinnova/$1');
+});
+
 // Operativo (interventi, futuri: cantieri, ecc.)
 $routes->group('operativo', function ($routes) {
     $routes->group('interventi', function ($routes) {

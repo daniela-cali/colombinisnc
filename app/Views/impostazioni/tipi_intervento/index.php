@@ -34,8 +34,11 @@ $this->extend('layouts/admin');
                                 <th style="width:40px"></th>
                                 <th>Nome</th>
                                 <th>Codice</th>
+                                <th class="text-center">Prefisso</th>
                                 <th class="text-center">Durata default</th>
                                 <th class="text-center">Attivo</th>
+                                <th class="text-center">Abbonabile</th>
+                                <th class="text-center">Pul. fondo</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -50,6 +53,13 @@ $this->extend('layouts/admin');
                                     </td>
                                     <td class="fw-semibold"><?= esc($t['nome']) ?></td>
                                     <td><code class="text-muted"><?= esc($t['codice']) ?></code></td>
+                                    <td class="text-center">
+                                        <?php if ($t['prefisso_codice']): ?>
+                                            <code class="small"><?= esc($t['prefisso_codice']) ?></code>
+                                        <?php else: ?>
+                                            <span class="text-muted small">INT</span>
+                                        <?php endif ?>
+                                    </td>
                                     <td class="text-center text-muted small">
                                         <?= $t['durata_default'] ?> min
                                         (<?= floor($t['durata_default'] / 60) ?>h <?= sprintf('%02d', $t['durata_default'] % 60) ?>′)
@@ -59,6 +69,20 @@ $this->extend('layouts/admin');
                                             <i class="bi bi-check-circle-fill text-success"></i>
                                         <?php else: ?>
                                             <i class="bi bi-x-circle-fill text-danger"></i>
+                                        <?php endif ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($t['abbonabile']): ?>
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                        <?php else: ?>
+                                            <i class="bi bi-dash text-muted"></i>
+                                        <?php endif ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($t['ha_pulizia_fondo']): ?>
+                                            <i class="bi bi-check-circle-fill text-success"></i>
+                                        <?php else: ?>
+                                            <i class="bi bi-dash text-muted"></i>
                                         <?php endif ?>
                                     </td>
                                     <td class="text-end">
@@ -71,7 +95,10 @@ $this->extend('layouts/admin');
                                                 data-icona="<?= esc($t['icona'] ?? '') ?>"
                                                 data-durata="<?= $t['durata_default'] ?>"
                                                 data-ordine="<?= $t['ordine'] ?>"
-                                                data-attivo="<?= $t['attivo'] ?>">
+                                                data-attivo="<?= $t['attivo'] ?>"
+                                                data-abbonabile="<?= $t['abbonabile'] ?>"
+                                                data-prefisso-codice="<?= esc($t['prefisso_codice'] ?? '') ?>"
+                                                data-ha-pulizia-fondo="<?= $t['ha_pulizia_fondo'] ?>">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <form action="<?= base_url('impostazioni/tipi-intervento/' . $t['id'] . '/delete') ?>"
@@ -102,7 +129,13 @@ $this->extend('layouts/admin');
                                    value="<?= esc(old('codice')) ?>" maxlength="50"
                                    placeholder="es. caldaie">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-1">
+                            <label class="form-label form-label-sm">Prefisso</label>
+                            <input type="text" name="prefisso_codice" class="form-control form-control-sm text-uppercase"
+                                   value="<?= esc(old('prefisso_codice')) ?>" maxlength="3"
+                                   placeholder="INT">
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label form-label-sm">Nome <span class="text-danger">*</span></label>
                             <input type="text" name="nome" class="form-control form-control-sm"
                                    value="<?= esc(old('nome')) ?>" maxlength="100"
@@ -114,7 +147,7 @@ $this->extend('layouts/admin');
                                 'valoreIcona' => old('icona', ''),
                             ]) ?>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-1">
                             <label class="form-label form-label-sm">Durata (min) <span class="text-danger">*</span></label>
                             <input type="number" name="durata_default" class="form-control form-control-sm"
                                    value="<?= esc(old('durata_default', 60)) ?>"
@@ -125,7 +158,17 @@ $this->extend('layouts/admin');
                             <input type="number" name="ordine" class="form-control form-control-sm"
                                    value="<?= esc(old('ordine', 0)) ?>" min="0">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-auto d-flex align-items-end pb-1 gap-3">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" name="abbonabile" id="new-abbonabile" value="1">
+                                <label class="form-check-label small" for="new-abbonabile">Abb.</label>
+                            </div>
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" name="ha_pulizia_fondo" id="new-ha-pulizia-fondo" value="1">
+                                <label class="form-check-label small" for="new-ha-pulizia-fondo">Pul.</label>
+                            </div>
+                        </div>
+                        <div class="col">
                             <button type="submit" class="btn btn-primary btn-sm w-100">
                                 <i class="bi bi-plus-lg me-1"></i>Aggiungi
                             </button>
@@ -156,11 +199,16 @@ $this->extend('layouts/admin');
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="form-label">Codice <span class="text-danger">*</span></label>
                             <input type="text" name="codice" id="edit-codice" class="form-control" maxlength="50" required>
                         </div>
-                        <div class="col-md-7">
+                        <div class="col-md-2">
+                            <label class="form-label">Prefisso</label>
+                            <input type="text" name="prefisso_codice" id="edit-prefisso-codice"
+                                   class="form-control text-uppercase" maxlength="3" placeholder="INT">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">Nome <span class="text-danger">*</span></label>
                             <input type="text" name="nome" id="edit-nome" class="form-control" maxlength="100" required>
                         </div>
@@ -178,10 +226,22 @@ $this->extend('layouts/admin');
                             <label class="form-label">Ordine</label>
                             <input type="number" name="ordine" id="edit-ordine" class="form-control" min="0">
                         </div>
-                        <div class="col-12">
+                        <div class="col-6">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="attivo" id="edit-attivo" value="1">
                                 <label class="form-check-label" for="edit-attivo">Attivo</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="abbonabile" id="edit-abbonabile" value="1">
+                                <label class="form-check-label" for="edit-abbonabile">Può essere usato negli abbonamenti</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="ha_pulizia_fondo" id="edit-ha-pulizia-fondo" value="1">
+                                <label class="form-check-label" for="edit-ha-pulizia-fondo">Prevede opzione pulizia fondo</label>
                             </div>
                         </div>
                     </div>
@@ -201,7 +261,7 @@ $this->extend('layouts/admin');
 document.getElementById('modal-edit').addEventListener('show.bs.modal', function (e) {
     var btn    = e.relatedTarget;
     var form   = document.getElementById('form-edit');
-    var baseUrl = '<?= base_url('impostazioni/tipi-intervento/') ?>';
+    var baseUrl = "<?= base_url('impostazioni/tipi-intervento/') ?>";
 
     form.action = baseUrl + btn.dataset.id + '/update';
 
@@ -211,7 +271,10 @@ document.getElementById('modal-edit').addEventListener('show.bs.modal', function
     document.getElementById('icona-preview-edit').className = 'fas ' + (btn.dataset.icona || 'fa-question');
     document.getElementById('edit-durata').value  = btn.dataset.durata;
     document.getElementById('edit-ordine').value  = btn.dataset.ordine;
-    document.getElementById('edit-attivo').checked = btn.dataset.attivo === '1';
+    document.getElementById('edit-attivo').checked          = btn.dataset.attivo          === '1';
+    document.getElementById('edit-abbonabile').checked      = btn.dataset.abbonabile      === '1';
+    document.getElementById('edit-prefisso-codice').value      = btn.dataset.prefissoCodice  || '';
+    document.getElementById('edit-ha-pulizia-fondo').checked   = btn.dataset.haPuliziaFondo  === '1';
 });
 </script>
 <?= $this->endSection() ?>

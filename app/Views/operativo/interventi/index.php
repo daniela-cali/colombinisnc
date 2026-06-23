@@ -60,6 +60,9 @@ $prioritaBadge = [
                     <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
                         <i class="bi bi-x-circle me-1"></i>Annullati
                     </button>
+                    <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
+                        <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
+                    </button>
                     <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
                         Tutti (<?= count($interventi) ?>)
                     </button>
@@ -139,6 +142,7 @@ $prioritaBadge = [
                                             </a>
                                         </td>
                                         <td><?= esc($i['stato']) ?></td>
+                                        <td><?= $i['abbonamento_id'] ? 'abbonamento' : '' ?></td>
                                     </tr>
                                 <?php endforeach ?>
                             </tbody>
@@ -172,21 +176,24 @@ $(function () {
         order:       [[4, 'desc']],
         columnDefs:  [
             { orderable: false, searchable: false, targets: 8 },
-            { visible: false, targets: 9 }
+            { visible: false, targets: [9, 10] }
         ]
     });
 
     var filtri = {
-        da_pianificare: { q: '^da_pianificare$',              regex: true  },
-        pianificati:    { q: '^(pianificato|in_corso)$',      regex: true  },
-        completati:     { q: '^completato$',                  regex: true  },
-        annullati:      { q: '^annullato$',                   regex: true  },
-        tutti:          { q: '',                              regex: false }
+        da_pianificare: { col: 9,  q: '^da_pianificare$',         regex: true  },
+        pianificati:    { col: 9,  q: '^(pianificato|in_corso)$', regex: true  },
+        completati:     { col: 9,  q: '^completato$',             regex: true  },
+        annullati:      { col: 9,  q: '^annullato$',              regex: true  },
+        abbonamento:    { col: 10, q: 'abbonamento',              regex: false },
+        tutti:          { col: 9,  q: '',                         regex: false }
     };
 
     function setFiltro(nome) {
         var f = filtri[nome];
-        table.column(9).search(f.q, f.regex, false).draw();
+        table.column(9).search('', false, false);
+        table.column(10).search('', false, false);
+        table.column(f.col).search(f.q, f.regex, false).draw();
         document.querySelectorAll('[data-filtro]').forEach(function (b) {
             b.classList.toggle('active', b.dataset.filtro === nome);
         });

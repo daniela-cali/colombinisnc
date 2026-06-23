@@ -1,0 +1,167 @@
+<?php
+/**
+ * @var string     $title
+ * @var array|null $cliente     Preselezionato da ?cliente_id= o da rinnova(); null = mostra select
+ * @var array      $clienti     Elenco completo per il select (vuoto in modalità rinnova)
+ * @var array      $tipi        Righe da TipiInterventoModel::abbonabili()
+ * @var array      $frequenze   AbbonamentiModel::FREQUENZE_LABEL
+ * @var array|null $periodi     Periodi precaricati per rinnova(); null per nuovo
+ * @var string|null $from       URL di ritorno dopo salvataggio
+ * @var array|null $abbonamento Pre-compilazione per rinnovo; null per nuovo
+ */
+$this->extend('layouts/admin');
+?>
+<?= $this->section('title') ?><?= esc($title) ?><?= $this->endSection() ?>
+
+<?= $this->section('breadcrumb') ?>
+<ol class="breadcrumb float-sm-end">
+    <li class="breadcrumb-item"><a href="<?= base_url('/') ?>">Home</a></li>
+    <li class="breadcrumb-item"><a href="<?= base_url('abbonamenti') ?>">Abbonamenti</a></li>
+    <li class="breadcrumb-item active"><?= esc($title) ?></li>
+</ol>
+<?= $this->endSection() ?>
+
+<?= $this->section('content') ?>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <?php if ($errors = session()->getFlashdata('errors')): ?>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    <?php foreach ($errors as $e): ?>
+                        <li><?= esc($e) ?></li>
+                    <?php endforeach ?>
+                </ul>
+            </div>
+        <?php endif ?>
+
+        <div class="card card-outline card-primary">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-file-earmark-plus me-2"></i><?= esc($title) ?>
+                </h3>
+            </div>
+            <form action="<?= base_url('abbonamenti/store') ?>" method="post">
+                <?= csrf_field() ?>
+                <?php if ($from): ?>
+                    <input type="hidden" name="from" value="<?= esc($from) ?>">
+                <?php endif ?>
+                <?php if (! empty($abbonamento['abbonamento_precedente_id'])): ?>
+                    <input type="hidden" name="abbonamento_precedente_id" value="<?= (int) $abbonamento['abbonamento_precedente_id'] ?>">
+                <?php endif ?>
+
+                <div class="card-body">
+
+                    <!-- Cliente -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-person me-1"></i> Cliente</p>
+                    <div class="row g-3 mb-4">
+                        <?php if ($cliente): ?>
+                            <div class="col-12">
+                                <input type="hidden" name="cliente_id" value="<?= (int) $cliente['id'] ?>">
+                                <input type="text" class="form-control" readonly
+                                       value="<?= esc($cliente['tipo'] === 'persona_fisica'
+                                           ? trim(($cliente['cognome'] ?? '') . ' ' . ($cliente['nome'] ?? ''))
+                                           : $cliente['ragsoc']) ?>">
+                            </div>
+                        <?php else: ?>
+                            <div class="col-12">
+                                <label class="form-label">Cliente <span class="text-danger">*</span></label>
+                                <select name="cliente_id" class="form-select">
+                                    <option value="">— seleziona —</option>
+                                    <?php foreach ($clienti as $c): ?>
+                                        <option value="<?= $c['id'] ?>"
+                                                <?= old('cliente_id', $abbonamento['cliente_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                                            <?= esc($c['tipo'] === 'persona_fisica'
+                                                ? trim(($c['cognome'] ?? '') . ' ' . ($c['nome'] ?? ''))
+                                                : $c['ragsoc']) ?>
+                                        </option>
+                                    <?php endforeach ?>
+                                </select>
+                            </div>
+                        <?php endif ?>
+                    </div>
+
+                    <!-- Contratto -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-file-text me-1"></i> Contratto</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label">Tipo abbonamento <span class="text-danger">*</span></label>
+                            <select name="tipo_intervento_id" id="tipo-intervento-id" class="form-select">
+                                <option value="">— seleziona —</option>
+                                <?php foreach ($tipi as $t): ?>
+                                    <option value="<?= $t['id'] ?>"
+                                            data-ha-pulizia-fondo="<?= (int) $t['ha_pulizia_fondo'] ?>"
+                                            <?= old('tipo_intervento_id', $abbonamento['tipo_intervento_id'] ?? '') == $t['id'] ? 'selected' : '' ?>>
+                                        <?= esc($t['nome']) ?>
+                                    </option>
+                                <?php endforeach ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Periodo -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-calendar-range me-1"></i> Periodo di validità</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Data inizio <span class="text-danger">*</span></label>
+                            <input type="date" name="data_inizio" class="form-control"
+                                   value="<?= esc(old('data_inizio', $abbonamento['data_inizio'] ?? date('Y') . '-01-01')) ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Data fine <span class="text-danger">*</span></label>
+                            <input type="date" name="data_fine" class="form-control"
+                                   value="<?= esc(old('data_fine', $abbonamento['data_fine'] ?? date('Y') . '-12-31')) ?>">
+                        </div>
+                    </div>
+
+                    <!-- Periodi di frequenza -->
+                    <?= view('abbonamenti/_form_periodi', ['frequenze' => $frequenze, 'periodi' => $periodi]) ?>
+
+                    <!-- Prezzo e Note -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-cash me-1"></i> Prezzo e note</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Prezzo totale (€)</label>
+                            <input type="text" name="prezzo" class="form-control"
+                                   placeholder="0.00"
+                                   value="<?= esc(old('prezzo', $abbonamento['prezzo'] ?? '')) ?>">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Note</label>
+                            <textarea name="note" class="form-control" rows="2"><?= esc(old('note', $abbonamento['note'] ?? '')) ?></textarea>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="<?= esc($from ?: base_url('abbonamenti')) ?>" class="btn btn-secondary btn-sm">
+                        <i class="bi bi-arrow-left me-1"></i>Annulla
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-sm ms-auto">
+                        <i class="bi bi-check-lg me-1"></i>Salva e genera interventi
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script>
+(function () {
+    const sel = document.getElementById('tipo-intervento-id');
+    if (!sel) return;
+
+    function aggiornaPulizia() {
+        const opt = sel.options[sel.selectedIndex];
+        const show = opt && opt.dataset.haPuliziaFondo === '1';
+        if (typeof window.setPuliziaFondo === 'function') window.setPuliziaFondo(show);
+    }
+
+    sel.addEventListener('change', aggiornaPulizia);
+    aggiornaPulizia();
+})();
+</script>
+<?= $this->endSection() ?>

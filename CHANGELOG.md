@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.14.0] - 2026-06-23
+
+### Abbonamenti
+
+- [APP] Disdetta abbonamento: gli interventi figli ancora in `da_pianificare` vengono marcati `annullato` in transazione — nessun intervento "orfano" dopo la disdetta
+- [APP] Lista clienti — badge "Interventi": conta solo gli interventi manuali aperti (`abbonamento_id IS NULL` e stato non completato/annullato); non più gonfiato dagli interventi da abbonamento
+- [APP] Lista clienti — tooltip sulla colonna "Interventi": icona info spiega cosa conta il badge (inizializzazione Bootstrap tooltip nello script)
+- [DEV] Fix `InterventiModel::normalizza()`: cambio da `!isset($data['id'])` a `!array_key_exists('id', $data)` — evita generazione duplicata del codice in bulk UPDATE dove `id` è presente ma `null`
+- [DEV] `AbbonamentiController::cambiaStato()`: cambio stato abbonamento e operazione sugli interventi collegati avvolti in transazione `$db->transStart()`/`transComplete()` — rollback automatico se uno dei due fallisce
+
 ## [0.13.0] - 2026-06-21
 
 ### Viaggi — Foglio di viaggio giornaliero

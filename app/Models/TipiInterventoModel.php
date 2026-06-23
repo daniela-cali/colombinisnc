@@ -12,7 +12,8 @@ class TipiInterventoModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'codice', 'nome', 'icona', 'durata_default', 'attivo', 'ordine',
+        'codice', 'nome', 'icona', 'durata_default', 'attivo', 'abbonabile', 'ordine',
+        'prefisso_codice', 'ha_pulizia_fondo',
         'created_by', 'updated_by',
     ];
 
@@ -35,6 +36,11 @@ class TipiInterventoModel extends Model
             $data['data']['icona'] = null;
         }
 
+        if (isset($data['data']['prefisso_codice'])) {
+            $p = strtoupper(trim($data['data']['prefisso_codice']));
+            $data['data']['prefisso_codice'] = $p !== '' ? substr($p, 0, 3) : null;
+        }
+
         return $data;
     }
 
@@ -44,6 +50,14 @@ class TipiInterventoModel extends Model
     public function attivi(): array
     {
         return $this->where('attivo', 1)->orderBy('ordine')->findAll();
+    }
+
+    /**
+     * Restituisce i tipi attivi e marcati come abbonabili — usato per le select negli abbonamenti.
+     */
+    public function abbonabili(): array
+    {
+        return $this->where('attivo', 1)->where('abbonabile', 1)->orderBy('ordine')->findAll();
     }
 
     /**

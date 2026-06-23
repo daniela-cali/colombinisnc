@@ -1,11 +1,15 @@
 <?php
 /**
- * @var array $cliente        Record clienti con tutti i campi
- * @var array $interventi     Righe da InterventiModel::perCliente()
- * @var array $sospesi        Righe da InterventiMaterialiModel::sospesiPerCliente()
- * @var array $articoliPerCat Da ArticoliModel::perCategoria()
- * @var array $prioritaLabel  Map priorita → label leggibile
- * @var array $statiLabel     Map stato  → label leggibile
+ * @var array $cliente            Record clienti con tutti i campi
+ * @var array $interventi         Righe da InterventiModel::perCliente()
+ * @var array $sospesi            Righe da InterventiMaterialiModel::sospesiPerCliente()
+ * @var array $articoliPerCat     Da ArticoliModel::perCategoria()
+ * @var array $prioritaLabel      Map priorita → label leggibile
+ * @var array $statiLabel         Map stato  → label leggibile (interventi)
+ * @var array $abbonamenti          Righe da AbbonamentiModel::perCliente() — include stato_calcolato, num_periodi, prima_frequenza
+ * @var array $abbonamentiLabel     AbbonamentiModel::STATI_LABEL
+ * @var array $abbonamentiBadge     AbbonamentiModel::STATI_BADGE
+ * @var array $abbonamentiFrequenze AbbonamentiModel::FREQUENZE_LABEL
  */
 $this->extend('layouts/admin');
 $denom = \App\Models\ClientiModel::denominazione($cliente);
@@ -66,11 +70,6 @@ $statoBadge = [
                 <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/edit') ?>"
                    class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-pencil me-1"></i>Modifica
-                </a>
-                <a href="<?= base_url('operativo/interventi/nuovo?cliente_id=' . $cliente['id']
-                    . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi')) ?>"
-                   class="btn btn-sm btn-primary">
-                    <i class="bi bi-plus-lg me-1"></i>Nuovo intervento
                 </a>
             </div>
         </div>
@@ -258,6 +257,78 @@ $statoBadge = [
             </div>
         </div>
 
+        <!-- ══ ABBONAMENTI ════════════════════════════════════ -->
+        <div class="section-anchor" id="sec-abbonamenti">
+            <div class="section-title">
+                <i class="bi bi-file-earmark-text"></i> Abbonamenti
+                <?php if (! empty($abbonamenti)): ?>
+                    <span class="badge bg-secondary" style="font-size:.6rem"><?= count($abbonamenti) ?></span>
+                <?php endif ?>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="mb-3 d-flex">
+                    <a href="<?= base_url('abbonamenti/nuovo?cliente_id=' . $cliente['id']
+                        . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-abbonamenti')) ?>"
+                       class="btn btn-sm btn-outline-success ms-auto">
+                        <i class="bi bi-plus-lg me-1"></i>Nuovo abbonamento
+                    </a>
+                </div>
+                <?php if (empty($abbonamenti)): ?>
+                    <p class="text-muted small mb-0">Nessun abbonamento.</p>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Frequenza</th>
+                                    <th>Periodo</th>
+                                    <th class="text-end">Prezzo</th>
+                                    <th class="text-center">Stato</th>
+                                    <th style="width:40px"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($abbonamenti as $ab): ?>
+                                    <tr>
+                                        <td><?= esc($ab['tipo_nome'] ?? '—') ?></td>
+                                        <td>
+                                            <?php if ($ab['num_periodi'] > 1): ?>
+                                                <span class="text-muted">Multipla</span>
+                                            <?php else: ?>
+                                                <?= esc($abbonamentiFrequenze[$ab['prima_frequenza']] ?? '—') ?>
+                                            <?php endif ?>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            <?= date('d/m/Y', strtotime($ab['data_inizio'])) ?>
+                                            –
+                                            <?= date('d/m/Y', strtotime($ab['data_fine'])) ?>
+                                        </td>
+                                        <td class="text-end text-nowrap">
+                                            <?= $ab['prezzo'] !== null ? '€ ' . number_format((float) $ab['prezzo'], 2, ',', '.') : '—' ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge <?= $abbonamentiBadge[$ab['stato_calcolato']] ?? 'bg-secondary' ?>">
+                                                <?= esc($abbonamentiLabel[$ab['stato_calcolato']] ?? $ab['stato_calcolato']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="<?= base_url('abbonamenti/' . $ab['id']) ?>"
+                                               class="btn btn-sm btn-outline-secondary" title="Scheda">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif ?>
+            </div>
+        </div>
+
         <!-- ══ INTERVENTI ══════════════════════════════════════ -->
         <div class="section-anchor" id="sec-interventi">
             <div class="section-title">
@@ -279,6 +350,9 @@ $statoBadge = [
                     </button>
                     <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
                         <i class="bi bi-x-circle me-1"></i>Annullati
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
+                        <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
                     </button>
                     <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
                         Tutti (<?= count($interventi) ?>)
@@ -339,6 +413,7 @@ $statoBadge = [
                                         <?php endif ?>
                                     </td>
                                     <td><?= esc($iv['stato']) ?></td>
+                                    <td><?= $iv['abbonamento_id'] ? 'abbonamento' : '' ?></td>
                                     <td class="text-end">
                                         <a href="<?= base_url('operativo/interventi/' . $iv['id'] . '/edit')
                                             . '?from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi') ?>"
@@ -366,6 +441,12 @@ $statoBadge = [
                 Da portare
                 <?php if (! empty($sospesi)): ?>
                     <span class="badge bg-warning text-dark ms-auto" style="font-size:.6rem"><?= count($sospesi) ?></span>
+                <?php endif ?>
+            </a>
+            <a href="#sec-abbonamenti">
+                Abbonamenti
+                <?php if (! empty($abbonamenti)): ?>
+                    <span class="badge bg-secondary ms-auto" style="font-size:.6rem"><?= count($abbonamenti) ?></span>
                 <?php endif ?>
             </a>
             <a href="#sec-interventi">
@@ -420,8 +501,8 @@ $(function () {
         order: [[4, 'desc']],
         columnDefs: [
             { targets: [5, 6], className: 'text-start', type: 'string' },
-            { targets: 8, visible: false },
-            { targets: 9, orderable: false, searchable: false }
+            { targets: [8, 9], visible: false },
+            { targets: 10, orderable: false, searchable: false }
         ],
         language: {
             emptyTable:   'Nessun intervento registrato.',
@@ -436,15 +517,21 @@ $(function () {
     });
 
     var filtri = {
-        aperti:    { q: '^(da_pianificare|pianificato|in_corso)$', regex: true  },
-        completati:{ q: '^completato$',                            regex: true  },
-        annullati: { q: '^annullato$',                             regex: true  },
-        tutti:     { q: '',                                        regex: false }
+        aperti:     { col: 8, q: '^(da_pianificare|pianificato|in_corso)$', regex: true  },
+        completati: { col: 8, q: '^completato$',                            regex: true  },
+        annullati:  { col: 8, q: '^annullato$',                             regex: true  },
+        abbonamento:{ col: 9, q: 'abbonamento',                             regex: false },
+        tutti:      { col: 8, q: '',                                        regex: false }
     };
 
     function setFiltro(nome) {
         var f = filtri[nome];
-        table.column(8).search(f.q, f.regex, false).draw();
+        table.column(8).search('', false, false);
+        table.column(9).search('', false, false);
+        table.column(f.col).search(f.q, f.regex, false);
+        // "aperti" esclude gli interventi da abbonamento (col 9 non vuota)
+        if (nome === 'aperti') table.column(9).search('^$', true, false);
+        table.draw();
         document.querySelectorAll('[data-filtro]').forEach(function (b) {
             b.classList.toggle('active', b.dataset.filtro === nome);
         });

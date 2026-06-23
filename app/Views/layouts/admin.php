@@ -121,6 +121,12 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="<?= base_url('abbonamenti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'abbonamenti') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-file-earmark-text"></i>
+                            <p>Abbonamenti</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="<?= base_url('operativo/calendario') ?>" class="nav-link <?= str_starts_with(uri_string(), 'operativo/calendario') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-calendar3"></i>
                             <p>Calendario</p>
