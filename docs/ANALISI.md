@@ -326,7 +326,13 @@ graph TD
 #### ✅ v0.14.1 — Fix frecce DataTables
 - *Fix: DataTables 2.x imposta `flex-direction:row-reverse` su `div.dt-column-header` per le colonne `dt-type-numeric`, mettendo le frecce a sinistra del testo. Override a `flex-direction:row` via CSS per i `<th class="text-center">` (Interventi e Zona in lista clienti)*
 
-#### 🔲 v0.15.0 — Cantieri
+#### ✅ v0.15.0 — Abbonamenti: prossima visita, visite extra, pulizia fondo
+- **Next-by-scadenza**: alla chiusura di un intervento con materiali "non portati", il sistema cerca il prossimo intervento aperto dello stesso abbonamento (per `data_scadenza`) e riassegna i materiali direttamente su di esso invece di lasciarli sospesi sul cliente. Se non esiste un prossimo univoco, il comportamento precedente (materiali sospesi sul cliente) viene preservato
+- **Visite extra**: dalla scheda abbonamento si può creare un intervento aggiuntivo fuori piano (`extra = 1`, `priorita = 'abbonamento'`); tipo intervento pre-compilato in readonly; sincronizzazione bidirezionale `data_pianificata` ↔ `data_scadenza` via JS
+- **Flag pulizia fondo**: ogni intervento generato eredita `pulizia_fondo` dal campo `con_pulizia_fondo` del periodo; l'operatore può modificarlo al momento della chiusura (checkbox visibile solo per tipi con `ha_pulizia_fondo = 1`)
+- Migration `AddExtraAndPuliziaFondoToInterventi`: aggiunge `extra TINYINT(1) DEFAULT 0` e `pulizia_fondo TINYINT(1) DEFAULT 0` su `interventi`
+
+#### 🔲 v0.16.0 — Cantieri
 
 Un **cantiere** raggruppa più interventi legati a un unico progetto per un cliente (nuova costruzione o ristrutturazione). Si distingue dagli interventi "standalone" (manutenzioni, abbonamenti) che non appartengono a nessun progetto.
 
@@ -358,35 +364,35 @@ I cantieri non appaiono direttamente — vi appaiono gli interventi generati dal
 - Scheda cliente: sezione **Cantieri** con elenco cantieri attivi
 - Scheda intervento: se collegato a una fase, mostra titolo cantiere con link
 
-#### 🔲 v0.16.0 — Anagrafica impianti
+#### 🔲 v0.17.0 — Anagrafica impianti
 - Tabella `impianti`: tipo (piscina, addolcitore, acquedotto, trattamento acqua, altro), marca, modello, note
 - Tabella `clienti_impianti`: FK cliente + FK impianto + indirizzo specifico dell'impianto se diverso dal cliente
 - Collegamento impianto agli interventi (popola `impianto_id` lasciato nullable dalla v0.8.0)
 - Scheda cliente: nuovo tab **Impianti**
 
-#### 🔲 v0.17.0 — Richieste di intervento
+#### 🔲 v0.18.0 — Richieste di intervento
 - Tabella `richieste`: cliente, tipo, descrizione, priorità, stato, tecnico suggerito
 - Flusso: richiesta → approvazione → conversione in intervento pianificato
 - Badge notifica in sidebar per richieste in attesa
 
-#### 🔲 v0.18.0 — Magazzino avanzato
+#### 🔲 v0.19.0 — Magazzino avanzato
 - Gestione giacenza: movimenti di carico/scarico con tabella `movimenti_magazzino`
 - Scarico automatico giacenza quando si inseriscono materiali su un intervento
 - Soglia minima per articolo; alert sottoscorta in dashboard
 - Import ricambi da DB esterno (integrazione con sistema esistente)
 
-#### 🔲 v0.19.0 — Preventivi
+#### 🔲 v0.20.0 — Preventivi
 - Tabella `preventivi`: cliente, data, stato (bozza/inviato/accettato/rifiutato), totale
 - Righe preventivo: articolo da catalogo o descrizione libera, quantità, prezzo unitario
 - Conversione preventivo accettato → intervento/abbonamento
 
-#### 🔲 v0.20.0 — Dashboard e report
+#### 🔲 v0.21.0 — Dashboard e report
 - Dashboard riepilogativa: interventi oggi, settimana, tecnici in campo, richieste aperte, abbonamenti in scadenza
 - Presenze/assenze tecnici
 - Report PDF: interventi per cliente, materiali consegnati, abbonamenti attivi
 - Statistiche: interventi per tipo/periodo, km percorsi, prodotti consumati
 
-#### 🔲 v0.21.0 — Release
+#### 🔲 v0.22.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
 - Deploy su Nginx (dominio colombini-snc.it)

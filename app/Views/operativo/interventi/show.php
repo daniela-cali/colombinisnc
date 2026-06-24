@@ -254,6 +254,8 @@ $statoBadge = [
                 <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Chiudi intervento</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <form method="post" action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>">
+            <?= csrf_field() ?>
             <div class="modal-body">
                 <p class="mb-0">
                     Confermi la chiusura dell'intervento
@@ -262,38 +264,33 @@ $statoBadge = [
                 <?php if (! empty($materiali)): ?>
                     <p class="mt-3 mb-0">Hai consegnato i materiali al cliente?</p>
                 <?php endif ?>
+                <?php if (! empty($intervento['abbonamento_id']) && ! empty($tipo['ha_pulizia_fondo'])): ?>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" name="pulizia_fondo"
+                               id="chk-pulizia-fondo" value="1"
+                               <?= $intervento['pulizia_fondo'] ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="chk-pulizia-fondo">
+                            <i class="bi bi-droplet-fill me-1"></i>Pulizia fondo eseguita
+                        </label>
+                    </div>
+                <?php endif ?>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
                 <?php if (! empty($materiali)): ?>
-                    <form method="post"
-                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>"
-                          class="d-inline">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="materiali_consegnati" value="0">
-                        <button type="submit" class="btn btn-outline-success">
-                            <i class="bi bi-x-circle me-1"></i>No, non portati
-                        </button>
-                    </form>
-                    <form method="post"
-                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>"
-                          class="d-inline">
-                        <?= csrf_field() ?>
-                        <input type="hidden" name="materiali_consegnati" value="1">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle me-1"></i>Sì, consegnati
-                        </button>
-                    </form>
+                    <button type="submit" name="materiali_consegnati" value="0" class="btn btn-outline-success">
+                        <i class="bi bi-x-circle me-1"></i>No, non portati
+                    </button>
+                    <button type="submit" name="materiali_consegnati" value="1" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Sì, consegnati
+                    </button>
                 <?php else: ?>
-                    <form method="post"
-                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-circle me-1"></i>Chiudi
-                        </button>
-                    </form>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Chiudi
+                    </button>
                 <?php endif ?>
             </div>
+            </form>
         </div>
     </div>
 </div>

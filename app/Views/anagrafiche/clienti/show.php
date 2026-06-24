@@ -343,7 +343,10 @@ $statoBadge = [
 
                 <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
                     <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
-                        <i class="bi bi-folder2-open me-1"></i>Aperti
+                        <i class="bi bi-folder2-open me-1"></i>Da pianificare
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" data-filtro="pianificati">
+                        <i class="bi bi-calendar-check me-1"></i>Pianificati
                     </button>
                     <button class="btn btn-sm btn-outline-success" data-filtro="completati">
                         <i class="bi bi-check-circle me-1"></i>Completati
@@ -413,7 +416,7 @@ $statoBadge = [
                                         <?php endif ?>
                                     </td>
                                     <td><?= esc($iv['stato']) ?></td>
-                                    <td><?= $iv['abbonamento_id'] ? 'abbonamento' : '' ?></td>
+                                    <td><?= $iv['abbonamento_id'] ? ($iv['extra'] ? 'extra' : 'abbonamento') : '' ?></td>
                                     <td class="text-end">
                                         <a href="<?= base_url('operativo/interventi/' . $iv['id'] . '/edit')
                                             . '?from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi') ?>"
@@ -498,7 +501,7 @@ $(function () {
     // DataTable interventi
     var table = $('#tbl-interventi').DataTable({
         pageLength: 15,
-        order: [[4, 'desc']],
+        order: [[5, 'desc']],
         columnDefs: [
             { targets: [5, 6], className: 'text-start', type: 'string' },
             { targets: [8, 9], visible: false },
@@ -517,11 +520,12 @@ $(function () {
     });
 
     var filtri = {
-        aperti:     { col: 8, q: '^(da_pianificare|pianificato|in_corso)$', regex: true  },
-        completati: { col: 8, q: '^completato$',                            regex: true  },
-        annullati:  { col: 8, q: '^annullato$',                             regex: true  },
-        abbonamento:{ col: 9, q: 'abbonamento',                             regex: false },
-        tutti:      { col: 8, q: '',                                        regex: false }
+        aperti:     { col: 8, q: '^da_pianificare$',               regex: true  },
+        pianificati:{ col: 8, q: '^(pianificato|in_corso)$',        regex: true  },
+        completati: { col: 8, q: '^completato$',                    regex: true  },
+        annullati:  { col: 8, q: '^annullato$',                     regex: true  },
+        abbonamento:{ col: 9, q: 'abbonamento',                     regex: false },
+        tutti:      { col: 8, q: '',                                regex: false }
     };
 
     function setFiltro(nome) {
@@ -529,8 +533,8 @@ $(function () {
         table.column(8).search('', false, false);
         table.column(9).search('', false, false);
         table.column(f.col).search(f.q, f.regex, false);
-        // "aperti" esclude gli interventi da abbonamento (col 9 non vuota)
-        if (nome === 'aperti') table.column(9).search('^$', true, false);
+        // "aperti" esclude gli interventi batch da abbonamento (le visite extra restano visibili)
+        if (nome === 'aperti') table.column(9).search('^(?!abbonamento)', true, false);
         table.draw();
         document.querySelectorAll('[data-filtro]').forEach(function (b) {
             b.classList.toggle('active', b.dataset.filtro === nome);

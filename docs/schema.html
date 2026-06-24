@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.11.0 · 2026-06-18</span></h1>
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.14.1 · 2026-06-23</span></h1>
 
 <div class="toc">
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
@@ -45,6 +45,8 @@
   <a href="#interventi_materiali">interventi_materiali</a>
   <a href="#categorie_articoli">categorie_articoli</a>
   <a href="#articoli">articoli</a>
+  <a href="#abbonamenti">abbonamenti</a>
+  <a href="#abbonamenti_periodi">abbonamenti_periodi</a>
   <a href="#relazioni">Relazioni</a>
   <a href="#log">Log modifiche DB</a>
 </div>
@@ -118,6 +120,9 @@
   <tr><td><code>icona</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td>Classe Bootstrap Icons</td></tr>
   <tr><td><code>durata_default</code></td><td>INT UNSIGNED</td><td></td><td>60</td><td>Minuti — pre-compila il form intervento</td></tr>
   <tr><td><code>attivo</code></td><td>TINYINT(1)</td><td></td><td>1</td><td></td></tr>
+  <tr><td><code>abbonabile</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = può essere usato negli abbonamenti · aggiunto v0.14.0</td></tr>
+  <tr><td><code>prefisso_codice</code></td><td>VARCHAR(10)</td><td class="null">NULL</td><td>NULL</td><td>Prefisso 3 caratteri per codici da abbonamento (es. PIS, ADD). NULL = usa INT · aggiunto v0.14.0</td></tr>
+  <tr><td><code>ha_pulizia_fondo</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = il tipo prevede l'opzione pulizia fondo (es. piscine) · aggiunto v0.14.0</td></tr>
   <tr><td><code>ordine</code></td><td>INT UNSIGNED</td><td></td><td>0</td><td></td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -127,21 +132,25 @@
 
 <!-- ═══════════════════════════════════════════════════════ interventi -->
 <h2 id="interventi">interventi</h2>
-<p class="note">Visite tecniche presso i clienti. Codice formato IV-NNNN generato automaticamente.</p>
+<p class="note">Visite tecniche presso i clienti. Codice formato IV-NNNN generato automaticamente (o prefisso tipo per abbonamenti).</p>
 <table>
   <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
   <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
-  <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(20)</td><td></td><td></td><td>Formato IV-0001</td></tr>
+  <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(20)</td><td></td><td></td><td>Formato IV-0001 o PIS-0001 per abbonamenti</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE RESTRICT</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>tecnico_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ personale.id · ON DELETE SET NULL</td></tr>
-  <tr><td><code>priorita</code></td><td>VARCHAR(30)</td><td></td><td>normale</td><td>Valori: <code>programmato</code> · <code>normale</code> · <code>urgente</code></td></tr>
+  <tr><td><code>descrizione</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Testo libero aggiunto v0.11.3</td></tr>
+  <tr><td><code>priorita</code></td><td>VARCHAR(30)</td><td></td><td>normale</td><td>Valori: <code>abbonamento</code> · <code>normale</code> · <code>urgente</code> (era <code>programmato</code> fino a v0.14.0)</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ tipi_intervento.id · ON DELETE SET NULL</td></tr>
-  <tr><td><code>stato</code></td><td>VARCHAR(30)</td><td></td><td>pianificato</td><td>Valori: <code>da_pianificare</code> · <code>pianificato</code> · <code>in_corso</code> · <code>completato</code> · <code>annullato</code></td></tr>
+  <tr><td><code>stato</code></td><td>VARCHAR(30)</td><td></td><td>da_pianificare</td><td>Valori: <code>da_pianificare</code> · <code>pianificato</code> · <code>in_corso</code> · <code>completato</code> · <code>annullato</code> · <code>sospeso</code></td></tr>
   <tr><td><code>data_pianificata</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>data_scadenza</code></td><td>DATE</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>durata_stimata</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Minuti</td></tr>
   <tr><td><code>urgenza</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>Flag indipendente dalla priorità</td></tr>
   <tr><td><code>impianto_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Placeholder FK — non referenziata, riservata a versione futura</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>abbonamento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE RESTRICT · NULL = standalone · aggiunto v0.14.0</td></tr>
+  <tr><td><code>extra</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = visita extra fuori dal piano del periodo · aggiunto v0.15.0</td></tr>
+  <tr><td><code>pulizia_fondo</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = prevista pulizia del fondo (solo piscine) · default dal periodo all'atto della generazione · aggiunto v0.15.0</td></tr>
   <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -203,6 +212,53 @@
   <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
 </table>
 
+<!-- ═══════════════════════════════════════════════════════ abbonamenti -->
+<h2 id="abbonamenti">abbonamenti</h2>
+<p class="note">
+  Contratti di manutenzione periodica per un cliente. Ogni abbonamento genera automaticamente gli interventi figli
+  in base ai periodi definiti in <code>abbonamenti_periodi</code>. La frequenza non è più un campo diretto
+  (spostata nei periodi dalla migration <code>CreateAbbonamentiPeriodi</code> — v0.14.0).
+</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE RESTRICT</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ tipi_intervento.id · ON DELETE RESTRICT · stesso tipo per tutti gli interventi generati</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>abbonamento_precedente_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE SET NULL · catena storica rinnovi; CTE ricorsiva MySQL 8+ per ricostruirla</td></tr>
+  <tr><td><code>data_inizio</code></td><td>DATE</td><td></td><td></td><td>Tipicamente 01/01 — primo giorno di validità</td></tr>
+  <tr><td><code>data_fine</code></td><td>DATE</td><td></td><td></td><td>Tipicamente 31/12 — ultimo giorno di validità</td></tr>
+  <tr><td><code>durata_mesi</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Calcolato automaticamente dal model al salvataggio</td></tr>
+  <tr><td><code>prezzo</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td></td><td>Totale abbonamento per il periodo intero (non per visita)</td></tr>
+  <tr><td><code>stato</code></td><td>VARCHAR(20)</td><td></td><td>attivo</td><td>Valori: <code>attivo</code> · <code>sospeso</code> · <code>scaduto</code> · <code>disdetto</code></td></tr>
+  <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ abbonamenti_periodi -->
+<h2 id="abbonamenti_periodi">abbonamenti_periodi</h2>
+<p class="note">
+  Sotto-periodi di un abbonamento, ognuno con la propria frequenza. Un abbonamento semplice ha un solo periodo
+  coincidente con <code>data_inizio</code>/<code>data_fine</code> dell'abbonamento. Le piscine usano tipicamente
+  due periodi (estate/inverno) con frequenze diverse.
+</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>abbonamento_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ abbonamenti.id · ON DELETE CASCADE</td></tr>
+  <tr><td><code>data_inizio</code></td><td>DATE</td><td></td><td></td><td>Inizio del sotto-periodo</td></tr>
+  <tr><td><code>data_fine</code></td><td>DATE</td><td></td><td></td><td>Fine del sotto-periodo</td></tr>
+  <tr><td><code>frequenza</code></td><td>VARCHAR(20)</td><td></td><td></td><td>Valori: <code>settimanale</code> · <code>quindicinale</code> · <code>mensile</code> · <code>bimestrale</code> · <code>trimestrale</code> · <code>semestrale</code> · <code>annuale</code></td></tr>
+  <tr><td><code>con_pulizia_fondo</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = pulizia del fondo prevista in questo periodo (solo piscine)</td></tr>
+  <tr><td><code>ordine</code></td><td>INT UNSIGNED</td><td></td><td>1</td><td>Ordine di visualizzazione e generazione interventi</td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
 <hr class="section-sep">
 
 <!-- ═══════════════════════════════════════════════════════ relazioni -->
@@ -215,10 +271,15 @@
   <tr><td>interventi</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
   <tr><td>interventi</td><td>tecnico_id</td><td>personale.id</td><td>SET NULL</td></tr>
   <tr><td>interventi</td><td>tipo_intervento_id</td><td>tipi_intervento.id</td><td>SET NULL</td></tr>
+  <tr><td>interventi</td><td>abbonamento_id</td><td>abbonamenti.id</td><td>RESTRICT</td></tr>
   <tr><td>interventi_materiali</td><td>cliente_id</td><td>clienti.id</td><td>CASCADE</td></tr>
   <tr><td>interventi_materiali</td><td>intervento_id</td><td>interventi.id</td><td>CASCADE</td></tr>
   <tr><td>interventi_materiali</td><td>articolo_id</td><td>articoli.id</td><td>SET NULL</td></tr>
   <tr><td>articoli</td><td>categoria_id</td><td>categorie_articoli.id</td><td>SET NULL</td></tr>
+  <tr><td>abbonamenti</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
+  <tr><td>abbonamenti</td><td>tipo_intervento_id</td><td>tipi_intervento.id</td><td>RESTRICT</td></tr>
+  <tr><td>abbonamenti</td><td>abbonamento_precedente_id</td><td>abbonamenti.id</td><td>SET NULL</td></tr>
+  <tr><td>abbonamenti_periodi</td><td>abbonamento_id</td><td>abbonamenti.id</td><td>CASCADE</td></tr>
 </table>
 
 <hr class="section-sep">
@@ -227,6 +288,49 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.15.0</td>
+    <td><code>AddExtraAndPuliziaFondoToInterventi</code></td>
+    <td>
+      Aggiunte 2 colonne su <code>interventi</code>: <code>extra TINYINT(1) DEFAULT 0</code> (visita extra fuori piano),
+      <code>pulizia_fondo TINYINT(1) DEFAULT 0</code> (flag pulizia fondo piscine, default dal periodo alla generazione).
+    </td>
+  </tr>
+  <tr>
+    <td>v0.14.0</td>
+    <td><code>CreateAbbonamentiTable</code></td>
+    <td>
+      Nuova tabella <code>abbonamenti</code> con FK su <code>clienti</code>, <code>tipi_intervento</code> e self-join <code>abbonamento_precedente_id</code>.
+      Aggiunta colonna <code>abbonamento_id INT UNSIGNED NULL FK → abbonamenti.id RESTRICT</code> su <code>interventi</code>.
+      Rinominato il valore <code>programmato</code> → <code>abbonamento</code> su <code>interventi.priorita</code>.
+      Aggiunto il valore <code>sospeso</code> su <code>interventi.stato</code>.
+    </td>
+  </tr>
+  <tr>
+    <td>v0.14.0</td>
+    <td><code>AddAbbonabileToTipiIntervento</code> · <code>AddPrefissoCodiceToTipiIntervento</code> · <code>AddHaPuliziaFondoToTipiIntervento</code></td>
+    <td>
+      Aggiunte 3 colonne su <code>tipi_intervento</code>: <code>abbonabile TINYINT DEFAULT 0</code>,
+      <code>prefisso_codice VARCHAR(10) NULL</code>, <code>ha_pulizia_fondo TINYINT DEFAULT 0</code>.
+    </td>
+  </tr>
+  <tr>
+    <td>v0.14.0</td>
+    <td><code>CreateAbbonamentiPeriodi</code></td>
+    <td>
+      Nuova tabella <code>abbonamenti_periodi</code> con FK CASCADE su <code>abbonamenti</code>.
+      Il campo <code>frequenza</code> è stato spostato da <code>abbonamenti</code> a <code>abbonamenti_periodi</code>
+      (con migrazione dati: un periodo creato per ogni abbonamento esistente).
+    </td>
+  </tr>
+  <tr>
+    <td>v0.11.3</td>
+    <td><code>AddDescrizioneToInterventi</code> · <code>SeedProgressivoInterventi</code></td>
+    <td>
+      Aggiunta colonna <code>descrizione VARCHAR(255) NULL</code> su <code>interventi</code> (dopo <code>tecnico_id</code>).
+      Inserito in <code>settings</code> il contatore progressivo per i codici intervento (<code>class=Interventi, key=progressivo</code>).
+    </td>
+  </tr>
   <tr>
     <td>v0.11.0</td>
     <td><code>AddClienteIdToInterventiMateriali</code></td>

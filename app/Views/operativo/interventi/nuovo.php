@@ -6,8 +6,12 @@
  * @var array    $prioritaLabel  [codice => etichetta]
  * @var array    $statiLabel     [codice => etichetta]
  * @var array    $articoliPerCat Da ArticoliModel::perCategoria()
- * @var int      $cliente_id     Pre-selezione da ?cliente_id= (0 se non presente)
- * @var string   $from           URL di ritorno dopo il salvataggio (vuoto = lista interventi)
+ * @var int      $cliente_id          Pre-selezione da ?cliente_id= (0 se non presente)
+ * @var int      $abbonamento_id      Pre-compilato per le visite extra (0 se non presente)
+ * @var int      $extra               1 se si sta creando una visita extra, 0 altrimenti
+ * @var int      $tipo_intervento_id  Pre-selezionato per le visite extra (0 altrimenti)
+ * @var bool     $ha_pulizia_fondo    True se il tipo intervento prevede pulizia fondo (solo per visite extra)
+ * @var string   $from                URL di ritorno dopo il salvataggio (vuoto = lista interventi)
  */
 $this->extend('layouts/admin');
 
@@ -45,6 +49,11 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                 <?= csrf_field() ?>
                 <?php if ($from): ?>
                     <input type="hidden" name="from" value="<?= esc($from) ?>">
+                <?php endif ?>
+                <?php if ($extra): ?>
+                    <input type="hidden" name="extra" value="1">
+                    <input type="hidden" name="abbonamento_id" value="<?= (int) $abbonamento_id ?>">
+                    <input type="hidden" name="priorita" value="abbonamento">
                 <?php endif ?>
                 <div class="card-body">
 
@@ -93,10 +102,11 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <div class="row g-3 mb-4">
                         <div class="col-md-3">
                             <label class="form-label">Priorità <span class="text-danger">*</span></label>
-                            <select name="priorita" id="priorita" class="form-select">
+                            <select name="priorita" id="priorita" class="form-select"
+                                    <?= $extra ? 'disabled' : '' ?>>
                                 <?php foreach ($prioritaLabel as $codice => $etichetta): ?>
                                     <option value="<?= $codice ?>"
-                                            <?= old('priorita', 'normale') === $codice ? 'selected' : '' ?>>
+                                            <?= old('priorita', $extra ? 'abbonamento' : 'normale') === $codice ? 'selected' : '' ?>>
                                         <?= esc($etichetta) ?>
                                     </option>
                                 <?php endforeach ?>
@@ -104,15 +114,19 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Tipo intervento <span class="text-danger">*</span></label>
-                            <select name="tipo_intervento_id" id="tipo_intervento_id" class="form-select">
+                            <select name="tipo_intervento_id" id="tipo_intervento_id" class="form-select"
+                                    <?= $extra ? 'disabled' : '' ?>>
                                 <option value="">— seleziona —</option>
                                 <?php foreach ($tipi as $t): ?>
                                     <option value="<?= $t['id'] ?>"
-                                            <?= old('tipo_intervento_id') == $t['id'] ? 'selected' : '' ?>>
+                                            <?= old('tipo_intervento_id', $tipo_intervento_id) == $t['id'] ? 'selected' : '' ?>>
                                         <?= esc($t['nome']) ?>
                                     </option>
                                 <?php endforeach ?>
                             </select>
+                            <?php if ($extra): ?>
+                                <input type="hidden" name="tipo_intervento_id" value="<?= (int) $tipo_intervento_id ?>">
+                            <?php endif ?>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Stato <span class="text-danger">*</span></label>
@@ -125,7 +139,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                                 <?php endforeach ?>
                             </select>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
+                        <div class="col-md-2 d-flex align-items-end flex-column">
                             <div class="form-check mb-2">
                                 <input class="form-check-input" type="checkbox" name="urgenza"
                                        id="urgenza" value="1"
@@ -134,17 +148,29 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                                     <i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente
                                 </label>
                             </div>
+                            <?php if ($extra && $ha_pulizia_fondo): ?>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="pulizia_fondo"
+                                           id="pulizia_fondo" value="1"
+                                           <?= old('pulizia_fondo', '1') ? 'checked' : '' ?>>
+                                    <label class="form-check-label" for="pulizia_fondo">
+                                        <i class="bi bi-droplet-fill me-1"></i>Pulizia fondo
+                                    </label>
+                                </div>
+                            <?php endif ?>
                         </div>
                     </div>
 
                     <!-- Date e durata -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-calendar me-1"></i> Pianificazione</p>
                     <div class="row g-3 mb-4">
+                        <?php if (! $extra): ?>
                         <div class="col-md-4">
                             <label class="form-label">Data pianificata</label>
                             <input type="date" name="data_pianificata" class="form-control"
                                    value="<?= esc(old('data_pianificata')) ?>">
                         </div>
+                        <?php endif ?>
                         <div class="col-md-4">
                             <label class="form-label">Data scadenza</label>
                             <input type="date" name="data_scadenza" class="form-control"

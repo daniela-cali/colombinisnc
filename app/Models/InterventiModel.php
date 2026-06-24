@@ -14,6 +14,7 @@ class InterventiModel extends Model
 
     protected $allowedFields = [
         'codice', 'cliente_id', 'tecnico_id', 'abbonamento_id',
+        'extra', 'pulizia_fondo',
         'priorita', 'stato', 'tipo_intervento_id',
         'data_pianificata', 'data_scadenza', 'durata_stimata', 'urgenza',
         'descrizione', 'impianto_id', 'note',
@@ -75,7 +76,9 @@ class InterventiModel extends Model
                 // Interventi da abbonamento usano il prefisso del tipo intervento (es. PIS, ADD).
                 // Interventi manuali usano il fallback INT.
                 $prefisso = 'INT';
-                if (! empty($data['data']['abbonamento_id']) && ! empty($data['data']['tipo_intervento_id'])) {
+                if (! empty($data['data']['extra'])) {
+                    $prefisso = 'EXT';
+                } elseif (! empty($data['data']['abbonamento_id']) && ! empty($data['data']['tipo_intervento_id'])) {
                     $tipo = (new TipiInterventoModel())->find((int) $data['data']['tipo_intervento_id']);
                     if (! empty($tipo['prefisso_codice'])) {
                         $prefisso = $tipo['prefisso_codice'];
@@ -204,7 +207,7 @@ class InterventiModel extends Model
     public function poolDaPianificare(): array
     {
         return $this->select("interventi.id, interventi.tipo_intervento_id, interventi.priorita,
-                      interventi.urgenza, interventi.data_scadenza, interventi.durata_stimata,
+                      interventi.urgenza, interventi.extra, interventi.data_scadenza, interventi.durata_stimata,
                       interventi.descrizione,
                       CASE WHEN c.tipo = 'persona_fisica'
                            THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
@@ -217,8 +220,10 @@ class InterventiModel extends Model
             ->where('interventi.stato', self::STATO_DA_PIANIFICARE)
             ->groupStart()
                 ->where('interventi.abbonamento_id IS NULL', null, false)
+                ->orWhere('interventi.extra', 1)
                 ->orGroupStart()
                     ->where('interventi.abbonamento_id IS NOT NULL', null, false)
+                    ->where('interventi.extra', 0)
                     ->where('interventi.data_scadenza <= LAST_DAY(CURDATE())', null, false)
                 ->groupEnd()
             ->groupEnd()
@@ -288,5 +293,18 @@ class InterventiModel extends Model
              ->where('data_scadenza >', date('Y-m-d'))
              ->set('stato', self::STATO_ANNULLATO)
              ->update();
+    }
+
+    /**
+     * Trova il prossimo intervento da abbonamento con data_scadenza successiva a quella data.
+     * Usato in chiudi() per riassegnare i materiali non consegnati invece di lasciarli sospesi.
+     */
+    public function prossimoPerAbbonamento(int $abbonamentoId, string $dataScadenza): ?array
+    {
+        return $this->where('abbonamento_id', $abbonamentoId)
+                    ->where('priorita', self::PRIORITA_ABBONAMENTO)
+                    ->where('data_scadenza >', $dataScadenza)
+                    ->orderBy('data_scadenza', 'ASC')
+                    ->first();
     }
 }

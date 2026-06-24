@@ -199,6 +199,7 @@ class AbbonamentiModel extends Model
                     'stato'              => InterventiModel::STATO_DA_PIANIFICARE,
                     'data_pianificata'   => null,
                     'data_scadenza'      => $scadenza,
+                    'pulizia_fondo'      => (int) ($periodo['con_pulizia_fondo'] ?? 0),
                 ]);
                 $count++;
             }

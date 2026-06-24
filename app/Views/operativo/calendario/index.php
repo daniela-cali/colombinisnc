@@ -96,7 +96,12 @@ $prioritaInfo = [
                              data-tipo-nome="<?= htmlspecialchars($tipoInfo['nome'], ENT_QUOTES) ?>"
                              data-descr="<?= htmlspecialchars($i['descrizione'] ?? '', ENT_QUOTES) ?>">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <span class="badge <?= esc($badge) ?>" style="font-size:.65rem;"><?= esc($badgeLabel) ?></span>
+                                <div class="d-flex gap-1">
+                                    <span class="badge <?= esc($badge) ?>" style="font-size:.65rem;"><?= esc($badgeLabel) ?></span>
+                                    <?php if (! empty($i['extra'])): ?>
+                                    <span class="badge bg-warning text-dark" style="font-size:.65rem;">Extra</span>
+                                    <?php endif ?>
+                                </div>
                                 <small class="text-muted">
                                     <?php if (!empty($i['data_scadenza'])): ?>
                                         <i class="bi bi-clock" style="font-size:.65rem;"></i> <?= date('d/m', strtotime($i['data_scadenza'])) ?> ·

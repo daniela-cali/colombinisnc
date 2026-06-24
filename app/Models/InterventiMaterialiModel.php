@@ -45,7 +45,7 @@ class InterventiMaterialiModel extends Model
 
         // Copia la descrizione dall'articolo se il campo è vuoto
         if (! empty($data['data']['articolo_id']) && empty($data['data']['descrizione'])) {
-            $articolo = (new('App/Model/ArticoliModel'))
+            $articolo = (new \App\Models\ArticoliModel())
                 ->select('descrizione')
                 ->where('id', (int) $data['data']['articolo_id'])
                 ->get()->getRowArray();
@@ -129,6 +129,33 @@ class InterventiMaterialiModel extends Model
                 'note'          => $nota ?: null,
             ]);
         }
+    }
+
+    /**
+     * Restituisce gli ID dei materiali da_portare di un intervento.
+     * Va chiamato prima di liberaPerIntervento() — dopo, intervento_id è già null e non sapremmo più quali erano.
+     */
+    public function idsDaPortarePerIntervento(int $interventoId): array
+    {
+        return array_column(
+            $this->select('id')
+                 ->where('intervento_id', $interventoId)
+                 ->where('stato', self::STATO_DA_PORTARE)
+                 ->findAll(),
+            'id'
+        );
+    }
+
+    /**
+     * Sposta i materiali indicati (per ID) su un altro intervento.
+     * Usato dopo liberaPerIntervento() per riassegnare i sospesi al prossimo intervento dell'abbonamento.
+     */
+    public function assegnaAdIntervento(array $ids, int $interventoId): void
+    {
+        if (empty($ids)) {
+            return;
+        }
+        $this->whereIn('id', $ids)->set(['intervento_id' => $interventoId])->update();
     }
 
     /**

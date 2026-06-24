@@ -26,19 +26,41 @@ class InterventiController extends BaseController
 
     /**
      * Form nuovo intervento.
-     * Se arriva ?cliente_id=X dalla scheda cliente, pre-compila il select.
+     * Se arriva ?cliente_id=X dalla scheda cliente, pre-compila il select cliente.
+     * Se arriva ?extra=1&abbonamento_id=X, carica l'abbonamento per pre-compilare
+     * cliente e tipo intervento in readonly (visita extra da abbonamento).
      */
     public function nuovo(): string
     {
+        $abbonamentoId    = (int) $this->request->getGet('abbonamento_id');
+        $extra            = (int) $this->request->getGet('extra');
+        $clienteId        = (int) $this->request->getGet('cliente_id');
+        $tipoInterventoId = 0;
+        $haPuliziaFondo   = false;
+
+        if ($extra && $abbonamentoId) {
+            $abbonamento = (new \App\Models\AbbonamentiModel())->find($abbonamentoId);
+            if ($abbonamento) {
+                $clienteId        = (int) $abbonamento['cliente_id'];
+                $tipoInterventoId = (int) $abbonamento['tipo_intervento_id'];
+                $tipo             = (new TipiInterventoModel())->find($tipoInterventoId);
+                $haPuliziaFondo   = ! empty($tipo['ha_pulizia_fondo']);
+            }
+        }
+
         return view('operativo/interventi/nuovo', [
-            'clienti'       => (new ClientiModel())->elencoCompleto(),
-            'tecnici'       => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
-            'tipi'          => (new TipiInterventoModel())->attivi(),
-            'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
-            'statiLabel'    => InterventiModel::STATI_LABEL,
-            'articoliPerCat' => (new ArticoliModel())->perCategoria(),
-            'cliente_id'    => (int) $this->request->getGet('cliente_id'),
-            'from'          => $this->request->getGet('from') ?? '',
+            'clienti'           => (new ClientiModel())->elencoCompleto(),
+            'tecnici'           => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
+            'tipi'              => (new TipiInterventoModel())->attivi(),
+            'prioritaLabel'     => InterventiModel::PRIORITA_LABEL,
+            'statiLabel'        => InterventiModel::STATI_LABEL,
+            'articoliPerCat'    => (new ArticoliModel())->perCategoria(),
+            'cliente_id'        => $clienteId,
+            'abbonamento_id'    => $abbonamentoId,
+            'extra'             => $extra,
+            'tipo_intervento_id' => $tipoInterventoId,
+            'ha_pulizia_fondo'  => $haPuliziaFondo,
+            'from'              => $this->request->getGet('from') ?? '',
         ]);
     }
 
@@ -54,7 +76,6 @@ class InterventiController extends BaseController
         }
 
         $id     = $model->insert(array_merge($this->request->getPost(), [
-            'codice'  => $model->generaCodice(),
             'urgenza' => (int) (bool) $this->request->getPost('urgenza'),
         ]));
         $codice = $model->find($id)['codice'];
@@ -129,7 +150,10 @@ class InterventiController extends BaseController
                 ->with('error', 'L\'intervento è già chiuso o annullato.');
         }
 
-        $model->update($id, ['stato' => InterventiModel::STATO_COMPLETATO]);
+        $model->update($id, [
+            'stato'        => InterventiModel::STATO_COMPLETATO,
+            'pulizia_fondo' => (int) (bool) $this->request->getPost('pulizia_fondo'),
+        ]);
 
         $materialiConsegnati = $this->request->getPost('materiali_consegnati');
         $matModel = new InterventiMaterialiModel();
@@ -138,9 +162,26 @@ class InterventiController extends BaseController
             // Tecnico ha consegnato tutto: segna ogni riga come consegnata.
             $matModel->consegnaPerIntervento($id);
         } elseif ($materialiConsegnati === '0') {
+            // Salvo gli ID prima di liberare: dopo liberaPerIntervento() intervento_id è null e non saprei più quali erano.
+            $idsDaPortare = $matModel->idsDaPortarePerIntervento($id);
+
             // Materiali non portati: tornano tra i sospesi del cliente
             // con una nota che ricorda da quale intervento provenivano.
             $matModel->liberaPerIntervento($id, $intervento['codice']);
+
+            // Solo per interventi da abbonamento: provo a riassegnare i materiali al prossimo intervento.
+            if (! empty($intervento['abbonamento_id']) && ! empty($idsDaPortare)) {
+                $prossimi = $model->where('abbonamento_id', $intervento['abbonamento_id'])
+                                  ->where('priorita', InterventiModel::PRIORITA_ABBONAMENTO)
+                                  ->where('data_scadenza >', $intervento['data_scadenza'])
+                                  ->orderBy('data_scadenza', 'ASC')
+                                  ->findAll(2); // max 2 per rilevare ambiguità: se ne tornano 2 con stessa scadenza, fallback manuale
+
+                if (count($prossimi) === 1) {
+                    $matModel->assegnaAdIntervento($idsDaPortare, $prossimi[0]['id']);
+                }
+                // Se 0 risultati o 2+ (ambiguità): materiali già sospesi sul cliente, gestione manuale.
+            }
         }
         // Se materialiConsegnati è null l'intervento non aveva materiali: nessuna azione.
 
@@ -342,7 +383,7 @@ class InterventiController extends BaseController
             'priorita'           => 'required|in_list[' . $prioritaAmmesse . ']',
             'stato'              => 'required|in_list[' . $statiAmmessi . ']',
             'tipo_intervento_id' => 'required|is_natural_no_zero',
-            'data_pianificata'   => 'permit_empty|valid_date[Y-m-d\TH:i]',
+            'data_pianificata'   => 'permit_empty|valid_date[Y-m-d]',
             'data_scadenza'      => 'permit_empty|valid_date[Y-m-d]',
             'durata_stimata'     => 'permit_empty|is_natural',
         ];

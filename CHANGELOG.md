@@ -1,5 +1,17 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.15.0] - 2026-06-24
+
+### Abbonamenti — prossima visita, visite extra, pulizia fondo
+
+- [APP] Next-by-scadenza: alla chiusura di un intervento con materiali "non portati", il sistema cerca automaticamente il prossimo intervento aperto dello stesso abbonamento (per `data_scadenza`) e riassegna i materiali direttamente su di esso invece di lasciarli sospesi sul cliente; se non esiste un prossimo univoco il comportamento precedente è preservato
+- [APP] Visite extra: dalla scheda abbonamento si può creare un intervento aggiuntivo fuori piano (`extra = 1`); tipo intervento e priorità pre-compilati in readonly; sincronizzazione bidirezionale `data_pianificata` ↔ `data_scadenza` via JS; bottone visibile solo su abbonamenti attivi
+- [APP] Flag pulizia fondo: ogni intervento generato eredita `pulizia_fondo` dal periodo; l'operatore può modificarlo al momento della chiusura (checkbox visibile solo per tipi con `ha_pulizia_fondo = 1`)
+- [DEV] `InterventiModel::prossimoPerAbbonamento()`: restituisce il prossimo intervento aperto dell'abbonamento con `data_scadenza` successiva a quella corrente
+- [DEV] `InterventiMaterialiModel::idsDaPortarePerIntervento()` + `assegnaAdIntervento()`: cattura e riassegna i materiali da portare al prossimo intervento
+- [DEV] `AbbonamentiModel::generaInterventi()`: popola `pulizia_fondo` da `con_pulizia_fondo` del periodo alla generazione del batch
+- [DEV] Migration `AddExtraAndPuliziaFondoToInterventi`: aggiunge `extra TINYINT(1) DEFAULT 0` e `pulizia_fondo TINYINT(1) DEFAULT 0` su `interventi`
+
 ## [0.14.1] - 2026-06-23
 
 ### Fix

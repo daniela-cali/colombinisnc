@@ -167,6 +167,14 @@ $stato = $abbonamento['stato_calcolato'];
                     <i class="bi bi-list-check me-2"></i>Interventi
                     <span class="badge bg-secondary ms-1"><?= count($interventi) ?></span>
                 </h3>
+                <?php if ($stato === 'attivo'): ?>
+                    <div class="card-tools">
+                        <a href="<?= base_url('operativo/interventi/nuovo?abbonamento_id=' . $abbonamento['id'] . '&cliente_id=' . $abbonamento['cliente_id'] . '&extra=1&from=' . urlencode(base_url('abbonamenti/' . $abbonamento['id']))) ?>"
+                           class="btn btn-sm" title="Nuova visita extra">
+                            <i class="bi bi-plus-circle me-1"></i>Visita extra
+                        </a>
+                    </div>
+                <?php endif ?>
             </div>
             <div class="card-body p-0">
                 <?php if (empty($interventi)): ?>
