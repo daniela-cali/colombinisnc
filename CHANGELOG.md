@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.15.1] - 2026-06-25
+
+### Fix filtro pills lista interventi + badge Extra
+
+- [APP] Filtro pills interventi: tutte le pills ora funzionano correttamente — colonna filtro origine valorizzata sempre con `abbonamento` o `singolo` (prima stringa vuota per i non-abbonamento rendeva il filtro regex inaffidabile); aggiunto `searchable: true` alle colonne nascoste (DataTables 2.x disabilita la ricerca su colonne invisibili per default)
+- [APP] Badge "Extra" nella lista interventi: visibile nella colonna Tipo/Priorità per le visite extra fuori piano
+- [DEV] Fix `$prioritaBadge` in index interventi: chiave `programmato` → `abbonamento`
+
 ## [0.15.0] - 2026-06-24
 
 ### Abbonamenti — prossima visita, visite extra, pulizia fondo

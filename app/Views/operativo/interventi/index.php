@@ -14,7 +14,7 @@ $statoBadge = [
     'annullato'      => 'danger',
 ];
 $prioritaBadge = [
-    'programmato' => 'primary',
+    'abbonamento' => 'primary',
     'normale'     => 'secondary',
     'urgente'     => 'danger',
 ];
@@ -74,33 +74,37 @@ $prioritaBadge = [
                         <table id="tabella-interventi" class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Codice</th>
-                                    <th>Cliente</th>
-                                    <th>Tipo</th>
-                                    <th>Stato</th>
-                                    <th>Data pianificata</th>
-                                    <th>Scadenza</th>
-                                    <th>Tecnico</th>
-                                    <th class="text-center">Urg.</th>
-                                    <th></th>
-                                    <th></th><!-- stato raw — nascosto, usato dal filtro -->
+                                    <th>Codice</th> <!-- 1 Codice -->
+                                    <th>Cliente</th> <!-- 2 Cliente -->
+                                    <th>Tipo</th> <!-- 3 Tipo -->
+                                    <th>Stato</th> <!-- 4 Stato-->
+                                    <th>Data pianificata</th> <!-- 5 Data pianificata-->
+                                    <th>Scadenza</th> <!-- 6 Scadenza-->
+                                    <th>Tecnico</th> <!-- 7 Tecnico-->
+                                    <th class="text-center">Urg.</th> <!-- 8 Urgenza-->
+                                    <th></th><!-- 9 Edit-->
+                                    <th></th><!-- 10 Filter stato raw -->
+                                    <th></th><!-- 11 Filter origine: abbonamento|singolo -->
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($interventi as $i): ?>
                                     <tr class="<?= $i['urgenza'] ? 'table-danger' : '' ?>" title="ID intervento: <?= $i['id'] ?>"><?php // ID utile per debug DB ?>
-                                        <td>
+                                        <!-- 1 Codice -->
+                                        <td> 
                                             <a href="<?= base_url('operativo/interventi/' . $i['id']) ?>"
                                                class="text-decoration-none">
                                                 <code class="small"><?= esc($i['codice']) ?></code>
                                             </a>
                                         </td>
-                                        <td title="ID cliente: <?= $i['cliente_id'] ?>">
+                                        <!-- 2 Cliente -->
+                                        <td title="ID cliente: <?= $i['cliente_id'] ?>"> 
                                             <a href="<?= base_url('anagrafiche/clienti/' . $i['cliente_id']) ?>"
                                                class="text-body text-decoration-none">
                                                 <?= esc($i['cliente_denominazione']) ?>
                                             </a>
                                         </td>
+                                        <!-- 3 Tipo -->
                                         <td>
                                             <?php if ($i['tipo_intervento_nome']): ?>
                                                 <?php if ($i['tipo_intervento_icona']): ?>
@@ -112,37 +116,48 @@ $prioritaBadge = [
                                             <span class="badge bg-<?= $prioritaBadge[$i['priorita']] ?? 'secondary' ?>">
                                                 <?= esc($prioritaLabel[$i['priorita']] ?? $i['priorita']) ?>
                                             </span>
+                                            <?php if ($i['extra']): ?>
+                                                <span class="badge bg-warning text-dark ms-2">Extra</span>
+                                            <?php endif ?>
                                         </td>
+                                        <!-- 4 Stato-->
                                         <td>
                                             <span class="badge bg-<?= $statoBadge[$i['stato']] ?? 'secondary' ?>">
                                                 <?= esc($statiLabel[$i['stato']] ?? $i['stato']) ?>
                                             </span>
                                         </td>
+                                        <!-- 5 Data pianificata -->
                                         <td data-order="<?= esc($i['data_pianificata'] ?? '') ?>">
                                             <?= $i['data_pianificata']
                                                 ? esc(date('d/m/Y H:i', strtotime($i['data_pianificata'])))
                                                 : '<span class="text-muted">—</span>' ?>
                                         </td>
+                                        <!-- 6 Scadenza-->
                                         <td data-order="<?= esc($i['data_scadenza'] ?? '') ?>">
                                             <?= $i['data_scadenza']
                                                 ? esc(date('d/m/Y', strtotime($i['data_scadenza'])))
                                                 : '<span class="text-muted">—</span>' ?>
                                         </td>
+                                        <!-- 7 Tecnico -->
                                         <td class="text-muted small"><?= esc($i['tecnico_nome'] ?? '—') ?></td>
+                                        <!-- 8 Urgenza -->
                                         <td class="text-center">
                                             <?php if ($i['urgenza']): ?>
                                                 <i class="bi bi-exclamation-triangle-fill text-danger"
                                                    data-bs-toggle="tooltip" data-bs-title="Urgente"></i>
                                             <?php endif ?>
                                         </td>
+                                        <!-- 9 Edit-->
                                         <td class="text-end">
                                             <a href="<?= base_url('operativo/interventi/' . $i['id'] . '/edit') ?>"
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                         </td>
+                                        <!-- 10 Filter stato raw -->
                                         <td><?= esc($i['stato']) ?></td>
-                                        <td><?= $i['abbonamento_id'] ? 'abbonamento' : '' ?></td>
+                                        <!-- 11 Filter origine: abbonamento|singolo -->
+                                        <td><?= ($i['abbonamento_id'] && empty($i['extra'])) ? 'abbonamento' : 'singolo' ?></td>
                                     </tr>
                                 <?php endforeach ?>
                             </tbody>
@@ -176,24 +191,25 @@ $(function () {
         order:       [[4, 'desc']],
         columnDefs:  [
             { orderable: false, searchable: false, targets: 8 },
-            { visible: false, targets: [9, 10] }
+            { visible: false, searchable: true, targets: [9, 10] }
         ]
+    
     });
 
     var filtri = {
-        da_pianificare: { col: 9,  q: '^da_pianificare$',         regex: true  },
-        pianificati:    { col: 9,  q: '^(pianificato|in_corso)$', regex: true  },
-        completati:     { col: 9,  q: '^completato$',             regex: true  },
-        annullati:      { col: 9,  q: '^annullato$',              regex: true  },
-        abbonamento:    { col: 10, q: 'abbonamento',              regex: false },
-        tutti:          { col: 9,  q: '',                         regex: false }
+        da_pianificare: { q: '^da_pianificare$',         regex: true,  q10: '^singolo$' },
+        pianificati:    { q: '^(pianificato|in_corso)$', regex: true,  q10: ''          },
+        completati:     { q: '^completato$',             regex: true,  q10: ''          },
+        annullati:      { q: '^annullato$',              regex: true,  q10: ''           },
+        abbonamento:    { q: '',                         regex: false, q10: '^abbonamento$' },
+        tutti:          { q: '',                         regex: false, q10: ''           }
     };
 
     function setFiltro(nome) {
         var f = filtri[nome];
-        table.column(9).search('', false, false);
-        table.column(10).search('', false, false);
-        table.column(f.col).search(f.q, f.regex, false).draw();
+        table.column(9).search(f.q, f.regex, false);
+        table.column(10).search(f.q10, f.q10 !== '', false);
+        table.draw();
         document.querySelectorAll('[data-filtro]').forEach(function (b) {
             b.classList.toggle('active', b.dataset.filtro === nome);
         });
