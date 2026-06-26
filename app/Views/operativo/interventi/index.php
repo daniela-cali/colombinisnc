@@ -74,18 +74,18 @@ $prioritaBadge = [
                         <table id="tabella-interventi" class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Codice</th> <!-- 1 Codice -->
-                                    <th>Cliente</th> <!-- 2 Cliente -->
-                                    <th>Tipo</th> <!-- 3 Tipo -->
-                                    <th>Stato</th> <!-- 4 Stato-->
-                                    <th>Data pianificata</th> <!-- 5 Data pianificata-->
-                                    <th>Scadenza</th> <!-- 6 Scadenza-->
-                                    <th>Tecnico</th> <!-- 7 Tecnico-->
-                                    <th class="text-center">Urg.</th> <!-- 8 Urgenza-->
-                                    <th></th><!-- 9 Edit-->
-                                    <th></th><!-- 10 Filter stato raw -->
-                                    <th></th><!-- 11 Filter origine: abbonamento|singolo -->
-                                </tr>
+                                    <th>Codice</th> 
+                                    <th>Cliente</th> 
+                                    <th>Tipo</th> 
+                                    <th>Stato</th> 
+                                    <th class="text-center">Data pianificata</th> 
+                                    <th class="text-center">Data scadenza</th> 
+                                    <th>Tecnico</th> 
+                                    <th class="text-center">Urg.</th> 
+                                    <th></th>
+                                    <th></th><!-- 9 Filter stato raw -->
+                                    <th></th><!-- 10 Filter origine: abbonamento|singolo -->
+                                </tr>                      
                             </thead>
                             <tbody>
                                 <?php foreach ($interventi as $i): ?>
@@ -176,7 +176,66 @@ $prioritaBadge = [
 <script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
 <script>
 $(function () {
-    var table = $('#tabella-interventi').DataTable({
+
+    var table = new DataTable('#tabella-interventi', {
+        language: {
+            search:       'Cerca:',
+            lengthMenu:   'Mostra _MENU_ righe',
+            info:         'Da _START_ a _END_ di _TOTAL_ record',
+            infoEmpty:    'Nessun record',
+            infoFiltered: '(filtrati da _MAX_ totali)',
+            zeroRecords:  'Nessun risultato trovato',
+            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
+        },
+        orderMulti: true,
+        pageLength:  25,
+        order:       [[4, 'desc']],
+        columnDefs: [
+        { name: 'codice', targets: 0 },
+        { name: 'cliente', targets: 1 },
+        { name: 'tipo', targets: 2 },
+        { name: 'stato', targets: 3, searchable: false, orderable: false },
+        { name: 'dt_pianificata', targets: 4, searchable: false },
+        { name: 'dt_scadenza', targets: 5, searchable: false },
+        { name: 'tecnico', targets: 6 },
+        { name: 'urgenza', targets: 7 },
+        { name: 'edit', targets: 8, searchable: false, orderable: false },
+        { 
+            name: 'filter_stato', 
+            targets: 9, 
+            searchable: true,
+            orderable: false,
+            visible: false
+        },
+        { 
+            name: 'filter_origine', 
+            targets: 10, 
+            searchable: true,
+            orderable: false,
+            visible: false
+        }
+
+        ],
+        initComplete: function () {
+            this.api()
+                .columns()
+                .every(function () {
+                    let column = this;
+                    /* Escludo tutte quelle non searchable, stato è già filtrato dai pills */
+                    if (!this.settings()[0].aoColumns[this.index()].bSearchable) return;
+
+
+                    let input = document.createElement('input');
+                    input.placeholder = column.title();
+                    column.header().appendChild(input);
+
+                    input.addEventListener('keyup', () => {
+                        column.search(input.value).draw();
+                    });
+                });
+        }
+    });
+    /*var table = $('#tabella-interventi').DataTable({
         language: {
             search:       'Cerca:',
             lengthMenu:   'Mostra _MENU_ righe',
@@ -194,7 +253,7 @@ $(function () {
             { visible: false, searchable: true, targets: [9, 10] }
         ]
     
-    });
+    });*/
 
     var filtri = {
         da_pianificare: { q: '^da_pianificare$',         regex: true,  q10: '^singolo$' },

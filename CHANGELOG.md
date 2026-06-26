@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.15.2] - 2026-06-25
+
+### Fix aggiunta ricerca input con multi-search Datatables
+
+- [APP] Filtri di secondo livello con multisearch Datatables, al momento solo in input semplice (no select)
+- [DEV] Fix header separati per nome colonna e input di ricerca usando appendChild sul <tr> della table header
+
 ## [0.15.1] - 2026-06-25
 
 ### Fix filtro pills lista interventi + badge Extra
