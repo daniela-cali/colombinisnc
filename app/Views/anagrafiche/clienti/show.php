@@ -257,6 +257,118 @@ $statoBadge = [
             </div>
         </div>
 
+        <!-- ══ INTERVENTI ══════════════════════════════════════ -->
+        <div class="section-anchor" id="sec-interventi">
+            <div class="section-title">
+                <i class="bi bi-tools"></i> Interventi
+                <?php if ($interventi): ?>
+                    <span class="badge bg-secondary" style="font-size:.6rem"><?= count($interventi) ?></span>
+                <?php endif ?>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+
+                <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
+                    <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
+                        <i class="bi bi-folder2-open me-1"></i>Da pianificare
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" data-filtro="pianificati">
+                        <i class="bi bi-calendar-check me-1"></i>Pianificati
+                    </button>
+                    <button class="btn btn-sm btn-outline-success" data-filtro="completati">
+                        <i class="bi bi-check-circle me-1"></i>Completati
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
+                        <i class="bi bi-x-circle me-1"></i>Annullati
+                    </button>
+                    <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
+                        <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
+                        Tutti (<?= count($interventi) ?>)
+                    </button>
+                    <a href="<?= base_url('operativo/interventi/nuovo?cliente_id=' . $cliente['id']
+                        . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi')) ?>"
+                       class="btn btn-sm btn-outline-success ms-auto">
+                        <i class="bi bi-plus-lg me-1"></i>Nuovo intervento
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tbl-interventi" class="table table-hover table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Codice</th>
+                                <th>Descrizione</th>
+                                <th>Tipo</th>
+                                <th>Genere</th>
+                                <th>Tecnico</th>
+                                <th>Data pianificata</th>
+                                <th class="ps-4">Scadenza</th>
+                                <th>Stato</th>
+                                <th></th><!-- stato raw — nascosto, usato dal filtro -->
+                                <th></th><!-- azioni -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($interventi as $iv): ?>
+                                <tr title="ID intervento: <?= $iv['id'] ?>"><?php // ID utile per debug DB ?>
+                                    <td>
+                                        <a href="<?= base_url('operativo/interventi/' . $iv['id']) ?>"
+                                           class="text-decoration-none">
+                                            <code class="small"><?= esc($iv['codice']) ?></code>
+                                        </a>
+                                    </td>
+                                    <td class="text-muted small"><?= esc($iv['descrizione'] ?? '') ?></td>
+                                    <td>
+                                        <?php if ($iv['tipo_intervento_icona']): ?>
+                                            <i class="fas <?= esc($iv['tipo_intervento_icona']) ?> me-1 text-muted"></i>
+                                        <?php endif ?>
+                                        <?= esc($iv['tipo_intervento_nome'] ?? '—') ?>
+                                        <?php if (! empty($iv['extra'])): ?>
+                                            <span class="badge bg-warning text-dark ms-1">Extra</span>
+                                        <?php endif ?>
+                                        <?php if (! empty($iv['apertura'])): ?>
+                                            <span class="badge bg-info text-dark ms-1"><i class="bi bi-box-arrow-up me-1"></i>Apertura</span>
+                                        <?php elseif (! empty($iv['chiusura'])): ?>
+                                            <span class="badge bg-info text-dark ms-1"><i class="bi bi-box-arrow-in-down me-1"></i>Chiusura</span>
+                                        <?php endif ?>
+                                    </td>
+                                    <td class="text-muted small"><?= esc($prioritaLabel[$iv['priorita']] ?? $iv['priorita']) ?></td>
+                                    <td class="text-muted small"><?= esc($iv['tecnico_nome'] ?? '—') ?></td>
+                                    <td data-order="<?= esc($iv['data_pianificata'] ?? '') ?>">
+                                        <?= $iv['data_pianificata'] ? esc(date('d/m/Y H:i', strtotime($iv['data_pianificata']))) : '<span class="text-muted">--/--/---- --:--</span>' ?>
+                                    </td>
+                                    <td class="ps-4" data-order="<?= esc($iv['data_scadenza'] ?? '') ?>">
+                                        <?= $iv['data_scadenza'] ? esc(date('d/m/Y', strtotime($iv['data_scadenza']))) : '<span class="text-muted">--/--/----</span>' ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?= $statoBadge[$iv['stato']] ?? 'bg-secondary' ?>">
+                                            <?= esc($statiLabel[$iv['stato']] ?? $iv['stato']) ?>
+                                        </span>
+                                        <?php if ($iv['urgenza']): ?>
+                                            <i class="bi bi-exclamation-triangle-fill text-warning ms-1" title="Urgente"></i>
+                                        <?php endif ?>
+                                    </td>
+                                    <td><?= esc($iv['stato']) ?></td>
+                                    <td><?= $iv['abbonamento_id'] ? ($iv['extra'] ? 'extra' : 'abbonamento') : '' ?></td>
+                                    <td class="text-end">
+                                        <a href="<?= base_url('operativo/interventi/' . $iv['id'] . '/edit')
+                                            . '?from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi') ?>"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach ?>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
         <!-- ══ ABBONAMENTI ════════════════════════════════════ -->
         <div class="section-anchor" id="sec-abbonamenti">
             <div class="section-title">
@@ -329,110 +441,6 @@ $statoBadge = [
             </div>
         </div>
 
-        <!-- ══ INTERVENTI ══════════════════════════════════════ -->
-        <div class="section-anchor" id="sec-interventi">
-            <div class="section-title">
-                <i class="bi bi-tools"></i> Interventi
-                <?php if ($interventi): ?>
-                    <span class="badge bg-secondary" style="font-size:.6rem"><?= count($interventi) ?></span>
-                <?php endif ?>
-            </div>
-        </div>
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-body">
-
-                <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
-                    <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
-                        <i class="bi bi-folder2-open me-1"></i>Da pianificare
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" data-filtro="pianificati">
-                        <i class="bi bi-calendar-check me-1"></i>Pianificati
-                    </button>
-                    <button class="btn btn-sm btn-outline-success" data-filtro="completati">
-                        <i class="bi bi-check-circle me-1"></i>Completati
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
-                        <i class="bi bi-x-circle me-1"></i>Annullati
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
-                        <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
-                        Tutti (<?= count($interventi) ?>)
-                    </button>
-                    <a href="<?= base_url('operativo/interventi/nuovo?cliente_id=' . $cliente['id']
-                        . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi')) ?>"
-                       class="btn btn-sm btn-outline-success ms-auto">
-                        <i class="bi bi-plus-lg me-1"></i>Nuovo intervento
-                    </a>
-                </div>
-
-                <div class="table-responsive">
-                    <table id="tbl-interventi" class="table table-hover table-sm align-middle">
-                        <thead>
-                            <tr>
-                                <th>Codice</th>
-                                <th>Descrizione</th>
-                                <th>Tipo</th>
-                                <th>Genere</th>
-                                <th>Tecnico</th>
-                                <th>Data pianificata</th>
-                                <th class="ps-4">Scadenza</th>
-                                <th>Stato</th>
-                                <th></th><!-- stato raw — nascosto, usato dal filtro -->
-                                <th></th><!-- azioni -->
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($interventi as $iv): ?>
-                                <tr title="ID intervento: <?= $iv['id'] ?>"><?php // ID utile per debug DB ?>
-                                    <td>
-                                        <a href="<?= base_url('operativo/interventi/' . $iv['id']) ?>"
-                                           class="text-decoration-none">
-                                            <code class="small"><?= esc($iv['codice']) ?></code>
-                                        </a>
-                                    </td>
-                                    <td class="text-muted small"><?= esc($iv['descrizione'] ?? '') ?></td>
-                                    <td>
-                                        <?php if ($iv['tipo_intervento_icona']): ?>
-                                            <i class="fas <?= esc($iv['tipo_intervento_icona']) ?> me-1 text-muted"></i>
-                                        <?php endif ?>
-                                        <?= esc($iv['tipo_intervento_nome'] ?? '—') ?>
-                                    </td>
-                                    <td class="text-muted small"><?= esc($prioritaLabel[$iv['priorita']] ?? $iv['priorita']) ?></td>
-                                    <td class="text-muted small"><?= esc($iv['tecnico_nome'] ?? '—') ?></td>
-                                    <td data-order="<?= esc($iv['data_pianificata'] ?? '') ?>">
-                                        <?= $iv['data_pianificata'] ? esc(date('d/m/Y H:i', strtotime($iv['data_pianificata']))) : '<span class="text-muted">--/--/---- --:--</span>' ?>
-                                    </td>
-                                    <td class="ps-4" data-order="<?= esc($iv['data_scadenza'] ?? '') ?>">
-                                        <?= $iv['data_scadenza'] ? esc(date('d/m/Y', strtotime($iv['data_scadenza']))) : '<span class="text-muted">--/--/----</span>' ?>
-                                    </td>
-                                    <td>
-                                        <span class="badge <?= $statoBadge[$iv['stato']] ?? 'bg-secondary' ?>">
-                                            <?= esc($statiLabel[$iv['stato']] ?? $iv['stato']) ?>
-                                        </span>
-                                        <?php if ($iv['urgenza']): ?>
-                                            <i class="bi bi-exclamation-triangle-fill text-warning ms-1" title="Urgente"></i>
-                                        <?php endif ?>
-                                    </td>
-                                    <td><?= esc($iv['stato']) ?></td>
-                                    <td><?= $iv['abbonamento_id'] ? ($iv['extra'] ? 'extra' : 'abbonamento') : '' ?></td>
-                                    <td class="text-end">
-                                        <a href="<?= base_url('operativo/interventi/' . $iv['id'] . '/edit')
-                                            . '?from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi') ?>"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endforeach ?>
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-        </div>
-
 
     </div><!-- /col contenuto -->
 
@@ -446,16 +454,16 @@ $statoBadge = [
                     <span class="badge bg-warning text-dark ms-auto" style="font-size:.6rem"><?= count($sospesi) ?></span>
                 <?php endif ?>
             </a>
-            <a href="#sec-abbonamenti">
-                Abbonamenti
-                <?php if (! empty($abbonamenti)): ?>
-                    <span class="badge bg-secondary ms-auto" style="font-size:.6rem"><?= count($abbonamenti) ?></span>
-                <?php endif ?>
-            </a>
             <a href="#sec-interventi">
                 Interventi
                 <?php if ($interventi): ?>
                     <span class="badge bg-secondary ms-auto" style="font-size:.6rem"><?= count($interventi) ?></span>
+                <?php endif ?>
+            </a>
+            <a href="#sec-abbonamenti">
+                Abbonamenti
+                <?php if (! empty($abbonamenti)): ?>
+                    <span class="badge bg-secondary ms-auto" style="font-size:.6rem"><?= count($abbonamenti) ?></span>
                 <?php endif ?>
             </a>
         </nav>
@@ -500,7 +508,7 @@ $statoBadge = [
 $(function () {
     // DataTable interventi
     var table = $('#tbl-interventi').DataTable({
-        pageLength: 15,
+        pageLength: 10,
         order: [[5, 'desc']],
         columnDefs: [
             { targets: [5, 6], className: 'text-start', type: 'string' },

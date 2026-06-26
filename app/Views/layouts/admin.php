@@ -114,11 +114,34 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                     </li>
 
                     <li class="nav-header">Operativo</li>
-                    <li class="nav-item">
-                        <a href="<?= base_url('operativo/interventi') ?>" class="nav-link <?= str_starts_with(uri_string(), 'operativo/interventi') ? 'active' : '' ?>">
+                    <?php
+                        $interventiAttivo = str_starts_with(uri_string(), 'operativo/interventi');
+                        $sezioneCorrente  = service('request')->getGet('sezione') ?: \App\Models\TipiInterventoModel::CATEGORIA_GENERALE;
+                        $iconeSezione     = [
+                            'generale'    => 'bi-tools',
+                            'piscine'     => 'bi-water',
+                            'addolcitori' => 'bi-droplet',
+                        ];
+                    ?>
+                    <li class="nav-item <?= $interventiAttivo ? 'menu-open' : '' ?>">
+                        <a href="#" class="nav-link <?= $interventiAttivo ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-tools"></i>
-                            <p>Interventi</p>
+                            <p>
+                                Interventi
+                                <i class="nav-arrow bi bi-chevron-right"></i>
+                            </p>
                         </a>
+                        <ul class="nav nav-treeview">
+                            <?php foreach (\App\Models\TipiInterventoModel::CATEGORIE_LABEL as $cod => $lab): ?>
+                                <li class="nav-item">
+                                    <a href="<?= base_url('operativo/interventi?sezione=' . $cod) ?>"
+                                       class="nav-link <?= ($interventiAttivo && $sezioneCorrente === $cod) ? 'active' : '' ?>">
+                                        <i class="nav-icon bi <?= $iconeSezione[$cod] ?? 'bi-tools' ?>"></i>
+                                        <p><?= esc($lab) ?></p>
+                                    </a>
+                                </li>
+                            <?php endforeach ?>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a href="<?= base_url('abbonamenti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'abbonamenti') ? 'active' : '' ?>">

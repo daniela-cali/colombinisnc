@@ -118,6 +118,7 @@
   <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
   <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(50)</td><td></td><td></td><td></td></tr>
   <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>categoria</code></td><td>VARCHAR(30)</td><td></td><td>generale</td><td>Sezione operativa del tipo: <code>generale</code> · <code>piscine</code> · <code>addolcitori</code>. Pilota la suddivisione interventi per area · aggiunto WIP sezioni</td></tr>
   <tr><td><code>icona</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td>Classe Bootstrap Icons</td></tr>
   <tr><td><code>durata_default</code></td><td>INT UNSIGNED</td><td></td><td>60</td><td>Minuti — pre-compila il form intervento</td></tr>
   <tr><td><code>attivo</code></td><td>TINYINT(1)</td><td></td><td>1</td><td></td></tr>
@@ -152,6 +153,8 @@
   <tr><td><span class="badge badge-fk">FK</span> <code>abbonamento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE RESTRICT · NULL = standalone · aggiunto v0.14.0</td></tr>
   <tr><td><code>extra</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = visita extra fuori dal piano del periodo · aggiunto v0.15.0</td></tr>
   <tr><td><code>pulizia_fondo</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = prevista pulizia del fondo (solo piscine) · default dal periodo all'atto della generazione · aggiunto v0.15.0</td></tr>
+  <tr><td><code>apertura</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = intervento di apertura piscina (fase stagionale, solo piscine) · mutuamente esclusivo con <code>chiusura</code> · aggiunto WIP sezioni</td></tr>
+  <tr><td><code>chiusura</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = intervento di chiusura piscina (fase stagionale, solo piscine) · mutuamente esclusivo con <code>apertura</code> · aggiunto WIP sezioni</td></tr>
   <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -308,6 +311,16 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>WIP <span class="note">(sezioni — versione da assegnare)</span></td>
+    <td><code>AddCategoriaToTipiIntervento</code><br><code>AddAperturaChiusuraToInterventi</code></td>
+    <td>
+      Aggiunta colonna <code>categoria VARCHAR(30) DEFAULT 'generale'</code> su <code>tipi_intervento</code>
+      (sezione operativa: <code>generale</code>/<code>piscine</code>/<code>addolcitori</code>; seed piscine→piscine, addolcitori→addolcitori).
+      Aggiunte 2 colonne su <code>interventi</code>: <code>apertura TINYINT(1) DEFAULT 0</code> e
+      <code>chiusura TINYINT(1) DEFAULT 0</code> (fase stagionale piscina, mutuamente esclusive).
+    </td>
+  </tr>
   <tr>
     <td>v0.16.0</td>
     <td><code>CreateInterventiNoteTable</code></td>

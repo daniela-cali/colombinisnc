@@ -1,6 +1,7 @@
 <?php
 /**
- * @var array $tipi  Righe da TipiInterventoModel::tutti()
+ * @var array $tipi       Righe da TipiInterventoModel::tutti()
+ * @var array $categorie  [codice => etichetta] da TipiInterventoModel::CATEGORIE_LABEL
  */
 $this->extend('layouts/admin');
 ?>
@@ -33,6 +34,7 @@ $this->extend('layouts/admin');
                                 <th style="width:50px">Ord.</th>
                                 <th style="width:40px"></th>
                                 <th>Nome</th>
+                                <th>Sezione</th>
                                 <th>Codice</th>
                                 <th class="text-center">Prefisso</th>
                                 <th class="text-center">Durata default</th>
@@ -52,6 +54,7 @@ $this->extend('layouts/admin');
                                         <?php endif ?>
                                     </td>
                                     <td class="fw-semibold"><?= esc($t['nome']) ?></td>
+                                    <td><span class="text-muted small"><?= esc($categorie[$t['categoria'] ?? 'generale'] ?? $t['categoria'] ?? '—') ?></span></td>
                                     <td><code class="text-muted"><?= esc($t['codice']) ?></code></td>
                                     <td class="text-center">
                                         <?php if ($t['prefisso_codice']): ?>
@@ -92,6 +95,7 @@ $this->extend('layouts/admin');
                                                 data-id="<?= $t['id'] ?>"
                                                 data-codice="<?= esc($t['codice']) ?>"
                                                 data-nome="<?= esc($t['nome']) ?>"
+                                                data-categoria="<?= esc($t['categoria'] ?? 'generale') ?>"
                                                 data-icona="<?= esc($t['icona'] ?? '') ?>"
                                                 data-durata="<?= $t['durata_default'] ?>"
                                                 data-ordine="<?= $t['ordine'] ?>"
@@ -123,37 +127,49 @@ $this->extend('layouts/admin');
                 <form action="<?= base_url('impostazioni/tipi-intervento/store') ?>" method="post">
                     <?= csrf_field() ?>
                     <div class="row g-2 align-items-end">
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label form-label-sm">Codice <span class="text-danger">*</span></label>
                             <input type="text" name="codice" class="form-control form-control-sm"
                                    value="<?= esc(old('codice')) ?>" maxlength="50"
-                                   placeholder="es. caldaie">
+                                   placeholder="es. impianti">
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <label class="form-label form-label-sm">Prefisso</label>
                             <input type="text" name="prefisso_codice" class="form-control form-control-sm text-uppercase"
                                    value="<?= esc(old('prefisso_codice')) ?>" maxlength="3"
                                    placeholder="INT">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label form-label-sm">Nome <span class="text-danger">*</span></label>
                             <input type="text" name="nome" class="form-control form-control-sm"
                                    value="<?= esc(old('nome')) ?>" maxlength="100"
-                                   placeholder="es. Caldaie">
+                                   placeholder="es. Impianti">
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-4">
+                            <label class="form-label form-label-sm">Sezione</label>
+                            <select name="categoria" class="form-select form-select-sm">
+                                <?php foreach ($categorie as $cod => $lab): ?>
+                                    <option value="<?= esc($cod) ?>" <?= old('categoria', 'generale') === $cod ? 'selected' : '' ?>>
+                                        <?= esc($lab) ?>
+                                    </option>
+                                <?php endforeach ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 align-items-end mt-1">
+                        <div class="col-md-4">
                             <?= view('impostazioni/tipi_intervento/_icona_picker', [
                                 'suffix'      => 'new',
                                 'valoreIcona' => old('icona', ''),
                             ]) ?>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <label class="form-label form-label-sm">Durata (min) <span class="text-danger">*</span></label>
                             <input type="number" name="durata_default" class="form-control form-control-sm"
                                    value="<?= esc(old('durata_default', 60)) ?>"
                                    min="5" max="480" step="5">
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <label class="form-label form-label-sm">Ordine</label>
                             <input type="number" name="ordine" class="form-control form-control-sm"
                                    value="<?= esc(old('ordine', 0)) ?>" min="0">
@@ -168,7 +184,7 @@ $this->extend('layouts/admin');
                                 <label class="form-check-label small" for="new-ha-pulizia-fondo">Pul.</label>
                             </div>
                         </div>
-                        <div class="col">
+                        <div class="col d-flex align-items-end">
                             <button type="submit" class="btn btn-primary btn-sm w-100">
                                 <i class="bi bi-plus-lg me-1"></i>Aggiungi
                             </button>
@@ -188,7 +204,8 @@ $this->extend('layouts/admin');
 </div>
 
 <!-- Modal modifica -->
-<div class="modal fade" id="modal-edit" tabindex="-1">
+<div class="modal fade" id="modal-edit" tabindex="-1"
+     data-base-url="<?= base_url('impostazioni/tipi-intervento/') ?>">
     <div class="modal-dialog">
         <form id="form-edit" method="post">
             <?= csrf_field() ?>
@@ -217,6 +234,14 @@ $this->extend('layouts/admin');
                                 'suffix'      => 'edit',
                                 'valoreIcona' => '',
                             ]) ?>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Sezione</label>
+                            <select name="categoria" id="edit-categoria" class="form-select">
+                                <?php foreach ($categorie as $cod => $lab): ?>
+                                    <option value="<?= esc($cod) ?>"><?= esc($lab) ?></option>
+                                <?php endforeach ?>
+                            </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Durata (min)</label>
@@ -261,7 +286,7 @@ $this->extend('layouts/admin');
 document.getElementById('modal-edit').addEventListener('show.bs.modal', function (e) {
     var btn    = e.relatedTarget;
     var form   = document.getElementById('form-edit');
-    var baseUrl = "<?= base_url('impostazioni/tipi-intervento/') ?>";
+    var baseUrl = this.dataset.baseUrl;
 
     form.action = baseUrl + btn.dataset.id + '/update';
 
@@ -271,6 +296,7 @@ document.getElementById('modal-edit').addEventListener('show.bs.modal', function
     document.getElementById('icona-preview-edit').className = 'fas ' + (btn.dataset.icona || 'fa-question');
     document.getElementById('edit-durata').value  = btn.dataset.durata;
     document.getElementById('edit-ordine').value  = btn.dataset.ordine;
+    document.getElementById('edit-categoria').value = btn.dataset.categoria || 'generale';
     document.getElementById('edit-attivo').checked          = btn.dataset.attivo          === '1';
     document.getElementById('edit-abbonabile').checked      = btn.dataset.abbonabile      === '1';
     document.getElementById('edit-prefisso-codice').value      = btn.dataset.prefissoCodice  || '';

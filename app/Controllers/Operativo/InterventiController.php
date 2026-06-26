@@ -14,14 +14,26 @@ use App\Models\TipiInterventoModel;
 class InterventiController extends BaseController
 {
     /**
-     * Lista di tutti gli interventi con cliente e tecnico.
+     * Lista interventi della sezione richiesta (?sezione=generale|piscine|addolcitori).
+     * La sezione corrisponde alla categoria del tipo intervento; se assente o non valida
+     * ricade su "generale" (che include anche gli interventi senza tipo). La validazione
+     * interroga CATEGORIE_LABEL, così aggiungere una categoria non richiede modifiche qui.
      */
     public function index(): string
     {
+        $categorie = TipiInterventoModel::CATEGORIE_LABEL;
+        $sezione   = $this->request->getGet('sezione');
+
+        if (! array_key_exists($sezione, $categorie)) {
+            $sezione = TipiInterventoModel::CATEGORIA_GENERALE;
+        }
+
         return view('operativo/interventi/index', [
-            'interventi'   => (new InterventiModel())->elencoCompleto(),
+            'interventi'    => (new InterventiModel())->elencoCompleto($sezione),
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
-            'statiLabel'   => InterventiModel::STATI_LABEL,
+            'statiLabel'    => InterventiModel::STATI_LABEL,
+            'sezione'       => $sezione,
+            'sezioneLabel'  => $categorie[$sezione],
         ]);
     }
 
@@ -76,8 +88,11 @@ class InterventiController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $fase   = $this->request->getPost('fase');
         $id     = $model->insert(array_merge($this->request->getPost(), [
-            'urgenza' => (int) (bool) $this->request->getPost('urgenza'),
+            'urgenza'  => (int) (bool) $this->request->getPost('urgenza'),
+            'apertura' => $fase === 'apertura' ? 1 : 0,
+            'chiusura' => $fase === 'chiusura' ? 1 : 0,
         ]));
         $codice = $model->find($id)['codice'];
 
@@ -239,8 +254,11 @@ class InterventiController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $fase = $this->request->getPost('fase');
         $model->update($id, array_merge($this->request->getPost(), [
-            'urgenza' => (int) (bool) $this->request->getPost('urgenza'),
+            'urgenza'  => (int) (bool) $this->request->getPost('urgenza'),
+            'apertura' => $fase === 'apertura' ? 1 : 0,
+            'chiusura' => $fase === 'chiusura' ? 1 : 0,
         ]));
 
         $from = $this->request->getPost('from');

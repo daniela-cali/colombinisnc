@@ -14,6 +14,10 @@
 $this->extend('layouts/admin');
 
 $durateDefault = array_column($tipi, 'durata_default', 'id');
+
+// Fase stagionale corrente: derivata dai due flag mutuamente esclusivi.
+$faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
+              : (! empty($intervento['chiusura']) ? 'chiusura' : 'ordinaria');
 ?>
 <?= $this->section('title') ?><?= esc($intervento['codice']) ?><?= $this->endSection() ?>
 
@@ -129,6 +133,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                                 <option value="">— seleziona —</option>
                                 <?php foreach ($tipi as $t): ?>
                                     <option value="<?= $t['id'] ?>"
+                                            data-categoria="<?= esc($t['categoria'] ?? 'generale') ?>"
                                             <?= old('tipo_intervento_id', $intervento['tipo_intervento_id']) == $t['id'] ? 'selected' : '' ?>>
                                         <?= esc($t['nome']) ?>
                                     </option>
@@ -155,6 +160,21 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                                 <label class="form-check-label text-danger fw-semibold" for="urgenza">
                                     <i class="bi bi-exclamation-triangle-fill me-1"></i>Urgente
                                 </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fase stagionale (solo tipi piscine) -->
+                    <div id="blocco-fase" class="d-none">
+                        <p class="text-muted section-header mb-3"><i class="bi bi-water me-1"></i> Fase stagionale piscina</p>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label">Fase</label>
+                                <select name="fase" id="fase" class="form-select">
+                                    <option value="ordinaria" <?= old('fase', $faseCorrente) === 'ordinaria' ? 'selected' : '' ?>>Ordinaria</option>
+                                    <option value="apertura"  <?= old('fase', $faseCorrente) === 'apertura' ? 'selected' : '' ?>>Apertura piscina</option>
+                                    <option value="chiusura"  <?= old('fase', $faseCorrente) === 'chiusura' ? 'selected' : '' ?>>Chiusura piscina</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -413,6 +433,25 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
             durata.value = durateDefault[this.value];
         }
     });
+
+    // ── Fase stagionale: visibile solo per i tipi di categoria "piscine" ──────
+    var selTipo    = document.getElementById('tipo_intervento_id');
+    var bloccoFase = document.getElementById('blocco-fase');
+    var selFase    = document.getElementById('fase');
+
+    function aggiornaBloccoFase() {
+        var opt = selTipo.options[selTipo.selectedIndex];
+        var cat = opt ? opt.dataset.categoria : '';
+        if (cat === 'piscine') {
+            bloccoFase.classList.remove('d-none');
+        } else {
+            bloccoFase.classList.add('d-none');
+            selFase.value = 'ordinaria'; // un tipo non-piscina non invia mai apertura/chiusura
+        }
+    }
+
+    selTipo.addEventListener('change', aggiornaBloccoFase);
+    aggiornaBloccoFase(); // init: mostra il blocco se l'intervento è già di tipo piscina
 })();
 </script>
 <?= $this->endSection() ?>

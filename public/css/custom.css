@@ -94,6 +94,19 @@
     color: #fff !important;
 }
 
+/* --- Sottomenu treeview: effetto "gruppo aperto" + voce attiva distinta dal padre --- */
+/* Le sottovoci stanno dentro .nav-treeview: una regola più specifica le colora
+   diversamente dal genitore, così quando padre e figlia sono entrambi attivi
+   non si confondono in un unico blocco blu. */
+.app-sidebar .nav-treeview {
+    margin-left: .9rem;
+    border-left: 2px solid var(--clr-teal);
+}
+.app-sidebar .nav-treeview .nav-link.active {
+    background-color: var(--clr-teal) !important;
+    color: #fff !important;
+}
+
 /* --- Intestazioni sezione sidebar ---------------------- */
 .nav-header {
     font-variant: small-caps !important;
@@ -323,6 +336,7 @@
     color: var(--bs-primary);
     border-bottom: 2px solid var(--bs-primary);
     padding-bottom: 4px;
+    padding-left: 1rem;
     display: flex;
     align-items: center;
     gap: .4rem;

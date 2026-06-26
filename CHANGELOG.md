@@ -1,5 +1,21 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.16.1] - 2026-06-26
+
+### Sezioni interventi per area (piscine / addolcitori / generici)
+
+- [APP] La lista interventi è ora divisa per area dal menu laterale: **Generici**, **Piscine**, **Addolcitori** (sottovoci treeview sotto "Interventi"). Ogni sezione mostra solo gli interventi della propria categoria — i Generici includono anche quelli senza tipo assegnato. Nasce dal caso reale delle aperture piscine dai quaderni cartacei: il titolare ragiona per area ed evita l'affollamento di un'unica lista
+- [APP] I tipi di intervento hanno una **categoria** (Generici / Piscine / Addolcitori), scelta dalla select "Sezione" nella gestione tipi e mostrata in colonna
+- [APP] **Fase apertura/chiusura** sugli interventi piscina: nel form intervento la select "Fase" (ordinaria / apertura / chiusura) compare solo per i tipi della sezione Piscine e imposta i flag corrispondenti
+- [APP] Pill di filtro **Aperture** e **Chiusure** nella sezione Piscine; pill **Abbonamenti** nelle sezioni Piscine e Addolcitori (la pill "Da pianificare" esclude gli abbonamenti puri, che restano nella loro pill, per non allungare la lista con voci fuori periodo)
+- [APP] Badge **Apertura** / **Chiusura** (azzurri, con icona) per riconoscere a colpo d'occhio questi interventi nella lista, nella scheda intervento e nella tabella interventi della scheda cliente
+- [APP] Scheda cliente: aggiunto anche il badge **Extra** nella tabella interventi (prima era solo un filtro nascosto); la sezione **Interventi** è stata spostata sopra **Abbonamenti** (più consultata), con la nav laterale riallineata
+- [APP] Fix lista interventi: cliccare un campo di ricerca di colonna non riordina più la colonna per sbaglio
+- [APP] Migliorata la spaziatura dei titoli di sezione nella scheda cliente (padding sinistro, allineati al contenuto)
+- [DEV] Migration: campo `categoria` su `tipi_intervento` (VARCHAR, default `generale`; seed `piscine`/`addolcitori`) + `apertura` / `chiusura` TINYINT(1) su `interventi`. Costanti `CATEGORIE_LABEL` in `TipiInterventoModel` (categoria generale ribattezzata `Generici` per non collidere col menu padre "Interventi"); guardia di mutua esclusione apertura/chiusura in `normalizza()`
+- [DEV] `InterventiModel::elencoCompleto(?string $categoria)`: filtra per categoria (i generici includono `tipo_intervento_id IS NULL`); `InterventiController::index()` valida `?sezione` su `CATEGORIE_LABEL` (default generici). Lista parametrica con view unica via query string, senza nuove rotte né view duplicate
+- [DEV] Menu treeview in `layouts/admin.php` generato da `CATEGORIE_LABEL` (icone tools/water/droplet); fix ordinamento via `stopPropagation` sul click degli input di ricerca; CSS sottovoce treeview attiva in teal + bordo gruppo
+
 ## [0.16.0] - 2026-06-26
 
 ### Diario interventi

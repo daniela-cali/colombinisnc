@@ -1,8 +1,10 @@
 <?php
 /**
- * @var array $interventi  Righe da InterventiModel::elencoCompleto()
- * @var array $prioritaLabel [codice => etichetta]
- * @var array $statiLabel  [codice => etichetta]
+ * @var array  $interventi    Righe da InterventiModel::elencoCompleto($sezione)
+ * @var array  $prioritaLabel [codice => etichetta]
+ * @var array  $statiLabel    [codice => etichetta]
+ * @var string $sezione       Categoria corrente: generale | piscine | addolcitori
+ * @var string $sezioneLabel  Etichetta della sezione (titolo pagina)
  */
 $this->extend('layouts/admin');
 
@@ -19,7 +21,7 @@ $prioritaBadge = [
     'urgente'     => 'danger',
 ];
 ?>
-<?= $this->section('title') ?>Interventi<?= $this->endSection() ?>
+<?= $this->section('title') ?><?= esc($sezioneLabel) ?><?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
@@ -28,7 +30,7 @@ $prioritaBadge = [
 <?= $this->section('breadcrumb') ?>
 <ol class="breadcrumb float-sm-end">
     <li class="breadcrumb-item"><a href="<?= base_url('/') ?>">Home</a></li>
-    <li class="breadcrumb-item active">Interventi</li>
+    <li class="breadcrumb-item active"><?= esc($sezioneLabel) ?></li>
 </ol>
 <?= $this->endSection() ?>
 
@@ -38,7 +40,7 @@ $prioritaBadge = [
         <div class="card card-outline card-primary">
             <div class="card-header d-flex align-items-center">
                 <h3 class="card-title mb-0">
-                    <i class="bi bi-tools me-2"></i>Interventi
+                    <i class="bi bi-tools me-2"></i><?= esc($sezioneLabel) ?>
                 </h3>
                 <div class="card-tools ms-auto">
                     <a href="<?= base_url('operativo/interventi/nuovo') ?>" class="btn btn-sm btn-primary">
@@ -60,9 +62,19 @@ $prioritaBadge = [
                     <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
                         <i class="bi bi-x-circle me-1"></i>Annullati
                     </button>
-                    <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
-                        <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
-                    </button>
+                    <?php if (in_array($sezione, ['piscine', 'addolcitori'], true)): ?>
+                        <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
+                            <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
+                        </button>
+                    <?php endif ?>
+                    <?php if ($sezione === 'piscine'): ?>
+                        <button class="btn btn-sm btn-outline-info" data-filtro="aperture">
+                            <i class="bi bi-box-arrow-up me-1"></i>Aperture
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" data-filtro="chiusure">
+                            <i class="bi bi-box-arrow-in-down me-1"></i>Chiusure
+                        </button>
+                    <?php endif ?>
                     <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
                         Tutti (<?= count($interventi) ?>)
                     </button>
@@ -85,6 +97,7 @@ $prioritaBadge = [
                                     <th></th>
                                     <th></th><!-- 9 Filter stato raw -->
                                     <th></th><!-- 10 Filter origine: abbonamento|singolo -->
+                                    <th></th><!-- 11 Filter fase: apertura|chiusura|'' -->
                                 </tr>                      
                             </thead>
                             <tbody>
@@ -118,6 +131,11 @@ $prioritaBadge = [
                                             </span>
                                             <?php if ($i['extra']): ?>
                                                 <span class="badge bg-warning text-dark ms-2">Extra</span>
+                                            <?php endif ?>
+                                            <?php if (! empty($i['apertura'])): ?>
+                                                <span class="badge bg-info text-dark ms-2"><i class="bi bi-box-arrow-up me-1"></i>Apertura</span>
+                                            <?php elseif (! empty($i['chiusura'])): ?>
+                                                <span class="badge bg-info text-dark ms-2"><i class="bi bi-box-arrow-in-down me-1"></i>Chiusura</span>
                                             <?php endif ?>
                                         </td>
                                         <!-- 4 Stato-->
@@ -158,6 +176,8 @@ $prioritaBadge = [
                                         <td><?= esc($i['stato']) ?></td>
                                         <!-- 11 Filter origine: abbonamento|singolo -->
                                         <td><?= ($i['abbonamento_id'] && empty($i['extra'])) ? 'abbonamento' : 'singolo' ?></td>
+                                        <!-- 12 Filter fase: apertura|chiusura|'' -->
+                                        <td><?= ! empty($i['apertura']) ? 'apertura' : (! empty($i['chiusura']) ? 'chiusura' : '') ?></td>
                                     </tr>
                                 <?php endforeach ?>
                             </tbody>
@@ -207,9 +227,16 @@ $(function () {
             orderable: false,
             visible: false
         },
-        { 
-            name: 'filter_origine', 
-            targets: 10, 
+        {
+            name: 'filter_origine',
+            targets: 10,
+            searchable: true,
+            orderable: false,
+            visible: false
+        },
+        {
+            name: 'filter_fase',
+            targets: 11,
             searchable: true,
             orderable: false,
             visible: false
@@ -228,6 +255,9 @@ $(function () {
                     let input = document.createElement('input');
                     input.placeholder = column.title();
                     column.header().appendChild(input);
+
+                    // Evita che il click sull'input faccia scattare l'ordinamento della colonna
+                    input.addEventListener('click', (e) => e.stopPropagation());
 
                     input.addEventListener('keyup', () => {
                         column.search(input.value).draw();
@@ -255,19 +285,23 @@ $(function () {
     
     });*/
 
+    // q  → colonna 9  (stato), q10 → colonna 10 (origine), q11 → colonna 11 (fase apertura/chiusura)
     var filtri = {
-        da_pianificare: { q: '^da_pianificare$',         regex: true,  q10: '^singolo$' },
-        pianificati:    { q: '^(pianificato|in_corso)$', regex: true,  q10: ''          },
-        completati:     { q: '^completato$',             regex: true,  q10: ''          },
-        annullati:      { q: '^annullato$',              regex: true,  q10: ''           },
-        abbonamento:    { q: '',                         regex: false, q10: '^abbonamento$' },
-        tutti:          { q: '',                         regex: false, q10: ''           }
+        da_pianificare: { q: '^da_pianificare$',         regex: true,  q10: '^singolo$',    q11: '' },
+        pianificati:    { q: '^(pianificato|in_corso)$', regex: true,  q10: '',             q11: '' },
+        completati:     { q: '^completato$',             regex: true,  q10: '',             q11: '' },
+        annullati:      { q: '^annullato$',              regex: true,  q10: '',             q11: '' },
+        abbonamento:    { q: '',                         regex: false, q10: '^abbonamento$', q11: '' },
+        aperture:       { q: '',                         regex: false, q10: '',             q11: '^apertura$' },
+        chiusure:       { q: '',                         regex: false, q10: '',             q11: '^chiusura$' },
+        tutti:          { q: '',                         regex: false, q10: '',             q11: '' }
     };
 
     function setFiltro(nome) {
         var f = filtri[nome];
-        table.column(9).search(f.q, f.regex, false);
-        table.column(10).search(f.q10, f.q10 !== '', false);
+        table.column(9).search(f.q,   f.regex,        false);
+        table.column(10).search(f.q10, f.q10 !== '',  false);
+        table.column(11).search(f.q11, f.q11 !== '',  false);
         table.draw();
         document.querySelectorAll('[data-filtro]').forEach(function (b) {
             b.classList.toggle('active', b.dataset.filtro === nome);

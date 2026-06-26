@@ -14,7 +14,7 @@ class InterventiModel extends Model
 
     protected $allowedFields = [
         'codice', 'cliente_id', 'tecnico_id', 'abbonamento_id',
-        'extra', 'pulizia_fondo',
+        'extra', 'pulizia_fondo', 'apertura', 'chiusura',
         'priorita', 'stato', 'tipo_intervento_id',
         'data_pianificata', 'data_scadenza', 'durata_stimata', 'urgenza',
         'descrizione', 'impianto_id', 'note',
@@ -101,6 +101,17 @@ class InterventiModel extends Model
             $data['data']['urgenza'] = (int) $data['data']['urgenza'];
         }
 
+        // apertura/chiusura: flag booleani mutuamente esclusivi (un intervento non è
+        // insieme apertura e chiusura). Cast a intero; se per errore arrivano entrambi a 1
+        // l'apertura prevale. Il blocco si attiva solo se almeno uno dei due è presente,
+        // così i bulk update che non li toccano restano invariati.
+        if (array_key_exists('apertura', $data['data']) || array_key_exists('chiusura', $data['data'])) {
+            $apertura = (int) (bool) ($data['data']['apertura'] ?? 0);
+            $chiusura = (int) (bool) ($data['data']['chiusura'] ?? 0);
+            $data['data']['apertura'] = $apertura;
+            $data['data']['chiusura'] = $apertura ? 0 : $chiusura;
+        }
+
         return $data;
     }
 
@@ -180,21 +191,33 @@ class InterventiModel extends Model
     /**
      * Lista completa con denominazione cliente, tipo lavoro e nome tecnico.
      */
-    public function elencoCompleto(): array
+    public function elencoCompleto(?string $categoria = null): array
     {
-        return $this->select("interventi.*,
+        $builder = $this->select("interventi.*,
                 CASE WHEN c.tipo = 'persona_fisica'
                      THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                      ELSE c.ragsoc
                 END AS cliente_denominazione,
-                ti.nome  AS tipo_intervento_nome,
-                ti.icona AS tipo_intervento_icona,
+                ti.nome      AS tipo_intervento_nome,
+                ti.icona     AS tipo_intervento_icona,
+                ti.categoria AS tipo_intervento_categoria,
                 TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome")
             ->join('clienti c',          'c.id  = interventi.cliente_id',         'left')
             ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id',  'left')
-            ->join('personale p',        'p.id  = interventi.tecnico_id',          'left')
-            ->orderBy('interventi.data_pianificata', 'DESC')
-            ->findAll();
+            ->join('personale p',        'p.id  = interventi.tecnico_id',          'left');
+
+        // La sezione "generale" raccoglie anche gli interventi senza tipo (categoria NULL),
+        // così nessun intervento resta fuori da tutte le liste.
+        if ($categoria === TipiInterventoModel::CATEGORIA_GENERALE) {
+            $builder->groupStart()
+                    ->where('ti.categoria', TipiInterventoModel::CATEGORIA_GENERALE)
+                    ->orWhere('interventi.tipo_intervento_id', null)
+                    ->groupEnd();
+        } elseif ($categoria !== null) {
+            $builder->where('ti.categoria', $categoria);
+        }
+
+        return $builder->orderBy('interventi.data_pianificata', 'DESC')->findAll();
     }
 
     /**

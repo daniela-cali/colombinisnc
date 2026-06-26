@@ -13,7 +13,8 @@ class TipiInterventoController extends BaseController
     public function index(): string
     {
         return view('impostazioni/tipi_intervento/index', [
-            'tipi' => (new TipiInterventoModel())->tutti(),
+            'tipi'      => (new TipiInterventoModel())->tutti(),
+            'categorie' => TipiInterventoModel::CATEGORIE_LABEL,
         ]);
     }
 
@@ -87,9 +88,12 @@ class TipiInterventoController extends BaseController
     {
         $unicoCodice = 'is_unique[tipi_intervento.codice' . ($id ? ",id,{$id}" : '') . ']';
 
+        $categorieAmmesse = implode(',', array_keys(TipiInterventoModel::CATEGORIE_LABEL));
+
         return [
             'codice'         => 'required|max_length[50]|alpha_dash|' . $unicoCodice,
             'nome'           => 'required|max_length[100]',
+            'categoria'      => 'permit_empty|in_list[' . $categorieAmmesse . ']',
             'icona'          => 'permit_empty|max_length[50]',
             'durata_default' => 'required|is_natural_no_zero',
             'ordine'         => 'permit_empty|is_natural',

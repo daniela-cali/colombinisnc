@@ -40,6 +40,11 @@ $statoBadge = [
                     <?php if ($intervento['extra']): ?>
                         <span class="badge bg-warning text-dark ms-2">Extra</span>
                     <?php endif ?>
+                    <?php if (! empty($intervento['apertura'])): ?>
+                        <span class="badge bg-info text-dark ms-2"><i class="bi bi-box-arrow-up me-1"></i>Apertura</span>
+                    <?php elseif (! empty($intervento['chiusura'])): ?>
+                        <span class="badge bg-info text-dark ms-2"><i class="bi bi-box-arrow-in-down me-1"></i>Chiusura</span>
+                    <?php endif ?>
                     <?php if ($intervento['urgenza']): ?>
                         <i class="bi bi-exclamation-triangle-fill text-danger ms-1"
                            data-bs-toggle="tooltip" data-bs-title="Urgente"></i>

@@ -12,13 +12,25 @@ class TipiInterventoModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'codice', 'nome', 'icona', 'durata_default', 'attivo', 'abbonabile', 'ordine',
+        'codice', 'nome', 'categoria', 'icona', 'durata_default', 'attivo', 'abbonabile', 'ordine',
         'prefisso_codice', 'ha_pulizia_fondo',
         'created_by', 'updated_by',
     ];
 
     protected $beforeInsert = ['normalizza'];
     protected $beforeUpdate = ['normalizza'];
+
+    // valori: generale, piscine, addolcitori — definiscono la sezione operativa degli interventi.
+    // 'generale' è la sezione catch-all "Interventi". L'etichetta è anche il nome della voce di menu.
+    const CATEGORIA_GENERALE    = 'generale';
+    const CATEGORIA_PISCINE     = 'piscine';
+    const CATEGORIA_ADDOLCITORI = 'addolcitori';
+
+    const CATEGORIE_LABEL = [
+        'generale'    => 'Generici',
+        'piscine'     => 'Piscine',
+        'addolcitori' => 'Addolcitori',
+    ];
 
     /**
      * Imposta created_by/updated_by.
@@ -39,6 +51,11 @@ class TipiInterventoModel extends Model
         if (isset($data['data']['prefisso_codice'])) {
             $p = strtoupper(trim($data['data']['prefisso_codice']));
             $data['data']['prefisso_codice'] = $p !== '' ? substr($p, 0, 3) : null;
+        }
+
+        // Categoria mai vuota: ricade nella sezione generica se non specificata.
+        if (array_key_exists('categoria', $data['data']) && empty($data['data']['categoria'])) {
+            $data['data']['categoria'] = self::CATEGORIA_GENERALE;
         }
 
         return $data;

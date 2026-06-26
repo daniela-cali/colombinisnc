@@ -339,6 +339,13 @@ graph TD
 - *Nota: il campo `note` legacy dell'intervento resta per ora accanto al diario — da valutare se renderlo ridondante in futuro*
 - *Mini-edit di una nota esistente: rinviato a versione futura*
 
+#### ✅ v0.16.1 — Sezioni interventi per area
+- **Lista interventi divisa per area** dal menu treeview: Generici / Piscine / Addolcitori. View unica parametrica via `?sezione`, senza nuove rotte né view duplicate; ogni sezione mostra solo la propria categoria (i Generici includono gli interventi senza tipo)
+- Campo `categoria` su `tipi_intervento` (default `generale`/`Generici`); flag `apertura` / `chiusura` su `interventi` con guardia di mutua esclusione; **fase** ordinaria/apertura/chiusura nel form, visibile solo per i tipi Piscine
+- Pill **Aperture**/**Chiusure** (Piscine) e **Abbonamenti** (Piscine/Addolcitori); badge **Apertura**/**Chiusura** in lista, scheda intervento e scheda cliente
+- Scheda cliente: badge **Extra** in tabella interventi; sezione **Interventi** spostata sopra **Abbonamenti**; fix ordinamento al click sugli input di ricerca
+- *Idee future correlate: dashboard riepilogativa dei flag; "Da pianificare per periodo" sugli abbonamenti*
+
 #### 🔲 v0.17.0 — Cantieri
 
 Un **cantiere** raggruppa più interventi legati a un unico progetto per un cliente (nuova costruzione o ristrutturazione). Si distingue dagli interventi "standalone" (manutenzioni, abbonamenti) che non appartengono a nessun progetto.
