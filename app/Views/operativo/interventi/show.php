@@ -7,6 +7,7 @@
  * @var array      $prioritaLabel [codice => etichetta]
  * @var array      $statiLabel  [codice => etichetta]
  * @var array      $materiali   Righe da InterventiMaterialiModel::perIntervento()
+ * @var array      $note        Righe da InterventiNoteModel::perIntervento() (diario)
  */
 $this->extend('layouts/admin');
 
@@ -159,6 +160,28 @@ $statoBadge = [
                         </tbody>
                     </table>
                 <?php endif ?>
+
+                <!-- Diario -->
+                <hr class="my-4">
+                <div id="sec-diario">
+                    <p class="text-muted section-header mb-3"><i class="bi bi-journal-text me-1"></i> Diario</p>
+
+                    <?php if (empty($note)): ?>
+                        <p class="text-muted small mb-0">Nessuna nota nel diario.</p>
+                    <?php else: ?>
+                        <ul class="list-group list-group-flush">
+                            <?php foreach ($note as $n): ?>
+                                <li class="list-group-item px-0" title="ID nota: <?= $n['id'] ?>"><?php // ID utile per debug DB ?>
+                                    <span class="badge bg-light text-dark border me-2"><?= esc(date('d/m/Y', strtotime($n['data_nota']))) ?></span>
+                                    <span class="text-preline"><?= esc($n['testo']) ?></span>
+                                    <?php if (! empty($n['autore'])): ?>
+                                        <span class="text-muted small ms-1">— <?= esc($n['autore']) ?></span>
+                                    <?php endif ?>
+                                </li>
+                            <?php endforeach ?>
+                        </ul>
+                    <?php endif ?>
+                </div>
 
             </div>
 

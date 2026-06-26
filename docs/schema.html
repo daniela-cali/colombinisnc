@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.14.1 · 2026-06-23</span></h1>
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.16.0 · 2026-06-26</span></h1>
 
 <div class="toc">
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
@@ -43,6 +43,7 @@
   <a href="#tipi_intervento">tipi_intervento</a>
   <a href="#interventi">interventi</a>
   <a href="#interventi_materiali">interventi_materiali</a>
+  <a href="#interventi_note">interventi_note</a>
   <a href="#categorie_articoli">categorie_articoli</a>
   <a href="#articoli">articoli</a>
   <a href="#abbonamenti">abbonamenti</a>
@@ -180,6 +181,24 @@
   <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
 </table>
 
+<!-- ═══════════════════════════════════════════════════════ interventi_note -->
+<h2 id="interventi_note">interventi_note</h2>
+<p class="note">
+  Diario di note datate per ogni intervento: cronologia di annotazioni che non si sovrascrivono
+  (caso d'uso: aperture piscine e lavori multi-visita). Aggiunta v0.16.0.
+</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>intervento_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ interventi.id · ON DELETE CASCADE</td></tr>
+  <tr><td><code>data_nota</code></td><td>DATE</td><td></td><td></td><td>Data della nota — default oggi dal model se vuota</td></tr>
+  <tr><td><code>testo</code></td><td>TEXT</td><td></td><td></td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Autore — join su personale per il nome</td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
 <!-- ═══════════════════════════════════════════════════════ categorie_articoli -->
 <h2 id="categorie_articoli">categorie_articoli</h2>
 <table>
@@ -275,6 +294,7 @@
   <tr><td>interventi_materiali</td><td>cliente_id</td><td>clienti.id</td><td>CASCADE</td></tr>
   <tr><td>interventi_materiali</td><td>intervento_id</td><td>interventi.id</td><td>CASCADE</td></tr>
   <tr><td>interventi_materiali</td><td>articolo_id</td><td>articoli.id</td><td>SET NULL</td></tr>
+  <tr><td>interventi_note</td><td>intervento_id</td><td>interventi.id</td><td>CASCADE</td></tr>
   <tr><td>articoli</td><td>categoria_id</td><td>categorie_articoli.id</td><td>SET NULL</td></tr>
   <tr><td>abbonamenti</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
   <tr><td>abbonamenti</td><td>tipo_intervento_id</td><td>tipi_intervento.id</td><td>RESTRICT</td></tr>
@@ -288,6 +308,14 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.16.0</td>
+    <td><code>CreateInterventiNoteTable</code></td>
+    <td>
+      Nuova tabella <code>interventi_note</code> (diario): FK <code>intervento_id</code> CASCADE,
+      <code>data_nota DATE</code>, <code>testo TEXT</code>, campi standard.
+    </td>
+  </tr>
   <tr>
     <td>v0.15.0</td>
     <td><code>AddExtraAndPuliziaFondoToInterventi</code></td>

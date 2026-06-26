@@ -233,14 +233,14 @@ Il sistema confronta `CHANGELOG.md` con il campo `users.ultima_versione_vista` p
 La pianificazione delle versioni è in `docs/ANALISI.md` sezione **7.1 Milestone e fasi**. Non esiste un file ROADMAP.md separato.
 Aggiornare la sezione 7.1 (milestone completate e nuove) prima di ogni commit che chiude una versione, e includerla nella stessa commit del CHANGELOG.
 
-## Documentazione tecnica (doc/)
-La cartella `doc/` nella root contiene documentazione tecnica in HTML, versionata insieme al codice e consultabile direttamente da browser o GitHub.
+## Documentazione tecnica (docs/)
+La cartella `docs/` nella root contiene documentazione tecnica in HTML, versionata insieme al codice e consultabile direttamente da browser o GitHub.
 
 Contiene almeno:
 - Schema del database (tabelle, campi, relazioni) aggiornato ad ogni migrazione
 - Log sintetico delle modifiche DB (cosa è cambiato e perché, versione per versione)
 
-I file HTML nella cartella `doc/` vanno aggiornati nella stessa commit della migrazione corrispondente. Visibili solo agli utenti con ruolo `developer`.
+I file HTML nella cartella `docs/` vanno aggiornati nella stessa commit della migrazione corrispondente. Visibili solo agli utenti con ruolo `developer`.
 
 ## Dominio aziendale
 Il dominio aziendale è **colombini-snc.it**.

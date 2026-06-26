@@ -7,6 +7,7 @@
  * @var array      $prioritaLabel   [codice => etichetta]
  * @var array      $statiLabel      [codice => etichetta]
  * @var array      $materiali       Righe da InterventiMaterialiModel::perIntervento()
+ * @var array      $note            Righe da InterventiNoteModel::perIntervento() (diario)
  * @var array      $articoliPerCat  Da ArticoliModel::perCategoria() [cat_id => ['nome'=>..,'articoli'=>[..]]]
  * @var string     $from            URL di ritorno dopo il salvataggio (vuoto = lista interventi)
  */
@@ -277,6 +278,63 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         <div class="col-md-3">
                             <label class="form-label small">Note</label>
                             <input type="text" name="note" class="form-control form-control-sm" maxlength="255">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-plus-lg me-1"></i>Aggiungi
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Sezione diario — form separati, fuori dal form-update -->
+            <div class="card-body border-top pt-4" id="sec-diario">
+                <p class="text-muted section-header mb-3"><i class="bi bi-journal-text me-1"></i> Diario</p>
+
+                <?php if (! empty($note)): ?>
+                    <ul class="list-group list-group-flush mb-4">
+                        <?php foreach ($note as $n): ?>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-start"
+                                title="ID nota: <?= $n['id'] ?>">
+                                <div class="me-2">
+                                    <span class="badge bg-light text-dark border me-2"><?= esc(date('d/m/Y', strtotime($n['data_nota']))) ?></span>
+                                    <span class="text-preline"><?= esc($n['testo']) ?></span>
+                                    <?php if (! empty($n['autore'])): ?>
+                                        <span class="text-muted small ms-1">— <?= esc($n['autore']) ?></span>
+                                    <?php endif ?>
+                                </div>
+                                <form method="post"
+                                      action="<?= base_url('operativo/interventi/note/' . $n['id'] . '/elimina') ?>"
+                                      class="d-inline" onsubmit="return confirm('Eliminare questa nota?')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="from"
+                                           value="<?= esc(base_url('operativo/interventi/' . $intervento['id'] . '/edit') . '#sec-diario') ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Elimina nota">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                <?php endif ?>
+
+                <!-- Mini-form aggiunta nota -->
+                <form method="post" action="<?= base_url('operativo/interventi/note/aggiungi') ?>">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="intervento_id" value="<?= $intervento['id'] ?>">
+                    <input type="hidden" name="from"
+                           value="<?= esc(base_url('operativo/interventi/' . $intervento['id'] . '/edit') . '#sec-diario') ?>">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small">Data</label>
+                            <input type="date" name="data_nota" class="form-control form-control-sm"
+                                   value="<?= date('Y-m-d') ?>">
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label small">Nota</label>
+                            <input type="text" name="testo" class="form-control form-control-sm"
+                                   placeholder="Aggiungi una nota al diario…" required>
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-sm btn-outline-primary w-100">

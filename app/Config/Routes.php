@@ -96,6 +96,8 @@ $routes->group('operativo', function ($routes) {
         $routes->post('(:num)/delete', 'Operativo\InterventiController::delete/$1');
         $routes->post('(:num)/pianifica',              'Operativo\InterventiController::pianifica/$1');
         $routes->post('(:num)/annulla-pianificazione', 'Operativo\InterventiController::annullaPianificazione/$1');
+        $routes->post('note/aggiungi',       'Operativo\InterventiController::aggiungiNota');
+        $routes->post('note/(:num)/elimina', 'Operativo\InterventiController::eliminaNota/$1');
     });
 
     $routes->group('viaggi', function ($routes) {

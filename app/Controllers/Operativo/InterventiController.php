@@ -7,6 +7,7 @@ use App\Models\ArticoliModel;
 use App\Models\ClientiModel;
 use App\Models\InterventiModel;
 use App\Models\InterventiMaterialiModel;
+use App\Models\InterventiNoteModel;
 use App\Models\PersonaleModel;
 use App\Models\TipiInterventoModel;
 
@@ -127,6 +128,7 @@ class InterventiController extends BaseController
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
             'statiLabel'   => InterventiModel::STATI_LABEL,
             'materiali'    => (new InterventiMaterialiModel())->perIntervento($id),
+            'note'         => (new InterventiNoteModel())->perIntervento($id),
         ]);
     }
 
@@ -215,6 +217,7 @@ class InterventiController extends BaseController
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
             'statiLabel'    => InterventiModel::STATI_LABEL,
             'materiali'     => (new InterventiMaterialiModel())->perIntervento($id),
+            'note'          => (new InterventiNoteModel())->perIntervento($id),
             'articoliPerCat' => (new ArticoliModel())->perCategoria(),
             'from'          => $this->request->getGet('from') ?? '',
         ]);
@@ -363,6 +366,54 @@ class InterventiController extends BaseController
         ]);
 
         return $this->response->setJSON(['ok' => true, 'csrf' => csrf_hash()]);
+    }
+
+    /**
+     * Aggiunge una nota al diario di un intervento.
+     * data_nota è facoltativa: se vuota il model usa la data odierna.
+     */
+    public function aggiungiNota()
+    {
+        if (! $this->validate([
+            'intervento_id' => 'required|is_natural_no_zero',
+            'data_nota'     => 'permit_empty|valid_date[Y-m-d]',
+            'testo'         => 'required|min_length[2]',
+        ])) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
+        }
+
+        $interventoId = (int) $this->request->getPost('intervento_id');
+        (new InterventiNoteModel())->insert($this->request->getPost());
+
+        $from = $this->request->getPost('from');
+        $dest = ($from && str_starts_with($from, base_url()))
+            ? $from
+            : 'operativo/interventi/' . $interventoId . '/edit#sec-diario';
+
+        return redirect()->to($dest)->with('success', 'Nota aggiunta al diario.');
+    }
+
+    /**
+     * Elimina una nota dal diario, tornando alla scheda dell'intervento di origine.
+     */
+    public function eliminaNota(int $id)
+    {
+        $model = new InterventiNoteModel();
+        $nota  = $model->find($id);
+
+        if (! $nota) {
+            return redirect()->back()->with('error', 'Nota non trovata.');
+        }
+
+        $interventoId = (int) $nota['intervento_id'];
+        $model->delete($id);
+
+        $from = $this->request->getPost('from');
+        $dest = ($from && str_starts_with($from, base_url()))
+            ? $from
+            : 'operativo/interventi/' . $interventoId . '/edit#sec-diario';
+
+        return redirect()->to($dest)->with('success', 'Nota eliminata.');
     }
 
     // -------------------------------------------------------------------------

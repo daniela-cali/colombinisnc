@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.16.0] - 2026-06-26
+
+### Diario interventi
+
+- [APP] Diario di note datate per ogni intervento: ogni voce ha data, testo e autore, così gli aggiornamenti progressivi (es. "15.06 vuotata → 20.06 in riempimento → 24.06 avviato") non si sovrascrivono più nel campo note unico. Caso d'uso: aperture piscine e lavori multi-visita
+- [APP] Le note si aggiungono ed eliminano dalla modifica intervento (accanto ai materiali, così note e materiali si trascrivono insieme); nella scheda read-only il diario è visibile in sola lettura
+- [DEV] Nuova tabella `interventi_note` (`intervento_id` FK CASCADE, `data_nota`, `testo`, campi standard); model `InterventiNoteModel` con `perIntervento()` (note recenti + autore via join su `personale`)
+- [DEV] `InterventiController::aggiungiNota()` / `eliminaNota()` con sistema `from`; rotte POST `operativo/interventi/note/aggiungi` e `note/(:num)/elimina`
+
 ## [0.15.2] - 2026-06-25
 
 ### Fix aggiunta ricerca input con multi-search Datatables
