@@ -472,7 +472,7 @@ class InterventiController extends BaseController
             'priorita'           => 'required|in_list[' . $prioritaAmmesse . ']',
             'stato'              => 'required|in_list[' . $statiAmmessi . ']',
             'tipo_intervento_id' => 'required|is_natural_no_zero',
-            'data_pianificata'   => 'permit_empty|valid_date[Y-m-d]',
+            'data_pianificata'   => 'permit_empty|valid_date[Y-m-d\TH:i]',
             'data_scadenza'      => 'permit_empty|valid_date[Y-m-d]',
             'durata_stimata'     => 'permit_empty|is_natural',
         ];

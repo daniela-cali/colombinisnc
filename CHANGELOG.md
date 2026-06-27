@@ -1,5 +1,16 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.18.0] - 2026-06-27
+
+### Dashboard role-aware
+
+- [APP] **Dashboard principale** adattata al ruolo: admin e ufficio vedono una card con il conteggio degli interventi pianificati oggi (link a calendario e foglio di viaggio) e una card con la lista degli urgenti non ancora pianificati
+- [APP] Gruppo **ufficio**: sezione aggiuntiva con la tabella degli abbonamenti in scadenza nei prossimi 30 giorni, ordinati per data con badge giorni rimasti (rosso ≤7gg, giallo ≤15gg, grigio oltre)
+- [APP] Gruppo **tecnico**: sezione personale con i propri interventi di oggi (ora, cliente, indirizzo) e i propri urgenti non pianificati; chi è sia admin che tecnico vede entrambe le sezioni
+- [DEV] `DashboardController`: metodi privati `caricaDatiUfficio()` e `caricaDatiTecnico()` separano la logica per ruolo; gli abbonamenti in scadenza vengono caricati solo per il gruppo ufficio
+- [DEV] Fix: denominazione cliente calcolata ovunque con `COALESCE(clienti.ragsoc, TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome)))` — la colonna `denominazione` non esiste nella tabella `clienti`
+- [DEV] Fix: validazione `data_pianificata` in `InterventiController` aggiornata a `valid_date[Y-m-d\TH:i]`; `InterventiModel::normalizza()` converte il separatore `T` di `datetime-local` in spazio prima della persistenza su MySQL
+
 ## [0.17.0] - 2026-06-27
 
 ### Cantieri

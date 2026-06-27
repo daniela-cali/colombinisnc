@@ -89,6 +89,11 @@ class InterventiModel extends Model
         }
         $data['data']['updated_by'] = $userId;
 
+        // datetime-local invia 'YYYY-MM-DDTHH:MM' — converte a 'YYYY-MM-DD HH:MM:SS' per MySQL
+        if (! empty($data['data']['data_pianificata']) && str_contains($data['data']['data_pianificata'], 'T')) {
+            $data['data']['data_pianificata'] = date('Y-m-d H:i:s', strtotime($data['data']['data_pianificata']));
+        }
+
         $nullabili = ['tecnico_id', 'tipo_intervento_id', 'impianto_id', 'cantiere_id', 'data_pianificata', 'data_scadenza', 'durata_stimata'];
         foreach ($nullabili as $campo) {
             if (isset($data['data'][$campo]) && $data['data'][$campo] === '') {
