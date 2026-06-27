@@ -13,7 +13,7 @@ class InterventiModel extends Model
     protected $useTimestamps = true;
 
     protected $allowedFields = [
-        'codice', 'cliente_id', 'tecnico_id', 'abbonamento_id',
+        'codice', 'cliente_id', 'tecnico_id', 'abbonamento_id', 'cantiere_id',
         'extra', 'pulizia_fondo', 'apertura', 'chiusura',
         'priorita', 'stato', 'tipo_intervento_id',
         'data_pianificata', 'data_scadenza', 'durata_stimata', 'urgenza',
@@ -89,7 +89,7 @@ class InterventiModel extends Model
         }
         $data['data']['updated_by'] = $userId;
 
-        $nullabili = ['tecnico_id', 'tipo_intervento_id', 'impianto_id', 'data_pianificata', 'data_scadenza', 'durata_stimata'];
+        $nullabili = ['tecnico_id', 'tipo_intervento_id', 'impianto_id', 'cantiere_id', 'data_pianificata', 'data_scadenza', 'durata_stimata'];
         foreach ($nullabili as $campo) {
             if (isset($data['data'][$campo]) && $data['data'][$campo] === '') {
                 $data['data'][$campo] = null;
@@ -172,6 +172,8 @@ class InterventiModel extends Model
 
     /**
      * Lista interventi di un cliente con tipo lavoro e tecnico, ordinata per data decrescente.
+     * Esclude gli interventi agganciati a un cantiere: quelli si vedono solo sotto il loro
+     * cantiere (sezione Cantieri della scheda cliente), per non affollare la lista piatta.
      */
     public function perCliente(int $clienteId): array
     {
@@ -184,6 +186,23 @@ class InterventiModel extends Model
             ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
             ->join('personale p',        'p.id = interventi.tecnico_id',          'left')
             ->where('interventi.cliente_id', $clienteId)
+            ->where('interventi.cantiere_id', null)
+            ->orderBy('interventi.data_pianificata', 'DESC')
+            ->findAll();
+    }
+
+    /**
+     * Interventi collegati a un cantiere, con tipo lavoro e tecnico, ordinati per data decrescente.
+     */
+    public function perCantiere(int $cantiereId): array
+    {
+        return $this->select("interventi.*,
+                ti.nome AS tipo_intervento_nome,
+                ti.icona AS tipo_intervento_icona,
+                TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome")
+            ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
+            ->join('personale p',        'p.id = interventi.tecnico_id',          'left')
+            ->where('interventi.cantiere_id', $cantiereId)
             ->orderBy('interventi.data_pianificata', 'DESC')
             ->findAll();
     }

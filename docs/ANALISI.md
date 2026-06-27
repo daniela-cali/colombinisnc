@@ -346,70 +346,66 @@ graph TD
 - Scheda cliente: badge **Extra** in tabella interventi; sezione **Interventi** spostata sopra **Abbonamenti**; fix ordinamento al click sugli input di ricerca
 - *Idee future correlate: dashboard riepilogativa dei flag; "Da pianificare per periodo" sugli abbonamenti*
 
-#### 🔲 v0.17.0 — Cantieri
+#### ✅ v0.17.0 — Cantieri
 
 Un **cantiere** raggruppa più interventi legati a un unico progetto per un cliente (nuova costruzione o ristrutturazione). Si distingue dagli interventi "standalone" (manutenzioni, abbonamenti) che non appartengono a nessun progetto.
 
-**Tabella `cantieri`**
-- `cliente_id` FK, `titolo`, `tipo` (nuova_costruzione / ristrutturazione), `stato` (aperto / sospeso / chiuso)
-- `data_inizio`, `data_fine_prevista`, `note` generali
-- Campi standard: `created_by`, `updated_by`, `created_at`, `updated_at`
-
-**Tabella `fasi_cantiere`** (1:N su cantieri)
-Ogni riga è una nota/task del journal di cantiere — corrisponde alle singole righe operative scritte dal titolare (es. "posizionati passanti per bocchette, far lasciare cassonetti per faretti").
-- `cantiere_id` FK, `descrizione` TEXT, `data_nota`
-- `intervento_id` nullable FK — **pattern identico ai materiali sospesi**: `IS NULL` = fase ancora da fare; `IS NOT NULL` = fase collegata a un intervento pianificabile
-- Nessun campo `subappaltatore` strutturato: eventuali subappaltatori si citano nel testo libero della descrizione
-- Campi standard: `created_by`, `updated_by`, `created_at`, `updated_at`
+**Modello dati implementato**
+- Tabella `cantieri`: `cliente_id` FK RESTRICT, `titolo`, `tipo` VARCHAR (nuova_costruzione / ristrutturazione), `tipo_intervento_id` nullable FK SET NULL (default pre-compilazione form), `stato` VARCHAR (aperto / sospeso / chiuso), `data_inizio`, `data_fine_prevista`, `note`, campi standard
+- Tabella `cantieri_note`: diario cronologico datato — `cantiere_id` FK CASCADE, `data_nota`, `testo`, campi standard. Stessa struttura di `interventi_note`
+- Colonna `cantiere_id INT UNSIGNED NULL FK → cantieri.id RESTRICT` su `interventi` (gemella di `abbonamento_id`)
+- Decisione chiave: note e interventi sono fratelli figli del cantiere, non collegati tra loro. Le note sono prosa libera; quando una nota diventa lavoro concreto si crea un intervento e lo si aggancia al cantiere
 
 **Flusso operativo**
-1. Si apre un cantiere sul cliente con titolo e tipo
-2. Si aggiungono righe al journal man mano che avanza il lavoro
-3. Le righe con `intervento_id IS NULL` appaiono come "da fare" (pool simile ai materiali sospesi)
-4. Bottone "Crea intervento" su ogni riga sospesa: pre-compila cliente + descrizione, al salvataggio popola `fasi_cantiere.intervento_id`
-5. L'intervento generato entra nel pool "Da pianificare" del Calendario e segue il flusso normale
+1. Si apre un cantiere sul cliente con titolo, tipo e tipo intervento predefinito (opzionale)
+2. Si aggiungono note al diario man mano che avanza il lavoro (prosa libera datata)
+3. Quando un appunto diventa lavoro concreto, si crea un intervento dalla scheda cantiere — il tipo viene pre-compilato dal default del cantiere ma resta modificabile
+4. L'intervento entra nel pool "Da pianificare" del Calendario e segue il flusso normale
+5. Il cambio di stato del cantiere (aperto / sospeso / chiuso) non produce effetti a cascata sugli interventi
 
-**Calendario**
-I cantieri non appaiono direttamente — vi appaiono gli interventi generati dalle fasi. Il titolo del cantiere sarà visibile come extendedProp nell'evento (modal dettaglio).
+**Navigazione implementata**
+- Lista cantieri globale (`/cantieri`) — voce menu laterale tra Abbonamenti e Calendario
+- Scheda cantiere: header con azioni cambio-stato + bottone elimina (bloccato se ci sono interventi collegati); sezione interventi collegati; diario con mini-form aggiungi nota
+- Scheda cliente: sezione **Cantieri** con indice sottile — contatore "⚠ N da pianificare", anteprima ultima nota, link Apri. Gli interventi di cantiere sono **esclusi** dalla lista interventi piatta della scheda cliente (opzione A — si vedono solo sotto il loro cantiere)
+- Scheda intervento e form modifica: banner con link al cantiere se collegato
+- Calendario — modal pianifica: avviso inline (non bloccante) se la data pianificata supera la `data_scadenza` dell'intervento; avviso rosso per urgenti, giallo per normali
 
-**Navigazione**
-- Lista cantieri globale filtrabile per stato e cliente
-- Scheda cantiere: header (titolo, cliente, stato, date) + lista fasi cronologica con indicatore sospesa/collegata
-- Scheda cliente: sezione **Cantieri** con elenco cantieri attivi
-- Scheda intervento: se collegato a una fase, mostra titolo cantiere con link
+#### 🔲 v0.18.0 — Dashboard e report
+- Dashboard riepilogativa: interventi oggi, settimana, tecnici in campo, abbonamenti in scadenza
+- Presenze/assenze tecnici
+- Report PDF: interventi per cliente, materiali consegnati, abbonamenti attivi
+- Statistiche: interventi per tipo/periodo, km percorsi, prodotti consumati
 
-#### 🔲 v0.18.0 — Anagrafica impianti
+#### 🔲 v1.0.0 — Release
+- Test e fix generali
+- Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
+- Deploy su Nginx (dominio colombini-snc.it)
+
+### 7.1.1 Funzionalità post v1.0.0
+
+Da pianificare dopo la release iniziale in base alle priorità operative emerse dall'uso reale.
+
+#### Anagrafica impianti
 - Tabella `impianti`: tipo (piscina, addolcitore, acquedotto, trattamento acqua, altro), marca, modello, note
 - Tabella `clienti_impianti`: FK cliente + FK impianto + indirizzo specifico dell'impianto se diverso dal cliente
 - Collegamento impianto agli interventi (popola `impianto_id` lasciato nullable dalla v0.8.0)
 - Scheda cliente: nuovo tab **Impianti**
 
-#### 🔲 v0.19.0 — Richieste di intervento
+#### Richieste di intervento
 - Tabella `richieste`: cliente, tipo, descrizione, priorità, stato, tecnico suggerito
 - Flusso: richiesta → approvazione → conversione in intervento pianificato
 - Badge notifica in sidebar per richieste in attesa
 
-#### 🔲 v0.20.0 — Magazzino avanzato
+#### Magazzino avanzato
 - Gestione giacenza: movimenti di carico/scarico con tabella `movimenti_magazzino`
 - Scarico automatico giacenza quando si inseriscono materiali su un intervento
 - Soglia minima per articolo; alert sottoscorta in dashboard
 - Import ricambi da DB esterno (integrazione con sistema esistente)
 
-#### 🔲 v0.21.0 — Preventivi
+#### Preventivi
 - Tabella `preventivi`: cliente, data, stato (bozza/inviato/accettato/rifiutato), totale
 - Righe preventivo: articolo da catalogo o descrizione libera, quantità, prezzo unitario
 - Conversione preventivo accettato → intervento/abbonamento
-
-#### 🔲 v0.22.0 — Dashboard e report
-- Dashboard riepilogativa: interventi oggi, settimana, tecnici in campo, richieste aperte, abbonamenti in scadenza
-- Presenze/assenze tecnici
-- Report PDF: interventi per cliente, materiali consegnati, abbonamenti attivi
-- Statistiche: interventi per tipo/periodo, km percorsi, prodotti consumati
-
-#### 🔲 v0.23.0 — Release
-- Test e fix generali
-- Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
-- Deploy su Nginx (dominio colombini-snc.it)
 
 ### 7.2 Mappa dipendenze tra moduli
 

@@ -10,8 +10,10 @@
  * @var int      $abbonamento_id      Pre-compilato per le visite extra (0 se non presente)
  * @var int      $extra               1 se si sta creando una visita extra, 0 altrimenti
  * @var int      $tipo_intervento_id  Pre-selezionato per le visite extra (0 altrimenti)
- * @var bool     $ha_pulizia_fondo    True se il tipo intervento prevede pulizia fondo (solo per visite extra)
- * @var string   $from                URL di ritorno dopo il salvataggio (vuoto = lista interventi)
+ * @var bool       $ha_pulizia_fondo  True se il tipo intervento prevede pulizia fondo (solo per visite extra)
+ * @var int        $cantiere_id       Cantiere a cui agganciare l'intervento (0 se non presente)
+ * @var array|null $cantiere          Dati del cantiere, se l'intervento arriva dalla scheda cantiere
+ * @var string     $from              URL di ritorno dopo il salvataggio (vuoto = lista interventi)
  */
 $this->extend('layouts/admin');
 
@@ -55,7 +57,20 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <input type="hidden" name="abbonamento_id" value="<?= (int) $abbonamento_id ?>">
                     <input type="hidden" name="priorita" value="abbonamento">
                 <?php endif ?>
+                <?php if ($cantiere_id): ?>
+                    <input type="hidden" name="cantiere_id" value="<?= (int) $cantiere_id ?>">
+                <?php endif ?>
                 <div class="card-body">
+
+                    <?php if ($cantiere): ?>
+                        <div class="alert alert-warning d-flex align-items-center mb-4">
+                            <i class="bi bi-bricks me-2 fs-5"></i>
+                            <div>
+                                Intervento collegato al cantiere
+                                <strong><?= esc($cantiere['titolo']) ?></strong>.
+                            </div>
+                        </div>
+                    <?php endif ?>
 
                     <!-- Assegnazione -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-people me-1"></i> Assegnazione</p>

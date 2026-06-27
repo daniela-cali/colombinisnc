@@ -94,7 +94,9 @@ $prioritaInfo = [
                              data-cliente="<?= htmlspecialchars($i['cliente_denominazione'] ?? '', ENT_QUOTES) ?>"
                              data-durata="<?= (int) ($i['durata_stimata'] ?: $tipoInfo['durata_default']) ?>"
                              data-tipo-nome="<?= htmlspecialchars($tipoInfo['nome'], ENT_QUOTES) ?>"
-                             data-descr="<?= htmlspecialchars($i['descrizione'] ?? '', ENT_QUOTES) ?>">
+                             data-descr="<?= htmlspecialchars($i['descrizione'] ?? '', ENT_QUOTES) ?>"
+                             data-scadenza="<?= esc($i['data_scadenza'] ?? '') ?>"
+                             data-urgenza="<?= (int) ($i['urgenza'] ?? 0) ?>">
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <div class="d-flex gap-1">
                                     <span class="badge <?= esc($badge) ?>" style="font-size:.65rem;"><?= esc($badgeLabel) ?></span>
@@ -248,7 +250,8 @@ $prioritaInfo = [
             </div>
             <div class="modal-body">
                 <p class="mb-0 fw-bold" id="pian-cliente"></p>
-                <p class="small text-muted mb-3" id="pian-tipo"></p>
+                <p class="small text-muted mb-2" id="pian-tipo"></p>
+                <div id="pian-avviso-scadenza" class="alert py-2 mb-3 d-none" role="alert"></div>
                 <div class="row g-2">
                     <div class="col-sm-5 mb-2">
                         <label class="small">Orario <span class="text-danger">*</span></label>
@@ -369,6 +372,29 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('pian-tipo').textContent    = cardEl.dataset.tipoNome || '';
         pianOraEl.value = timeStr || oraInizio;
         buildTecnicoSelect(pianTecnicoEl);
+
+        // Avviso scadenza: se la data del drop è successiva alla data_scadenza dell'intervento.
+        var avvisoEl  = document.getElementById('pian-avviso-scadenza');
+        var scadenza  = cardEl.dataset.scadenza;
+        var urgente   = cardEl.dataset.urgenza === '1';
+        if (scadenza && dateStr > scadenza) {
+            var sc = scadenza.split('-');
+            var scLabel = sc[2] + '/' + sc[1] + '/' + sc[0];
+            if (urgente) {
+                avvisoEl.className = 'alert alert-danger py-2 mb-3';
+                avvisoEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i>'
+                    + '<strong>Urgente — scadenza superata.</strong> La scadenza era il ' + scLabel
+                    + '. Puoi comunque procedere.';
+            } else {
+                avvisoEl.className = 'alert alert-warning py-2 mb-3';
+                avvisoEl.innerHTML = '<i class="bi bi-clock me-1"></i>'
+                    + 'Attenzione: la scadenza era il ' + scLabel + '. Puoi comunque procedere.';
+            }
+        } else {
+            avvisoEl.className = 'alert py-2 mb-3 d-none';
+            avvisoEl.innerHTML = '';
+        }
+
         modalPianifica.show();
     }
 

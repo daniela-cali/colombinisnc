@@ -2,6 +2,7 @@
 /**
  * @var array      $intervento      Record interventi
  * @var array|null $cliente         Record clienti
+ * @var array|null $cantiere        Record cantieri se l'intervento è collegato a un cantiere
  * @var array      $tecnici         Righe da PersonaleModel::elencoPerGruppi(['tecnico'])
  * @var array      $tipi            Righe da TipiInterventoModel::attivi()
  * @var array      $prioritaLabel   [codice => etichetta]
@@ -69,8 +70,23 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                 <?php if ($from): ?>
                     <input type="hidden" name="from" value="<?= esc($from) ?>">
                 <?php endif ?>
+                <?php if ($cantiere): ?>
+                    <input type="hidden" name="cantiere_id" value="<?= (int) $cantiere['id'] ?>">
+                <?php endif ?>
 
                 <div class="card-body">
+
+                    <?php if ($cantiere): ?>
+                        <div class="alert alert-warning d-flex align-items-center mb-4">
+                            <i class="bi bi-bricks me-2 fs-5"></i>
+                            <div>
+                                Intervento collegato al cantiere
+                                <a href="<?= base_url('cantieri/' . $cantiere['id']) ?>" class="fw-semibold alert-link">
+                                    <?= esc($cantiere['titolo']) ?>
+                                </a>.
+                            </div>
+                        </div>
+                    <?php endif ?>
 
                     <!-- Assegnazione -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-people me-1"></i> Assegnazione</p>

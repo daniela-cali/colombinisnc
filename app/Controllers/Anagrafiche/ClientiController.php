@@ -5,6 +5,7 @@ namespace App\Controllers\Anagrafiche;
 use App\Controllers\BaseController;
 use App\Models\AbbonamentiModel;
 use App\Models\ArticoliModel;
+use App\Models\CantieriModel;
 use App\Models\ClientiModel;
 use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
@@ -46,6 +47,10 @@ class ClientiController extends BaseController
             'abbonamentiLabel'      => AbbonamentiModel::STATI_LABEL,
             'abbonamentiBadge'      => AbbonamentiModel::STATI_BADGE,
             'abbonamentiFrequenze'  => AbbonamentiModel::FREQUENZE_LABEL,
+            'cantieri'              => (new CantieriModel())->perCliente($id),
+            'cantieriTipiLabel'     => CantieriModel::TIPI_LABEL,
+            'cantieriStatiLabel'    => CantieriModel::STATI_LABEL,
+            'cantieriStatiBadge'    => CantieriModel::STATI_BADGE,
         ]);
     }
 
