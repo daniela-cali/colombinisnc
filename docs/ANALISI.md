@@ -370,11 +370,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Scheda intervento e form modifica: banner con link al cantiere se collegato
 - Calendario — modal pianifica: avviso inline (non bloccante) se la data pianificata supera la `data_scadenza` dell'intervento; avviso rosso per urgenti, giallo per normali
 
-#### 🔲 v0.18.0 — Dashboard e report
-- Dashboard riepilogativa: interventi oggi, settimana, tecnici in campo, abbonamenti in scadenza
-- Presenze/assenze tecnici
-- Report PDF: interventi per cliente, materiali consegnati, abbonamenti attivi
-- Statistiche: interventi per tipo/periodo, km percorsi, prodotti consumati
+#### ✅ v0.18.0 — Dashboard role-aware
+- **Dashboard adattata al ruolo**: admin e ufficio vedono conteggio interventi pianificati oggi (link a calendario e foglio di viaggio) e lista urgenti non pianificati con badge contatore
+- **Ufficio**: sezione aggiuntiva abbonamenti in scadenza nei prossimi 30 giorni, ordinati per data con badge giorni rimasti (rosso ≤7gg, giallo ≤15gg, grigio oltre)
+- **Tecnico**: sezione personale con i propri interventi di oggi (ora, cliente, indirizzo) e i propri urgenti non pianificati; chi è sia admin che tecnico vede entrambe le sezioni
+- `DashboardController` riscritto con metodi privati `caricaDatiUfficio()` / `caricaDatiTecnico()`
+- Fix: `COALESCE(ragsoc, TRIM(CONCAT_WS(' ', cognome, nome)))` per denominazione cliente; fix validazione `data_pianificata` a `valid_date[Y-m-d\TH:i]` + conversione `T`→spazio in `normalizza()`
+- *Rimandato a versione futura: presenze/assenze tecnici; report PDF interventi/abbonamenti; statistiche interventi per tipo/periodo*
 
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
