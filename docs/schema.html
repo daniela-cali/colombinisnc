@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.16.0 · 2026-06-26</span></h1>
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.17.0 · 2026-06-27</span></h1>
 
 <div class="toc">
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
@@ -48,6 +48,8 @@
   <a href="#articoli">articoli</a>
   <a href="#abbonamenti">abbonamenti</a>
   <a href="#abbonamenti_periodi">abbonamenti_periodi</a>
+  <a href="#cantieri">cantieri</a>
+  <a href="#cantieri_note">cantieri_note</a>
   <a href="#relazioni">Relazioni</a>
   <a href="#log">Log modifiche DB</a>
 </div>
@@ -151,6 +153,7 @@
   <tr><td><code>urgenza</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>Flag indipendente dalla priorità</td></tr>
   <tr><td><code>impianto_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Placeholder FK — non referenziata, riservata a versione futura</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>abbonamento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE RESTRICT · NULL = standalone · aggiunto v0.14.0</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>cantiere_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ cantieri.id · ON DELETE RESTRICT · NULL = non legato a cantiere · aggiunto v0.17.0</td></tr>
   <tr><td><code>extra</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = visita extra fuori dal piano del periodo · aggiunto v0.15.0</td></tr>
   <tr><td><code>pulizia_fondo</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = prevista pulizia del fondo (solo piscine) · default dal periodo all'atto della generazione · aggiunto v0.15.0</td></tr>
   <tr><td><code>apertura</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>1 = intervento di apertura piscina (fase stagionale, solo piscine) · mutuamente esclusivo con <code>chiusura</code> · aggiunto WIP sezioni</td></tr>
@@ -281,6 +284,41 @@
   <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
 </table>
 
+<!-- ═══════════════════════════════════════════════════════ cantieri -->
+<h2 id="cantieri">cantieri</h2>
+<p class="note">Progetti di cantiere (nuova costruzione o ristrutturazione) che raggruppano più interventi per un cliente. Aggiunta v0.17.0.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE RESTRICT</td></tr>
+  <tr><td><code>titolo</code></td><td>VARCHAR(150)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>tipo</code></td><td>VARCHAR(30)</td><td></td><td></td><td>Valori: <code>nuova_costruzione</code> · <code>ristrutturazione</code></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ tipi_intervento.id · ON DELETE SET NULL · tipo predefinito per i nuovi interventi del cantiere</td></tr>
+  <tr><td><code>stato</code></td><td>VARCHAR(30)</td><td></td><td>aperto</td><td>Valori: <code>aperto</code> · <code>sospeso</code> · <code>chiuso</code></td></tr>
+  <tr><td><code>data_inizio</code></td><td>DATE</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>data_fine_prevista</code></td><td>DATE</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Note generali (distinte dal diario)</td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ cantieri_note -->
+<h2 id="cantieri_note">cantieri_note</h2>
+<p class="note">Diario cronologico del cantiere: note datate in prosa libera. Stessa struttura di <code>interventi_note</code>. Aggiunta v0.17.0.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>cantiere_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ cantieri.id · ON DELETE CASCADE</td></tr>
+  <tr><td><code>data_nota</code></td><td>DATE</td><td></td><td></td><td></td></tr>
+  <tr><td><code>testo</code></td><td>TEXT</td><td></td><td></td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Autore — join su personale per il nome</td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
 <hr class="section-sep">
 
 <!-- ═══════════════════════════════════════════════════════ relazioni -->
@@ -294,6 +332,10 @@
   <tr><td>interventi</td><td>tecnico_id</td><td>personale.id</td><td>SET NULL</td></tr>
   <tr><td>interventi</td><td>tipo_intervento_id</td><td>tipi_intervento.id</td><td>SET NULL</td></tr>
   <tr><td>interventi</td><td>abbonamento_id</td><td>abbonamenti.id</td><td>RESTRICT</td></tr>
+  <tr><td>interventi</td><td>cantiere_id</td><td>cantieri.id</td><td>RESTRICT</td></tr>
+  <tr><td>cantieri</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
+  <tr><td>cantieri</td><td>tipo_intervento_id</td><td>tipi_intervento.id</td><td>SET NULL</td></tr>
+  <tr><td>cantieri_note</td><td>cantiere_id</td><td>cantieri.id</td><td>CASCADE</td></tr>
   <tr><td>interventi_materiali</td><td>cliente_id</td><td>clienti.id</td><td>CASCADE</td></tr>
   <tr><td>interventi_materiali</td><td>intervento_id</td><td>interventi.id</td><td>CASCADE</td></tr>
   <tr><td>interventi_materiali</td><td>articolo_id</td><td>articoli.id</td><td>SET NULL</td></tr>
@@ -312,7 +354,17 @@
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
   <tr>
-    <td>WIP <span class="note">(sezioni — versione da assegnare)</span></td>
+    <td>v0.17.0</td>
+    <td><code>CreateCantieriTable</code><br><code>CreateCantieriNoteTable</code><br><code>AddTipoInterventoToCantieri</code></td>
+    <td>
+      Nuova tabella <code>cantieri</code> con FK <code>cliente_id</code> RESTRICT e <code>tipo_intervento_id</code> SET NULL.
+      Nuova tabella <code>cantieri_note</code> con FK <code>cantiere_id</code> CASCADE.
+      Colonna <code>cantiere_id INT UNSIGNED NULL FK → cantieri.id RESTRICT</code> su <code>interventi</code> (gemella di <code>abbonamento_id</code>).
+      Colonna <code>tipo_intervento_id INT UNSIGNED NULL FK → tipi_intervento.id SET NULL</code> su <code>cantieri</code> (tipo predefinito per i nuovi interventi).
+    </td>
+  </tr>
+  <tr>
+    <td>v0.16.1</td>
     <td><code>AddCategoriaToTipiIntervento</code><br><code>AddAperturaChiusuraToInterventi</code></td>
     <td>
       Aggiunta colonna <code>categoria VARCHAR(30) DEFAULT 'generale'</code> su <code>tipi_intervento</code>

@@ -82,6 +82,20 @@ $routes->group('abbonamenti', function ($routes) {
     $routes->get('(:num)/rinnova',  'AbbonamentiController::rinnova/$1');
 });
 
+// Cantieri
+$routes->group('cantieri', function ($routes) {
+    $routes->get('/',               'CantieriController::index');
+    $routes->get('nuovo',           'CantieriController::nuovo');
+    $routes->post('store',          'CantieriController::store');
+    $routes->get('(:num)',          'CantieriController::show/$1');
+    $routes->get('(:num)/edit',     'CantieriController::edit/$1');
+    $routes->post('(:num)/update',  'CantieriController::update/$1');
+    $routes->post('(:num)/stato',   'CantieriController::cambiaStato/$1');
+    $routes->post('(:num)/delete',  'CantieriController::delete/$1');
+    $routes->post('note/aggiungi',       'CantieriController::aggiungiNota');
+    $routes->post('note/(:num)/elimina', 'CantieriController::eliminaNota/$1');
+});
+
 // Operativo (interventi, futuri: cantieri, ecc.)
 $routes->group('operativo', function ($routes) {
     $routes->group('interventi', function ($routes) {

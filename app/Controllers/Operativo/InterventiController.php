@@ -48,8 +48,10 @@ class InterventiController extends BaseController
         $abbonamentoId    = (int) $this->request->getGet('abbonamento_id');
         $extra            = (int) $this->request->getGet('extra');
         $clienteId        = (int) $this->request->getGet('cliente_id');
+        $cantiereId       = (int) $this->request->getGet('cantiere_id');
         $tipoInterventoId = 0;
         $haPuliziaFondo   = false;
+        $cantiere         = null;
 
         if ($extra && $abbonamentoId) {
             $abbonamento = (new \App\Models\AbbonamentiModel())->find($abbonamentoId);
@@ -58,6 +60,18 @@ class InterventiController extends BaseController
                 $tipoInterventoId = (int) $abbonamento['tipo_intervento_id'];
                 $tipo             = (new TipiInterventoModel())->find($tipoInterventoId);
                 $haPuliziaFondo   = ! empty($tipo['ha_pulizia_fondo']);
+            }
+        }
+
+        // Intervento aperto dalla scheda cantiere: pre-compila e blocca il cliente sul
+        // cliente del cantiere, e mostra il cantiere in sola lettura nel form.
+        if ($cantiereId) {
+            $cantiere = (new \App\Models\CantieriModel())->find($cantiereId);
+            if ($cantiere) {
+                $clienteId        = (int) $cantiere['cliente_id'];
+                $tipoInterventoId = (int) ($cantiere['tipo_intervento_id'] ?? 0);
+            } else {
+                $cantiereId = 0;
             }
         }
 
@@ -73,6 +87,8 @@ class InterventiController extends BaseController
             'extra'             => $extra,
             'tipo_intervento_id' => $tipoInterventoId,
             'ha_pulizia_fondo'  => $haPuliziaFondo,
+            'cantiere_id'       => $cantiereId,
+            'cantiere'          => $cantiere,
             'from'              => $this->request->getGet('from') ?? '',
         ]);
     }
@@ -134,12 +150,14 @@ class InterventiController extends BaseController
         $cliente  = (new ClientiModel())->find($intervento['cliente_id']);
         $tecnico  = $intervento['tecnico_id'] ? (new PersonaleModel())->find($intervento['tecnico_id']) : null;
         $tipo     = $intervento['tipo_intervento_id'] ? (new TipiInterventoModel())->find($intervento['tipo_intervento_id']) : null;
+        $cantiere = $intervento['cantiere_id'] ? (new \App\Models\CantieriModel())->find($intervento['cantiere_id']) : null;
 
         return view('operativo/interventi/show', [
             'intervento'   => $intervento,
             'cliente'      => $cliente,
             'tecnico'      => $tecnico,
             'tipo'         => $tipo,
+            'cantiere'     => $cantiere,
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
             'statiLabel'   => InterventiModel::STATI_LABEL,
             'materiali'    => (new InterventiMaterialiModel())->perIntervento($id),
@@ -222,11 +240,13 @@ class InterventiController extends BaseController
                 ->with('error', 'Un intervento annullato non può essere modificato.');
         }
 
-        $cliente = (new ClientiModel())->find($intervento['cliente_id']);
+        $cliente  = (new ClientiModel())->find($intervento['cliente_id']);
+        $cantiere = $intervento['cantiere_id'] ? (new \App\Models\CantieriModel())->find($intervento['cantiere_id']) : null;
 
         return view('operativo/interventi/edit', [
             'intervento'    => $intervento,
             'cliente'       => $cliente,
+            'cantiere'      => $cantiere,
             'tecnici'       => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
             'tipi'          => (new TipiInterventoModel())->attivi(),
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,

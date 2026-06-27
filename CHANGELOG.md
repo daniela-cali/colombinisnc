@@ -1,5 +1,29 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.17.0] - 2026-06-27
+
+### Cantieri
+
+- [APP] Nuova sezione **Cantieri**: raggruppa più interventi legati a un unico progetto per un cliente (nuova costruzione o ristrutturazione). Ogni cantiere ha titolo, tipo, stato (aperto / sospeso / chiuso), date e note generali
+- [APP] **Diario del cantiere**: note datate in ordine cronologico, aggiungibili ed eliminabili direttamente dalla scheda cantiere — stessa UX del diario interventi
+- [APP] Scheda cantiere: header con azioni cambio-stato (riapri / sospendi / chiudi) e bottone elimina (bloccato se ci sono interventi collegati); sezione interventi collegati; sezione diario
+- [APP] **Tipo intervento predefinito** sul cantiere: campo facoltativo che pre-seleziona il tipo nel form "Nuovo intervento" aperto dalla scheda cantiere (modificabile prima del salvataggio)
+- [APP] Scheda cliente: nuova sezione **Cantieri** (sotto Abbonamenti) con indice sottile — titolo, tipo, periodo, contatore "⚠ N da pianificare", anteprima ultima nota, stato, bottone Apri. La sezione Interventi della scheda cliente ora esclude gli interventi agganciati a un cantiere (compaiono solo sotto il loro cantiere)
+- [APP] Scheda intervento e form modifica intervento: se l'intervento è collegato a un cantiere, viene mostrato un banner con link alla scheda cantiere
+- [APP] Form "Nuovo intervento": se aperto dalla scheda cantiere, mostra un banner informativo e aggancia automaticamente il cantiere
+- [APP] Voce **Cantieri** nel menu laterale (icona bi-bricks, tra Abbonamenti e Calendario)
+- [APP] Calendario — modal pianifica: se la data scelta supera la `data_scadenza` dell'intervento, compare un avviso inline nel modal (giallo per normali, rosso per urgenti). Il bottone "Pianifica" resta sempre attivo — l'avviso informa senza bloccare
+- [DEV] Nuova tabella `cantieri`: `cliente_id` FK RESTRICT, `titolo`, `tipo` VARCHAR (nuova_costruzione / ristrutturazione), `tipo_intervento_id` FK nullable SET NULL (default pre-compilazione), `stato` VARCHAR (aperto / sospeso / chiuso), `data_inizio`, `data_fine_prevista`, `note`, campi standard
+- [DEV] Nuova tabella `cantieri_note`: `cantiere_id` FK CASCADE, `data_nota`, `testo`, campi standard. Stessa struttura di `interventi_note`
+- [DEV] Colonna `cantiere_id INT UNSIGNED NULL FK → cantieri.id RESTRICT` su `interventi` (gemella di `abbonamento_id`)
+- [DEV] Colonna `tipo_intervento_id INT UNSIGNED NULL FK → tipi_intervento.id SET NULL` su `cantieri` (default per i nuovi interventi)
+- [DEV] `CantieriModel`: costanti TIPO_/STATO_, `normalizza()` (created_by/updated_by, nullificazione date e tipo_intervento_id vuoti), `perCliente()` con subquery contatore da-pianificare e ultima nota, `conCliente()`, `elencoCompleto()`
+- [DEV] `CantieriNoteModel`: gemello di `InterventiNoteModel`
+- [DEV] `InterventiModel::perCliente()`: aggiunto filtro `cantiere_id IS NULL` (opzione A — gli interventi di cantiere si vedono solo sotto il cantiere, non nella lista piatta della scheda cliente)
+- [DEV] `InterventiController::nuovo()`: legge `?cantiere_id`, carica cantiere, pre-compila `cliente_id` e `tipo_intervento_id` dal default del cantiere
+- [DEV] `InterventiController::show()` e `edit()`: caricano il cantiere collegato e lo passano alle view
+- [DEV] Calendario `index.php` — card pool: aggiunti `data-scadenza` e `data-urgenza`; modal pianifica: avviso inline scadenza superata (client-side, senza round-trip server)
+
 ## [0.16.1] - 2026-06-26
 
 ### Sezioni interventi per area (piscine / addolcitori / generici)

@@ -114,6 +114,12 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                     </li>
 
                     <li class="nav-header">Operativo</li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('operativo/calendario') ?>" class="nav-link <?= str_starts_with(uri_string(), 'operativo/calendario') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-calendar3"></i>
+                            <p>Calendario</p>
+                        </a>
+                    </li>
                     <?php
                         $interventiAttivo = str_starts_with(uri_string(), 'operativo/interventi');
                         $sezioneCorrente  = service('request')->getGet('sezione') ?: \App\Models\TipiInterventoModel::CATEGORIA_GENERALE;
@@ -150,9 +156,9 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="<?= base_url('operativo/calendario') ?>" class="nav-link <?= str_starts_with(uri_string(), 'operativo/calendario') ? 'active' : '' ?>">
-                            <i class="nav-icon bi bi-calendar3"></i>
-                            <p>Calendario</p>
+                        <a href="<?= base_url('cantieri') ?>" class="nav-link <?= str_starts_with(uri_string(), 'cantieri') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-bricks"></i>
+                            <p>Cantieri</p>
                         </a>
                     </li>
 

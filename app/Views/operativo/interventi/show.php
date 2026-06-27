@@ -4,6 +4,7 @@
  * @var array|null $cliente     Record clienti
  * @var array|null $tecnico     Record personale
  * @var array|null $tipo        Record tipi_intervento
+ * @var array|null $cantiere    Record cantieri se l'intervento è collegato a un cantiere
  * @var array      $prioritaLabel [codice => etichetta]
  * @var array      $statiLabel  [codice => etichetta]
  * @var array      $materiali   Righe da InterventiMaterialiModel::perIntervento()
@@ -70,6 +71,14 @@ $statoBadge = [
                         <p class="text-muted small mb-1">Tecnico</p>
                         <span><?= $tecnico ? esc($tecnico['cognome'] . ' ' . $tecnico['nome']) : '<span class="text-muted">—</span>' ?></span>
                     </div>
+                    <?php if ($cantiere): ?>
+                        <div class="col-12">
+                            <p class="text-muted small mb-1">Cantiere</p>
+                            <a href="<?= base_url('cantieri/' . $cantiere['id']) ?>" class="fw-semibold">
+                                <i class="bi bi-bricks me-1"></i><?= esc($cantiere['titolo']) ?>
+                            </a>
+                        </div>
+                    <?php endif ?>
                 </div>
 
                 <!-- Descrizione -->

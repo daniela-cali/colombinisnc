@@ -10,6 +10,10 @@
  * @var array $abbonamentiLabel     AbbonamentiModel::STATI_LABEL
  * @var array $abbonamentiBadge     AbbonamentiModel::STATI_BADGE
  * @var array $abbonamentiFrequenze AbbonamentiModel::FREQUENZE_LABEL
+ * @var array $cantieri             Righe da CantieriModel::perCliente() — include num_da_pianificare, ultima_nota_testo, ultima_nota_data
+ * @var array $cantieriTipiLabel    CantieriModel::TIPI_LABEL
+ * @var array $cantieriStatiLabel   CantieriModel::STATI_LABEL
+ * @var array $cantieriStatiBadge   CantieriModel::STATI_BADGE
  */
 $this->extend('layouts/admin');
 $denom = \App\Models\ClientiModel::denominazione($cliente);
@@ -441,6 +445,88 @@ $statoBadge = [
             </div>
         </div>
 
+        <!-- ══ CANTIERI ════════════════════════════════════ -->
+        <div class="section-anchor" id="sec-cantieri">
+            <div class="section-title">
+                <i class="bi bi-bricks"></i> Cantieri
+                <?php if (! empty($cantieri)): ?>
+                    <span class="badge bg-secondary" style="font-size:.6rem"><?= count($cantieri) ?></span>
+                <?php endif ?>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="mb-3 d-flex">
+                    <a href="<?= base_url('cantieri/nuovo?cliente_id=' . $cliente['id']
+                        . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-cantieri')) ?>"
+                       class="btn btn-sm btn-outline-warning ms-auto">
+                        <i class="bi bi-plus-lg me-1"></i>Nuovo cantiere
+                    </a>
+                </div>
+                <?php if (empty($cantieri)): ?>
+                    <p class="text-muted small mb-0">Nessun cantiere.</p>
+                <?php else: ?>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Titolo</th>
+                                    <th>Tipo</th>
+                                    <th>Periodo</th>
+                                    <th class="text-center">Da pianificare</th>
+                                    <th>Ultima nota</th>
+                                    <th class="text-center">Stato</th>
+                                    <th style="width:40px"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($cantieri as $ct): ?>
+                                    <tr>
+                                        <td class="fw-semibold"><?= esc($ct['titolo']) ?></td>
+                                        <td class="text-muted small"><?= esc($cantieriTipiLabel[$ct['tipo']] ?? $ct['tipo']) ?></td>
+                                        <td class="text-nowrap small">
+                                            <?= $ct['data_inizio'] ? date('d/m/Y', strtotime($ct['data_inizio'])) : '—' ?>
+                                            <?php if ($ct['data_fine_prevista']): ?>
+                                                – <?= date('d/m/Y', strtotime($ct['data_fine_prevista'])) ?>
+                                            <?php endif ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if ($ct['num_da_pianificare'] > 0): ?>
+                                                <span class="badge bg-warning text-dark" title="Interventi da pianificare">
+                                                    <i class="bi bi-exclamation-triangle-fill me-1"></i><?= (int) $ct['num_da_pianificare'] ?>
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-muted">—</span>
+                                            <?php endif ?>
+                                        </td>
+                                        <td class="text-muted small">
+                                            <?php if (! empty($ct['ultima_nota_testo'])): ?>
+                                                <span class="badge bg-light text-dark border me-1"><?= date('d/m', strtotime($ct['ultima_nota_data'])) ?></span>
+                                                <?= esc(mb_strimwidth($ct['ultima_nota_testo'], 0, 50, '…')) ?>
+                                            <?php else: ?>
+                                                <span class="text-muted">—</span>
+                                            <?php endif ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge <?= $cantieriStatiBadge[$ct['stato']] ?? 'bg-secondary' ?>">
+                                                <?= esc($cantieriStatiLabel[$ct['stato']] ?? $ct['stato']) ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="<?= base_url('cantieri/' . $ct['id']) ?>"
+                                               class="btn btn-sm btn-outline-secondary" title="Apri cantiere">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif ?>
+            </div>
+        </div>
+
 
     </div><!-- /col contenuto -->
 
@@ -464,6 +550,12 @@ $statoBadge = [
                 Abbonamenti
                 <?php if (! empty($abbonamenti)): ?>
                     <span class="badge bg-secondary ms-auto" style="font-size:.6rem"><?= count($abbonamenti) ?></span>
+                <?php endif ?>
+            </a>
+            <a href="#sec-cantieri">
+                Cantieri
+                <?php if (! empty($cantieri)): ?>
+                    <span class="badge bg-secondary ms-auto" style="font-size:.6rem"><?= count($cantieri) ?></span>
                 <?php endif ?>
             </a>
         </nav>
