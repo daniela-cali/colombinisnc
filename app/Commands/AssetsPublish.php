@@ -58,6 +58,10 @@ class AssetsPublish extends BaseCommand
 
             ['label' => 'FullCalendar JS',       'src' => 'node_modules/fullcalendar',                          'dest' => 'fullcalendar',         'pattern' => 'index.global.min.js'],
             ['label' => 'FullCalendar locale IT', 'src' => 'node_modules/@fullcalendar/core/locales',           'dest' => 'fullcalendar/locales', 'pattern' => 'it.global.min.js'],
+
+            ['label' => 'Leaflet CSS',            'src' => 'node_modules/leaflet/dist',                         'dest' => 'leaflet',              'pattern' => 'leaflet.css'],
+            ['label' => 'Leaflet JS',             'src' => 'node_modules/leaflet/dist',                         'dest' => 'leaflet',              'pattern' => 'leaflet.js'],
+            ['label' => 'Leaflet images',         'src' => 'node_modules/leaflet/dist/images',                  'dest' => 'leaflet/images',       'pattern' => '*.png'],
         ];
 
         CLI::write('Pubblicazione assets frontend...', 'yellow');

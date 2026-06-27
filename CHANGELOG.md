@@ -1,5 +1,11 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.18.1] - 2026-06-27
+
+### Leaflet — dipendenza frontend
+
+- [DEV] Aggiunta dipendenza **Leaflet** (`leaflet` npm) per mappe interattive con OpenStreetMap; file pubblicati in `public/assets/vendor/leaflet/` tramite `assets:publish`
+
 ## [0.18.0] - 2026-06-27
 
 ### Dashboard role-aware
