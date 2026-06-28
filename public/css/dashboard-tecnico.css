@@ -1,0 +1,125 @@
+/* =========================================================================
+   Dashboard tecnico — agenda mobile-first
+   Caricato solo da app/Views/dashboard/tecnico.php via section('styles').
+   ========================================================================= */
+
+.agenda-tecnico {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+/* --- Tab giorni: restano in alto durante lo scroll --------------------- */
+.agenda-giorni {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bs-body-bg);
+    padding: .25rem 0;
+}
+
+.agenda-giorni .nav-link {
+    position: relative;
+    border-radius: .5rem;
+    padding: .4rem .25rem;
+    line-height: 1.15;
+}
+
+.agenda-giorno-label {
+    font-weight: 600;
+}
+
+/* Badge conteggio nell'angolo del tab */
+.agenda-giorno-badge {
+    position: absolute;
+    top: .15rem;
+    right: .35rem;
+    font-size: .65rem;
+}
+
+.agenda-giorni .nav-link.active .agenda-giorno-badge {
+    background: rgba(255, 255, 255, .85) !important;
+    color: var(--bs-primary) !important;
+}
+
+.agenda-giorni .nav-link.active .text-muted {
+    color: rgba(255, 255, 255, .85) !important;
+}
+
+/* --- Card intervento -------------------------------------------------- */
+.agenda-card {
+    border-left: 4px solid var(--bs-primary);
+}
+
+.agenda-ora {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.agenda-cliente {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: .1rem;
+}
+
+.agenda-cliente:hover {
+    text-decoration: underline;
+}
+
+.agenda-indirizzo {
+    font-size: .9rem;
+    margin-top: .1rem;
+}
+
+/* --- Materiali da portare --------------------------------------------- */
+.agenda-materiali {
+    background: var(--bs-secondary-bg);
+    border-radius: .5rem;
+    padding: .5rem .65rem;
+}
+
+.agenda-materiali-titolo {
+    font-size: .8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    color: var(--bs-secondary-color);
+    margin-bottom: .25rem;
+}
+
+.agenda-materiali-lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: .9rem;
+}
+
+.agenda-materiali-lista li {
+    padding: .1rem 0;
+}
+
+.agenda-mat-qta {
+    display: inline-block;
+    min-width: 2.2em;
+    font-weight: 600;
+    color: var(--bs-primary);
+}
+
+/* --- Azioni: bottoni grandi e toccabili ------------------------------- */
+.agenda-azioni {
+    display: flex;
+    gap: .5rem;
+}
+
+.agenda-azioni .btn {
+    flex: 1;
+    padding: .45rem;
+}
+
+/* --- Mappa Leaflet nel modal ------------------------------------------ */
+#mappaTecnico {
+    height: 60vh;
+    max-height: 420px;
+    width: 100%;
+}

@@ -1,5 +1,20 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.19.0] - 2026-06-28
+
+### Adattamento mobile
+
+- [APP] **Dashboard tecnico** dedicata e ottimizzata per smartphone: agenda dei prossimi 3 giorni (Oggi / Domani / Dopodomani) con orario, cliente, indirizzo e materiali da portare; pulsante mappa che mostra la posizione del cliente (OpenStreetMap) con collegamento a Google Maps per la navigazione; sezione urgenti da pianificare. I tecnici "puri" vengono indirizzati direttamente a questa vista
+- [APP] **Sidebar ridotta per i tecnici**: chi ha solo il ruolo tecnico vede unicamente Dashboard, Clienti, Calendario e Interventi
+- [APP] **Liste responsive**: le tabelle di Clienti, Interventi e Articoli su smartphone collassano le colonne meno importanti in una riga espandibile (tocca il `+`), restando leggibili senza sforare lo schermo
+- [APP] **Filtri** delle liste (scheda cliente e interventi) adattati a mobile: vanno a capo ordinatamente invece di sforare
+- [APP] **Calendario** su mobile: vista Giorno con barra essenziale (frecce + data); il pannello "Da pianificare" è comprimibile a icona su desktop e nascosto su mobile (si pianifica aprendo l'intervento)
+- [APP] **Calendario**: tooltip esplicativo sulla fascia "Scadenze aperte" che chiarisce quali interventi mostra
+- [APP] **Foglio di viaggio**: tabella scrollabile orizzontalmente su mobile
+- [DEV] Estensione **DataTables Responsive** (`datatables.net-responsive-bs5`) con priorità colonne configurate per lista; asset DataTables centralizzati in partial condivisi (`partials/datatables_styles`, `partials/datatables_scripts`)
+- [DEV] Helper `acl` con `is_solo_tecnico()` per la logica di visibilità basata sui gruppi, riusato in `DashboardController` e nel layout
+- [DEV] `DashboardController::agendaTecnico()` costruisce l'agenda a 3 giorni con materiali e coordinate in query aggregate
+
 ## [0.18.1] - 2026-06-27
 
 ### Leaflet — dipendenza frontend

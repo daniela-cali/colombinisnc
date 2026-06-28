@@ -7,7 +7,7 @@ $this->extend('layouts/admin');
 <?= $this->section('title') ?>Clienti<?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
+<?= $this->include('partials/datatables_styles') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('breadcrumb') ?>
@@ -132,9 +132,7 @@ $this->extend('layouts/admin');
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
+<?= $this->include('partials/datatables_scripts') ?>
 <script>
 $(function () {
     $('#tabella-clienti').DataTable({
@@ -147,10 +145,13 @@ $(function () {
             zeroRecords:  'Nessun risultato trovato',
             paginate: { first: '«', last: '»', next: '›', previous: '‹' }
         },
+        responsive: true,
         orderMulti: true,
         pageLength:  25,
         columnDefs: [
-            { orderable: false, targets: [-1] },
+            { orderable: false, targets: [-1], responsivePriority: 2 },
+            { responsivePriority: 1, targets: 1 },
+            { responsivePriority: 3, targets: 4 },
             // type:'num' + orderSequence: le colonne con data-order numerico vengono auto-rilevate come 'html'
             // dai badge, il che inverte la sequenza di ordinamento (desc prima) rispetto alle colonne testo.
             { className: 'text-center', type: 'num', orderSequence: ['asc', 'desc'], targets: [2, 5] }

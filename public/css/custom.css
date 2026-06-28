@@ -471,3 +471,38 @@
 table.dataTable th.dt-type-numeric.text-center div.dt-column-header {
     flex-direction: row;
 }
+
+/* --- Barra filtri a bottoni (riusabile) ----------------------------------
+   Desktop: i filtri vanno a capo, "nuovo" allineato a destra.
+   Mobile (<576px): i filtri vanno a capo su più righe e il bottone d'azione
+   passa full-width sotto. (.filtri-scroll è storico: non scrolla, fa wrap.) */
+.filtri-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+}
+
+.filtri-scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.filtri-nuovo {
+    margin-left: auto;
+}
+
+@media (max-width: 575.98px) {
+    /* Su mobile la barra diventa block: i filtri (.filtri-scroll, flex-wrap dalla
+       regola base) vanno a capo ordinatamente e "nuovo" si impila full-width sotto. */
+    .filtri-bar {
+        display: block;
+    }
+
+    .filtri-nuovo {
+        display: block;
+        width: 100%;
+        margin: .5rem 0 0;
+    }
+}

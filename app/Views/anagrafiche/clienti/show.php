@@ -42,7 +42,7 @@ $statoBadge = [
 <?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
+<?= $this->include('partials/datatables_styles') ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
 <?= $this->endSection() ?>
 
@@ -273,28 +273,30 @@ $statoBadge = [
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
 
-                <div class="mb-3 d-flex gap-2 flex-wrap align-items-center">
-                    <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
-                        <i class="bi bi-folder2-open me-1"></i>Da pianificare
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" data-filtro="pianificati">
-                        <i class="bi bi-calendar-check me-1"></i>Pianificati
-                    </button>
-                    <button class="btn btn-sm btn-outline-success" data-filtro="completati">
-                        <i class="bi bi-check-circle me-1"></i>Completati
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
-                        <i class="bi bi-x-circle me-1"></i>Annullati
-                    </button>
-                    <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
-                        <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
-                        Tutti (<?= count($interventi) ?>)
-                    </button>
+                <div class="mb-3 filtri-bar">
+                    <div class="filtri-scroll">
+                        <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
+                            <i class="bi bi-folder2-open me-1"></i>Da pianificare
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" data-filtro="pianificati">
+                            <i class="bi bi-calendar-check me-1"></i>Pianificati
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" data-filtro="completati">
+                            <i class="bi bi-check-circle me-1"></i>Completati
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
+                            <i class="bi bi-x-circle me-1"></i>Annullati
+                        </button>
+                        <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
+                            <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
+                            Tutti (<?= count($interventi) ?>)
+                        </button>
+                    </div>
                     <a href="<?= base_url('operativo/interventi/nuovo?cliente_id=' . $cliente['id']
                         . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi')) ?>"
-                       class="btn btn-sm btn-outline-success ms-auto">
+                       class="btn btn-sm btn-outline-success filtri-nuovo">
                         <i class="bi bi-plus-lg me-1"></i>Nuovo intervento
                     </a>
                 </div>
@@ -566,9 +568,7 @@ $statoBadge = [
 
 <?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
+<?= $this->include('partials/datatables_scripts') ?>
 <script>
 // Tom Select — form materiali sospesi
 (function () {
@@ -600,12 +600,15 @@ $statoBadge = [
 $(function () {
     // DataTable interventi
     var table = $('#tbl-interventi').DataTable({
+        responsive: true,
         pageLength: 10,
         order: [[5, 'desc']],
         columnDefs: [
             { targets: [5, 6], className: 'text-start', type: 'string' },
             { targets: [8, 9], visible: false },
-            { targets: 10, orderable: false, searchable: false }
+            { targets: 10, orderable: false, searchable: false, responsivePriority: 2 },
+            { targets: 0, responsivePriority: 1 },
+            { targets: 7, responsivePriority: 3 }
         ],
         language: {
             emptyTable:   'Nessun intervento registrato.',

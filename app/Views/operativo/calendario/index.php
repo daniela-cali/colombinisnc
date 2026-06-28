@@ -35,15 +35,18 @@ $prioritaInfo = [
 
 <div id="cal-layout">
 
-    <!-- Pool sidebar -->
+    <!-- Pool sidebar: comprimibile a sola icona su desktop, nascosta su mobile -->
     <div id="pool-panel">
         <div class="card card-primary">
-            <div class="card-header py-2">
-                <h3 class="card-title">
+            <div class="card-header py-2 d-flex align-items-center justify-content-between" id="pool-header" title="Comprimi / espandi">
+                <h3 class="card-title mb-0">
                     <i class="bi bi-inbox me-1"></i>
-                    Da pianificare
+                    <span class="pool-label">Da pianificare</span>
                     <span class="badge bg-primary ms-1" id="pool-count"><?= count($pool) ?></span>
                 </h3>
+                <button type="button" class="btn btn-sm p-0 border-0 bg-transparent text-reset pool-label" id="btn-pool-toggle" aria-label="Comprimi pannello">
+                    <i class="bi bi-chevron-double-left"></i>
+                </button>
             </div>
             <div class="card-body p-2">
                 <p class="small text-muted mb-2 px-1">
@@ -174,8 +177,11 @@ $prioritaInfo = [
 
         <?php if (!empty($scadenze)): ?>
         <div class="alert alert-warning py-2 mb-2 d-flex align-items-center flex-wrap gap-2">
-            <small class="fw-bold text-nowrap">
+            <small class="fw-bold text-nowrap" style="cursor:help;"
+                   data-bs-toggle="tooltip" data-bs-placement="top"
+                   data-bs-title="Interventi con una data di scadenza ancora da completare: tutti quelli singoli e, dagli abbonamenti, solo quelli in scadenza entro questo mese. Clicca un badge per aprire l'intervento.">
                 <i class="bi bi-clock me-1"></i>Scadenze aperte:
+                <i class="bi bi-info-circle ms-1"></i>
             </small>
             <?php foreach ($scadenze as $s): ?>
             <a href="<?= base_url('operativo/interventi/' . $s['id']) ?>"
@@ -466,10 +472,15 @@ document.addEventListener('DOMContentLoaded', function () {
     var modalIntervento = new bootstrap.Modal(document.getElementById('modalIntervento'));
 
     // ---- FullCalendar ----
+    var isMobile = window.innerWidth < 768;
     var calendar = new FullCalendar.Calendar(document.getElementById('calendario'), {
         locale: 'it',
-        initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
-        headerToolbar: {
+        initialView: isMobile ? 'timeGridDay' : 'timeGridWeek',
+        headerToolbar: isMobile ? {
+            left:   'prev,next',
+            center: 'title',
+            right:  '',
+        } : {
             left:   'prev,next today',
             center: 'title',
             right:  'timeGridDay,timeGridWeek,dayGridMonth',
@@ -647,6 +658,20 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.style.userSelect = '';
         localStorage.setItem('pool-sidebar-width', poolPanel.offsetWidth);
     });
+
+    // ---- Pool comprimibile a sola icona (toggle sull'header) ----
+    var poolHeader = document.getElementById('pool-header');
+    if (poolHeader) {
+        if (localStorage.getItem('pool-mini') === '1') {
+            poolPanel.classList.add('pool-mini');
+            calendar.updateSize();
+        }
+        poolHeader.addEventListener('click', function () {
+            var mini = poolPanel.classList.toggle('pool-mini');
+            localStorage.setItem('pool-mini', mini ? '1' : '0');
+            calendar.updateSize();
+        });
+    }
 });
 </script>
 <?= $this->endSection() ?>

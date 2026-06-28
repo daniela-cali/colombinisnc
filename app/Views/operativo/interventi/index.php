@@ -24,7 +24,7 @@ $prioritaBadge = [
 <?= $this->section('title') ?><?= esc($sezioneLabel) ?><?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
+<?= $this->include('partials/datatables_styles') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('breadcrumb') ?>
@@ -49,7 +49,7 @@ $prioritaBadge = [
                 </div>
             </div>
             <div class="card-body">
-                <div class="mb-3 d-flex gap-2 flex-wrap">
+                <div class="mb-3 filtri-scroll">
                     <button class="btn btn-sm btn-outline-warning" data-filtro="da_pianificare">
                         <i class="bi bi-hourglass-split me-1"></i>Da pianificare
                     </button>
@@ -191,9 +191,7 @@ $prioritaBadge = [
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
+<?= $this->include('partials/datatables_scripts') ?>
 <script>
 $(function () {
 
@@ -207,19 +205,20 @@ $(function () {
             zeroRecords:  'Nessun risultato trovato',
             paginate: { first: '«', last: '»', next: '›', previous: '‹' }
         },
+        responsive: true,
         orderMulti: true,
         pageLength:  25,
         order:       [[4, 'desc']],
         columnDefs: [
         { name: 'codice', targets: 0 },
-        { name: 'cliente', targets: 1 },
+        { name: 'cliente', targets: 1, responsivePriority: 1 },
         { name: 'tipo', targets: 2 },
-        { name: 'stato', targets: 3, searchable: false, orderable: false },
-        { name: 'dt_pianificata', targets: 4, searchable: false },
+        { name: 'stato', targets: 3, searchable: false, orderable: false, responsivePriority: 3 },
+        { name: 'dt_pianificata', targets: 4, searchable: false, responsivePriority: 4 },
         { name: 'dt_scadenza', targets: 5, searchable: false },
         { name: 'tecnico', targets: 6 },
         { name: 'urgenza', targets: 7 },
-        { name: 'edit', targets: 8, searchable: false, orderable: false },
+        { name: 'edit', targets: 8, searchable: false, orderable: false, responsivePriority: 2 },
         { 
             name: 'filter_stato', 
             targets: 9, 
