@@ -33,6 +33,48 @@
     min-width: 0; /* evita overflow in flexbox */
 }
 
+/* Pool compresso a sola icona (desktop) — analogo al collapse della sidebar AdminLTE */
+#pool-panel.pool-mini {
+    width: 46px;
+    min-width: 46px;
+}
+#pool-panel.pool-mini .pool-label,
+#pool-panel.pool-mini #pool-count,
+#pool-panel.pool-mini .card-body {
+    display: none;
+}
+#pool-panel.pool-mini .card-header {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+#pool-panel.pool-mini .card-title {
+    margin: 0;
+}
+#pool-panel.pool-mini .card-title .bi-inbox {
+    margin: 0 !important;
+}
+/* Header sempre cliccabile: fa da toggle comprimi/espandi */
+#pool-header {
+    cursor: pointer;
+}
+/* Quando compresso non ha senso il ridimensionamento */
+#pool-panel.pool-mini + #resize-handle {
+    display: none;
+}
+
+/* Mobile: niente pool né handle, calendario a tutta larghezza.
+   Si pianifica dalla scheda intervento. */
+@media (max-width: 767.98px) {
+    #cal-layout {
+        display: block;
+    }
+    #pool-panel,
+    #resize-handle {
+        display: none;
+    }
+}
+
 /* Pool — stato vuoto */
 .pool-empty {
     text-align: center;

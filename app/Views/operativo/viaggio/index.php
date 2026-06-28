@@ -40,7 +40,7 @@ $dataLabel = $giorni[date('w', $ts)] . ' ' . date('j', $ts) . ' ' . $mesi[(int) 
 ?>
 
 <!-- Barra navigazione data -->
-<div class="d-flex align-items-center gap-3 mb-4 no-print">
+<div class="d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-4 no-print">
     <a href="<?= base_url('operativo/viaggi?data=' . $dataPrecedente) ?>"
        class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-chevron-left"></i>
@@ -95,6 +95,7 @@ $dataLabel = $giorni[date('w', $ts)] . ' ' . date('j', $ts) . ' ' . $mesi[(int) 
         <span class="badge bg-black bg-opacity-25"><?= count($interventi) ?> interventi</span>
     </div>
 
+    <div class="table-responsive">
     <table class="table table-sm table-bordered mb-0 viaggio-table">
         <thead class="table-light">
             <tr>
@@ -167,6 +168,7 @@ $dataLabel = $giorni[date('w', $ts)] . ' ' . date('j', $ts) . ' ' . $mesi[(int) 
         <?php endforeach ?>
         </tbody>
     </table>
+    </div>
 
 </div>
 <?php endforeach ?>

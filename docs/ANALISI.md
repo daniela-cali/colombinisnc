@@ -378,6 +378,15 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Fix: `COALESCE(ragsoc, TRIM(CONCAT_WS(' ', cognome, nome)))` per denominazione cliente; fix validazione `data_pianificata` a `valid_date[Y-m-d\TH:i]` + conversione `T`→spazio in `normalizza()`
 - *Rimandato a versione futura: presenze/assenze tecnici; report PDF interventi/abbonamenti; statistiche interventi per tipo/periodo*
 
+#### ✅ v0.19.0 — Adattamento mobile
+- **Dashboard tecnico mobile**: agenda dei prossimi 3 giorni (oggi/domani/dopodomani) con orario, cliente, indirizzo, materiali da portare e mappa Leaflet (OpenStreetMap) con link a Google Maps; i tecnici "puri" vengono indirizzati a questa vista
+- **Sidebar role-aware**: i tecnici puri vedono solo Dashboard, Clienti, Calendario, Interventi (helper `acl::is_solo_tecnico()`)
+- **Tabelle responsive**: estensione DataTables Responsive (colonne collassabili) su Clienti, Interventi, Articoli; asset DataTables centralizzati in partial condivisi
+- **Filtri liste** adattati a mobile (wrap invece di sforare)
+- **Calendario mobile**: vista Giorno, barra essenziale, pool comprimibile a icona (desktop) e nascosto (mobile); tooltip esplicativo su "Scadenze aperte"
+- **Foglio di viaggio**: tabella scrollabile su mobile
+- *Nota: pianificazione da mobile via scheda intervento; il pool drag&drop resta desktop. Adattamento completo mobile-first rimandato al Portale tecnici (vedi 7.1.1)*
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

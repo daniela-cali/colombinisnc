@@ -29,10 +29,12 @@
 
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 <?php
+helper('acl');
 $_isDevMode      = (bool) array_intersect(['developer', 'admin'], auth()->user()->getGroups());
 $_cl             = changelog_data($_isDevMode);
 $_versioneUtente = auth()->user()->ultima_versione_vista ?? '';
 $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl['versioneCorrente'];
+$_soloTecnico    = is_solo_tecnico();
 ?>
 <div class="app-wrapper">
 
@@ -100,12 +102,14 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                     </li>
 
                     <li class="nav-header">Anagrafiche</li>
+                    <?php if (! $_soloTecnico): ?>
                     <li class="nav-item">
                         <a href="<?= base_url('anagrafiche/personale') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/personale') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-people"></i>
                             <p>Personale</p>
                         </a>
                     </li>
+                    <?php endif ?>
                     <li class="nav-item">
                         <a href="<?= base_url('anagrafiche/clienti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/clienti') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-person-lines-fill"></i>
@@ -149,6 +153,7 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                             <?php endforeach ?>
                         </ul>
                     </li>
+                    <?php if (! $_soloTecnico): ?>
                     <li class="nav-item">
                         <a href="<?= base_url('abbonamenti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'abbonamenti') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-file-earmark-text"></i>
@@ -177,6 +182,7 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
                             <p>Impostazioni</p>
                         </a>
                     </li>
+                    <?php endif ?>
 
                 </ul>
             </nav>

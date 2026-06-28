@@ -7,7 +7,7 @@ $this->extend('layouts/admin');
 <?= $this->section('title') ?>Articoli<?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
+<?= $this->include('partials/datatables_styles') ?>
 <?= $this->endSection() ?>
 
 <?= $this->section('breadcrumb') ?>
@@ -92,9 +92,7 @@ $this->extend('layouts/admin');
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/vendor/jquery/jquery.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.js') ?>"></script>
+<?= $this->include('partials/datatables_scripts') ?>
 <script>
 $(function () {
     $('#tabella-articoli').DataTable({
@@ -107,9 +105,14 @@ $(function () {
             zeroRecords:  'Nessun risultato trovato',
             paginate: { first: '«', last: '»', next: '›', previous: '‹' }
         },
+        responsive: true,
         pageLength: 25,
         order: [[2, 'asc'], [1, 'asc']],
-        columnDefs: [{ orderable: false, targets: [-1] }]
+        columnDefs: [
+            { orderable: false, targets: [-1], responsivePriority: 2 },
+            { responsivePriority: 1, targets: 1 },
+            { responsivePriority: 3, targets: 6 }
+        ]
     });
 });
 </script>

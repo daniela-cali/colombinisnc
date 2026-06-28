@@ -53,6 +53,10 @@ class AssetsPublish extends BaseCommand
             ['label' => 'DataTables RowGroup BS5 JS',  'src' => 'node_modules/datatables.net-rowgroup-bs5/js',    'dest' => 'datatables',            'pattern' => 'rowGroup.bootstrap5.min.js'],
             ['label' => 'DataTables RowGroup BS5 CSS', 'src' => 'node_modules/datatables.net-rowgroup-bs5/css',   'dest' => 'datatables',            'pattern' => 'rowGroup.bootstrap5.min.css'],
 
+            ['label' => 'DataTables Responsive JS',     'src' => 'node_modules/datatables.net-responsive/js',        'dest' => 'datatables',          'pattern' => 'dataTables.responsive.min.js'],
+            ['label' => 'DataTables Responsive BS5 JS',  'src' => 'node_modules/datatables.net-responsive-bs5/js',    'dest' => 'datatables',          'pattern' => 'responsive.bootstrap5.min.js'],
+            ['label' => 'DataTables Responsive BS5 CSS', 'src' => 'node_modules/datatables.net-responsive-bs5/css',   'dest' => 'datatables',          'pattern' => 'responsive.bootstrap5.min.css'],
+
             ['label' => 'Font Awesome CSS',      'src' => 'node_modules/@fortawesome/fontawesome-free/css',      'dest' => 'fontawesome',          'pattern' => 'all.min.css'],
             ['label' => 'Font Awesome webfonts', 'src' => 'node_modules/@fortawesome/fontawesome-free/webfonts', 'dest' => 'webfonts',            'pattern' => '*.woff2'],
 
