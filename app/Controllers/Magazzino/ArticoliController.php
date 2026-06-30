@@ -14,7 +14,8 @@ class ArticoliController extends BaseController
     public function index(): string
     {
         return view('magazzino/articoli/index', [
-            'articoli' => (new ArticoliModel())->elencoCompleto(),
+            'articoli'     => (new ArticoliModel())->elencoCompleto(),
+            'help_sezione' => 'articoli',
         ]);
     }
 

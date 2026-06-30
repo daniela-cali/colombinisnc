@@ -36,6 +36,7 @@ class DashboardController extends BaseController
             'abbonamenti' => [],
             'mieiOggi'    => [],
             'mieiUrgenti' => [],
+            'help_sezione' => 'dashboard',
         ];
 
         if ($isAdmin || $isUfficio) {
@@ -137,7 +138,7 @@ class DashboardController extends BaseController
         }
 
         if (! $myPersonale) {
-            return view('dashboard/tecnico', ['giorni' => $giorni, 'urgenti' => []]);
+            return view('dashboard/tecnico', ['giorni' => $giorni, 'urgenti' => [], 'help_sezione' => 'dashboard_tecnico']);
         }
         $myId = $myPersonale['id'];
 
@@ -194,6 +195,6 @@ class DashboardController extends BaseController
             ->orderBy('interventi.data_scadenza', 'ASC')
             ->findAll();
 
-        return view('dashboard/tecnico', ['giorni' => $giorni, 'urgenti' => $urgenti]);
+        return view('dashboard/tecnico', ['giorni' => $giorni, 'urgenti' => $urgenti, 'help_sezione' => 'dashboard_tecnico']);
     }
 }

@@ -34,6 +34,7 @@ class InterventiController extends BaseController
             'statiLabel'    => InterventiModel::STATI_LABEL,
             'sezione'       => $sezione,
             'sezioneLabel'  => $categorie[$sezione],
+            'help_sezione'  => 'interventi',
         ]);
     }
 

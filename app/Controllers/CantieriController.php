@@ -86,7 +86,6 @@ class CantieriController extends BaseController
             'statiBadge'           => CantieriModel::STATI_BADGE,
             'interventiStatiLabel' => InterventiModel::STATI_LABEL,
             'interventiBadge'      => InterventiModel::STATI_BADGE,
-            'help_sezione'         => 'cantieri',
         ]);
     }
 

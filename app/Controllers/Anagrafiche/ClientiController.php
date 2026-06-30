@@ -19,7 +19,8 @@ class ClientiController extends BaseController
     public function index(): string
     {
         return view('anagrafiche/clienti/index', [
-            'clienti' => (new ClientiModel())->elencoCompleto(),
+            'clienti'      => (new ClientiModel())->elencoCompleto(),
+            'help_sezione' => 'clienti',
         ]);
     }
 

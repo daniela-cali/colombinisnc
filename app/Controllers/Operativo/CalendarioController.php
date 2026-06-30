@@ -61,6 +61,7 @@ class CalendarioController extends BaseController
             'zoneLabel'  => $zoneLabel,
             'scadenze'   => $scadenze,
             'oraInizio'  => '08:00',
+            'help_sezione' => 'calendario',
         ]);
     }
 

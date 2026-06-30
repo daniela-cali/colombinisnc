@@ -29,7 +29,8 @@ class PersonaleController extends BaseController
     public function index(): string
     {
         return view('anagrafiche/personale/index', [
-            'personale' => (new PersonaleModel())->elencoCompleto(),
+            'personale'    => (new PersonaleModel())->elencoCompleto(),
+            'help_sezione' => 'personale',
         ]);
     }
 

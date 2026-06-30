@@ -11,7 +11,7 @@ class GeneraleController extends BaseController
      */
     public function index(): string
     {
-        return view('impostazioni/index');
+        return view('impostazioni/index', ['help_sezione' => 'impostazioni']);
     }
 
     /**

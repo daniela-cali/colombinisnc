@@ -33,10 +33,20 @@
     min-width: 0; /* evita overflow in flexbox */
 }
 
-/* Pool compresso a sola icona (desktop) — analogo al collapse della sidebar AdminLTE */
+/* Pool compresso: il pannello si riduce a un piccolo bottone-icona in alto.
+   Niente barra colorata a tutta larghezza: sparisce la card, resta solo l'header
+   reso a pulsante. Il pannello occupa lo spazio necessario all'icona e il
+   calendario riprende il resto della larghezza. */
 #pool-panel.pool-mini {
-    width: 46px;
-    min-width: 46px;
+    width: auto;
+    min-width: 0;
+    flex: 0 0 auto;
+}
+#pool-panel.pool-mini .card {
+    display: inline-block;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
 }
 #pool-panel.pool-mini .pool-label,
 #pool-panel.pool-mini #pool-count,
@@ -44,15 +54,21 @@
     display: none;
 }
 #pool-panel.pool-mini .card-header {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
+    padding: .45rem .55rem;
+    border-radius: var(--bs-border-radius);
+    background: var(--bs-primary);
+    color: #fff;
+    line-height: 1;
 }
 #pool-panel.pool-mini .card-title {
     margin: 0;
 }
 #pool-panel.pool-mini .card-title .bi-inbox {
     margin: 0 !important;
+    font-size: 1.15rem;
 }
 /* Header sempre cliccabile: fa da toggle comprimi/espandi */
 #pool-header {

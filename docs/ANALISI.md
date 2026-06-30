@@ -387,6 +387,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - **Foglio di viaggio**: tabella scrollabile su mobile
 - *Nota: pianificazione da mobile via scheda intervento; il pool drag&drop resta desktop. Adattamento completo mobile-first rimandato al Portale tecnici (vedi 7.1.1)*
 
+#### ✅ v0.20.0 — Guida contestuale
+- **Sistema di help per sezione**: pulsante `?` nella navbar che apre, in un modal (fullscreen su mobile), la guida della sezione corrente; compare solo se esiste `app/Views/help/<sezione>.php`. Il layout legge `$help_sezione` passato dal solo `index()` di ogni controller
+- **Guide scritte** per: dashboard (ufficio e tecnico), personale, clienti, calendario, interventi, abbonamenti, cantieri, articoli, impostazioni
+- **Fix changelog/novità**: convertitore Markdown inline (`changelog_inline()`) per grassetto/corsivo/`code` nelle voci (prima compariva la sintassi `**...**`)
+- **Calendario**: pool compresso ridotto a pulsante-icona invece che a barra larga; la larghezza inline del resize non sovrascrive più lo stato compresso
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

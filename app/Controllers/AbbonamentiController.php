@@ -22,6 +22,7 @@ class AbbonamentiController extends BaseController
             'statiLabel'  => AbbonamentiModel::STATI_LABEL,
             'statiBadge'  => AbbonamentiModel::STATI_BADGE,
             'frequenze'   => AbbonamentiModel::FREQUENZE_LABEL,
+            'help_sezione' => 'abbonamenti',
         ]);
     }
 

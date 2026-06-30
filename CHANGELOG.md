@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.20.0] - 2026-06-30
+
+### Guida contestuale
+
+- [APP] **Guida di sezione**: nuovo pulsante `?` in alto a destra che apre la guida della sezione in cui ti trovi, in una finestra dedicata (a tutto schermo su smartphone). Il pulsante compare solo nelle sezioni che hanno una guida. Sezioni documentate: **Dashboard** (ufficio e tecnico), **Personale**, **Clienti**, **Calendario**, **Interventi**, **Abbonamenti**, **Cantieri**, **Articoli**, **Impostazioni**
+- [APP] **Changelog e Novità**: il testo in **grassetto** viene ora mostrato correttamente (prima compariva la sintassi `**...**`)
+- [APP] **Calendario**: il pannello "Da pianificare", quando compresso, si riduce a un piccolo pulsante-icona invece di restare una barra larga, liberando spazio per il calendario
+- [DEV] Sistema help: il layout legge `$help_sezione` (passato dal solo `index()` di ogni controller) e include `app/Views/help/<sezione>.php` se esiste; convertitore Markdown inline (`changelog_inline()`) per grassetto/corsivo/`code` nelle voci di changelog
+- [DEV] Calendario: la larghezza inline del pool (resize) viene azzerata in stato compresso per non sovrascrivere il `width: auto` del CSS, e ripristinata alla riespansione
+
 ## [0.19.0] - 2026-06-28
 
 ### Adattamento mobile

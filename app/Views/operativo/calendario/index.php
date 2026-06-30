@@ -639,7 +639,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var poolPanel    = document.getElementById('pool-panel');
     var resizeHandle = document.getElementById('resize-handle');
     var savedW       = localStorage.getItem('pool-sidebar-width');
-    if (savedW) poolPanel.style.width = savedW + 'px';
+    var startMini    = localStorage.getItem('pool-mini') === '1';
+    // In mini la larghezza è data dal CSS (auto): non applicare l'inline width,
+    // altrimenti vincerebbe sul foglio di stile e il pannello resterebbe largo.
+    if (savedW && !startMini) poolPanel.style.width = savedW + 'px';
     var resizing = false, startX, startW;
     resizeHandle.addEventListener('mousedown', function (e) {
         resizing = true; startX = e.clientX; startW = poolPanel.offsetWidth;
@@ -662,13 +665,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // ---- Pool comprimibile a sola icona (toggle sull'header) ----
     var poolHeader = document.getElementById('pool-header');
     if (poolHeader) {
-        if (localStorage.getItem('pool-mini') === '1') {
+        if (startMini) {
             poolPanel.classList.add('pool-mini');
             calendar.updateSize();
         }
         poolHeader.addEventListener('click', function () {
             var mini = poolPanel.classList.toggle('pool-mini');
             localStorage.setItem('pool-mini', mini ? '1' : '0');
+            // Comprimendo lascio decidere il CSS (width auto); riespandendo
+            // ripristino la larghezza salvata dal resize, se presente.
+            if (mini) {
+                poolPanel.style.width = '';
+            } else {
+                var w = localStorage.getItem('pool-sidebar-width');
+                poolPanel.style.width = w ? w + 'px' : '';
+            }
             calendar.updateSize();
         });
     }

@@ -1,5 +1,23 @@
 <?php
 
+if (! function_exists('changelog_inline')) {
+    /**
+     * Converte l'enfasi inline Markdown di una singola voce di changelog in HTML.
+     * L'escape di sicurezza viene fatto PRIMA: gli asterischi e i backtick
+     * sopravvivono a htmlspecialchars, così le regex agiscono su testo già sicuro.
+     * Gestisce solo inline (`code`, **grassetto**, *corsivo*), non blocchi.
+     */
+    function changelog_inline(string $text): string
+    {
+        $s = htmlspecialchars($text);
+        $s = preg_replace('/`([^`]+)`/', '<code>$1</code>', $s);
+        $s = preg_replace('/\*\*(.+?)\*\*/', '<strong>$1</strong>', $s);
+        $s = preg_replace('/\*(.+?)\*/', '<em>$1</em>', $s);
+
+        return $s;
+    }
+}
+
 if (! function_exists('changelog_to_html')) {
     /**
      * Converte il markdown del CHANGELOG in HTML raggruppando per categoria [APP]/[DEV].
@@ -24,14 +42,14 @@ if (! function_exists('changelog_to_html')) {
             if ($appItems) {
                 $html .= '<p class="small fw-semibold text-muted mb-1">Applicazione</p><ul class="mb-2">';
                 foreach ($appItems as $i) {
-                    $html .= '<li>' . htmlspecialchars($i) . '</li>';
+                    $html .= '<li>' . changelog_inline($i) . '</li>';
                 }
                 $html .= '</ul>';
             }
             if ($isDevMode && $devItems) {
                 $html .= '<p class="small fw-semibold text-muted mb-1">Sviluppo</p><ul class="mb-2">';
                 foreach ($devItems as $i) {
-                    $html .= '<li>' . htmlspecialchars($i) . '</li>';
+                    $html .= '<li>' . changelog_inline($i) . '</li>';
                 }
                 $html .= '</ul>';
             }

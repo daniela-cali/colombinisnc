@@ -35,6 +35,7 @@ $_cl             = changelog_data($_isDevMode);
 $_versioneUtente = auth()->user()->ultima_versione_vista ?? '';
 $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl['versioneCorrente'];
 $_soloTecnico    = is_solo_tecnico();
+$_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $help_sezione . '.php')) ? $help_sezione : null;
 ?>
 <div class="app-wrapper">
 
@@ -49,6 +50,13 @@ $_soloTecnico    = is_solo_tecnico();
                 </li>
             </ul>
             <ul class="navbar-nav ms-auto">
+                <?php if ($_helpFile): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#modalHelp" title="Guida di questa sezione">
+                        <i class="bi bi-question-circle"></i>
+                    </a>
+                </li>
+                <?php endif ?>
                 <li class="nav-item">
                     <a class="nav-link" href="#" id="themeToggle" title="Cambia tema">
                         <i class="bi bi-moon-fill" id="themeIcon"></i>
@@ -268,6 +276,23 @@ $_soloTecnico    = is_solo_tecnico();
         </div>
     </div>
 </div>
+
+<?php if ($_helpFile): ?>
+<div class="modal fade" id="modalHelp" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="bi bi-question-circle me-2"></i>Guida</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body help-content"><?= $this->include('help/' . $_helpFile) ?></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif ?>
 
 <script src="<?= base_url('assets/vendor/popper/popper.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
