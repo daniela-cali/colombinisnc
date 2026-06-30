@@ -21,7 +21,8 @@ class UtentiController extends BaseController
     public function utentiApp(): string
     {
         return view('impostazioni/utenti_app', [
-            'utenti' => (new UserModel())->tuttiConGruppi(),
+            'utenti'       => (new UserModel())->tuttiConGruppi(),
+            'help_sezione' => 'utenti',
         ]);
     }
 

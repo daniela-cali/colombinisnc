@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.20.1] - 2026-06-30
+
+### Guida — sotto-sezioni
+
+- [APP] **Guida** aggiunta anche per **Tipi intervento**, **Categorie articoli** e **Utenti** (Impostazioni) e per il **Foglio di viaggio**
+- [DEV] `help_sezione` agganciato all'`index()` di `TipiInterventoController`, `CategorieArticoliController`, `UtentiController::utentiApp()` e `ViaggioController::index()`
+
 ## [0.20.0] - 2026-06-30
 
 ### Guida contestuale

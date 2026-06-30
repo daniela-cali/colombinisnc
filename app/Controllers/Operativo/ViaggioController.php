@@ -28,6 +28,7 @@ class ViaggioController extends BaseController
             'zoneLabel'              => $zoneLabel,
             'totale'                 => $totale,
             'materialiPerIntervento' => $materialiPerIntervento,
+            'help_sezione'           => 'viaggio',
         ]);
     }
 

@@ -19,6 +19,7 @@ class CategorieArticoliController extends BaseController
         return view('impostazioni/categorie_articoli/index', [
             'categorie'      => $categorie,
             'prossimoOrdine' => $prossimoOrdine,
+            'help_sezione'   => 'categorie_articoli',
         ]);
     }
 

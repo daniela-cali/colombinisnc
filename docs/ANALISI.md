@@ -393,6 +393,9 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - **Fix changelog/novità**: convertitore Markdown inline (`changelog_inline()`) per grassetto/corsivo/`code` nelle voci (prima compariva la sintassi `**...**`)
 - **Calendario**: pool compresso ridotto a pulsante-icona invece che a barra larga; la larghezza inline del resize non sovrascrive più lo stato compresso
 
+#### ✅ v0.20.1 — Guida sotto-sezioni
+- Guide aggiunte per le sotto-pagine di Impostazioni (Tipi intervento, Categorie articoli, Utenti) e per il Foglio di viaggio; `help_sezione` sui rispettivi `index()`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

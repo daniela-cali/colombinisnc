@@ -13,8 +13,9 @@ class TipiInterventoController extends BaseController
     public function index(): string
     {
         return view('impostazioni/tipi_intervento/index', [
-            'tipi'      => (new TipiInterventoModel())->tutti(),
-            'categorie' => TipiInterventoModel::CATEGORIE_LABEL,
+            'tipi'         => (new TipiInterventoModel())->tutti(),
+            'categorie'    => TipiInterventoModel::CATEGORIE_LABEL,
+            'help_sezione' => 'tipi_intervento',
         ]);
     }
 
