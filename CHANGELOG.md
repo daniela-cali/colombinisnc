@@ -1,5 +1,20 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.0] - 2026-07-01
+
+### Promemoria e avvisi
+
+- [APP] **Promemoria**: nuovi eventi aziendali ad-hoc con data e ora (es. "Cliente arriva/chiede di aprire"), gestibili dall'ufficio direttamente dal **Calendario** (pulsante "+ Promemoria", con creazione/modifica/eliminazione). Compaiono come eventi viola sul calendario; i tecnici li vedono in sola lettura
+- [APP] **Campanella avvisi** in alto a destra: elenca i promemoria in arrivo divisi in "Questa settimana" e "Prossimi giorni", con un contatore di quelli imminenti; ogni voce apre il calendario sul giorno del promemoria
+- [APP] **Dashboard** riorganizzata: riga di contatori sintetici (interventi oggi, urgenti, promemoria, abbonamenti), card con l'elenco degli **interventi di oggi** (con tecnico assegnato) e card dei **promemoria in arrivo** a due fasce
+- [APP] **Nuovo intervento**: il campo "Data pianificata" consente ora di indicare anche l'**ora** (prima solo la data)
+- [APP] Le **persone fisiche** senza ragione sociale mostrano correttamente **nome e cognome** nelle liste della dashboard (prima potevano apparire senza denominazione)
+- [DEV] Tabella `promemoria` (migration), `PromemoriaModel` (`inArrivo`, `inArrivoRaggruppati`, `perCalendario`), `PromemoriaController` (store/update/delete con guard gestori)
+- [DEV] Campanella come **View Cell** `AvvisiCell`, predisposta ad aggregare anche le future notifiche; dashboard e campanella condividono `inArrivoRaggruppati()`
+- [DEV] `CalendarioController::index` accetta `?data=` (validata) per aprire il calendario su un giorno specifico (`initialDate`)
+- [DEV] Fix `data_pianificata`: input `datetime-local` nel form di creazione, allineato alla validazione `valid_date[Y-m-d\TH:i]` e alla normalizzazione del model
+- [DEV] `NULLIF(clienti.ragsoc, '')` nelle query dashboard per il fallback su cognome+nome
+
 ## [0.20.1] - 2026-06-30
 
 ### Guida — sotto-sezioni

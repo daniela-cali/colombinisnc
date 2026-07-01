@@ -62,6 +62,7 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                         <i class="bi bi-moon-fill" id="themeIcon"></i>
                     </a>
                 </li>
+                <?= view_cell('App\Cells\AvvisiCell') ?>
                 <li class="nav-item dropdown">
                     <?php
                         $u = auth()->user();

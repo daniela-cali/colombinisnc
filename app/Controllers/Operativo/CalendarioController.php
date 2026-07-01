@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\ClientiModel;
 use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
+use App\Models\PromemoriaModel;
 use App\Models\TipiInterventoModel;
 
 class CalendarioController extends BaseController
@@ -51,6 +52,11 @@ class CalendarioController extends BaseController
 
         $scadenze = (new InterventiModel())->scadenzeAperte();
 
+        // Data su cui aprire il calendario (es. click su un avviso in campanella):
+        // riformattata per passare al JS solo una data pulita, mai input grezzo.
+        $data         = $this->request->getGet('data');
+        $dataIniziale = ($data && strtotime($data)) ? date('Y-m-d', strtotime($data)) : null;
+
         return view('operativo/calendario/index', [
             'title'      => 'Calendario',
             'page_title' => 'Calendario Interventi',
@@ -62,6 +68,8 @@ class CalendarioController extends BaseController
             'scadenze'   => $scadenze,
             'oraInizio'  => '08:00',
             'help_sezione' => 'calendario',
+            'puoPromemoria' => auth()->user()->inGroup('ufficio', 'admin', 'developer'),
+            'dataIniziale'  => $dataIniziale,
         ]);
     }
 
@@ -120,6 +128,27 @@ class CalendarioController extends BaseController
                     'descrizione'  => $i['descrizione'] ?: '',
                     'citta'        => $i['cliente_citta'] ?: '',
                     'data_scadenza'=> $i['data_scadenza'] ?? null,
+                ],
+            ];
+        }
+
+        // Promemoria aziendali: eventi viola, non trascinabili, click → modal (no url).
+        foreach ((new PromemoriaModel())->perCalendario($start, $end) as $p) {
+            $fine = $p['data_ora_fine'] ?: date('Y-m-d H:i:s', strtotime($p['data_ora_inizio']) + 3600);
+            $events[] = [
+                'id'       => 'prom-' . $p['id'],
+                'title'    => $p['titolo'],
+                'start'    => $p['data_ora_inizio'],
+                'end'      => $fine,
+                'color'    => '#6f42c1',
+                'editable' => false,
+                'extendedProps' => [
+                    'tipo_evento' => 'promemoria',
+                    'prom_id'     => (int) $p['id'],
+                    'titolo'      => $p['titolo'],
+                    'inizio'      => $p['data_ora_inizio'],
+                    'fine'        => $p['data_ora_fine'],
+                    'note'        => $p['note'] ?? '',
                 ],
             ];
         }

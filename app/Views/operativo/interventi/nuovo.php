@@ -198,7 +198,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         <?php if (! $extra): ?>
                         <div class="col-md-4">
                             <label class="form-label">Data pianificata</label>
-                            <input type="date" name="data_pianificata" class="form-control"
+                            <input type="datetime-local" name="data_pianificata" class="form-control"
                                    value="<?= esc(old('data_pianificata')) ?>">
                         </div>
                         <?php endif ?>

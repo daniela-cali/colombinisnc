@@ -6,6 +6,7 @@ use App\Models\AbbonamentiModel;
 use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
+use App\Models\PromemoriaModel;
 
 class DashboardController extends BaseController
 {
@@ -32,10 +33,12 @@ class DashboardController extends BaseController
             'isUfficio'   => $isUfficio,
             'isTecnico'   => $isTecnico,
             'countOggi'   => 0,
+            'interventiOggi' => [],
             'urgenti'     => [],
             'abbonamenti' => [],
             'mieiOggi'    => [],
             'mieiUrgenti' => [],
+            'promemoria'  => model(PromemoriaModel::class)->inArrivoRaggruppati(),
             'help_sezione' => 'dashboard',
         ];
 
@@ -61,8 +64,18 @@ class DashboardController extends BaseController
             ->where('stato', InterventiModel::STATO_PIANIFICATO)
             ->countAllResults();
 
+        $data['interventiOggi'] = model(InterventiModel::class)
+            ->select("interventi.id, interventi.data_pianificata, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo, TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico")
+            ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
+            ->join('personale', 'personale.id = interventi.tecnico_id', 'left')
+            ->where('DATE(interventi.data_pianificata)', date('Y-m-d'))
+            ->where('interventi.stato', InterventiModel::STATO_PIANIFICATO)
+            ->orderBy('interventi.data_pianificata', 'ASC')
+            ->findAll(5);
+
         $data['urgenti'] = model(InterventiModel::class)
-            ->select("interventi.id, COALESCE(clienti.ragsoc, TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
+            ->select("interventi.id, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
             ->where('interventi.urgenza', 1)
@@ -75,7 +88,7 @@ class DashboardController extends BaseController
         }
 
         $data['abbonamenti'] = model(AbbonamentiModel::class)
-            ->select("abbonamenti.id, abbonamenti.data_fine, COALESCE(clienti.ragsoc, TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, tipi_intervento.nome AS tipo, DATEDIFF(abbonamenti.data_fine, CURDATE()) AS giorni_rimasti")
+            ->select("abbonamenti.id, abbonamenti.data_fine, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, tipi_intervento.nome AS tipo, DATEDIFF(abbonamenti.data_fine, CURDATE()) AS giorni_rimasti")
             ->join('clienti', 'clienti.id = abbonamenti.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = abbonamenti.tipo_intervento_id', 'left')
             ->where('abbonamenti.stato', 'attivo')
@@ -97,7 +110,7 @@ class DashboardController extends BaseController
         $myId = $myPersonale['id'];
 
         $data['mieiOggi'] = model(InterventiModel::class)
-            ->select("interventi.id, interventi.data_pianificata, COALESCE(clienti.ragsoc, TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, clienti.indirizzo, tipi_intervento.nome AS tipo")
+            ->select("interventi.id, interventi.data_pianificata, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, clienti.indirizzo, tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
             ->where('DATE(interventi.data_pianificata)', date('Y-m-d'))
@@ -107,7 +120,7 @@ class DashboardController extends BaseController
             ->findAll();
 
         $data['mieiUrgenti'] = model(InterventiModel::class)
-            ->select("interventi.id, COALESCE(clienti.ragsoc, TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
+            ->select("interventi.id, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
             ->where('interventi.urgenza', 1)
@@ -147,7 +160,7 @@ class DashboardController extends BaseController
 
         // Interventi attivi del tecnico nella finestra dei 3 giorni.
         $interventi = model(InterventiModel::class)
-            ->select("interventi.id, interventi.data_pianificata, interventi.stato, COALESCE(clienti.ragsoc, TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.indirizzo, clienti.citta, clienti.cap, clienti.lat, clienti.lng, tipi_intervento.nome AS tipo")
+            ->select("interventi.id, interventi.data_pianificata, interventi.stato, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.indirizzo, clienti.citta, clienti.cap, clienti.lat, clienti.lng, tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
             ->where('interventi.tecnico_id', $myId)
@@ -186,7 +199,7 @@ class DashboardController extends BaseController
         }
 
         $urgenti = model(InterventiModel::class)
-            ->select("interventi.id, COALESCE(clienti.ragsoc, TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
+            ->select("interventi.id, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
             ->where('interventi.urgenza', 1)

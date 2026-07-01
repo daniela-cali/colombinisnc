@@ -396,6 +396,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 #### ✅ v0.20.1 — Guida sotto-sezioni
 - Guide aggiunte per le sotto-pagine di Impostazioni (Tipi intervento, Categorie articoli, Utenti) e per il Foglio di viaggio; `help_sezione` sui rispettivi `index()`
 
+#### ✅ v0.21.0 — Promemoria e avvisi
+- **Promemoria**: eventi aziendali ad-hoc con data/ora, gestiti dall'ufficio dal Calendario (evento viola, sola lettura per i tecnici). Tabella `promemoria`, `PromemoriaModel`, `PromemoriaController`
+- **Campanella avvisi** in navbar come View Cell `AvvisiCell` (predisposta ad aggregare le future notifiche): promemoria divisi in "Questa settimana" / "Prossimi giorni", link al calendario sul giorno
+- **Dashboard** riorganizzata a info-box + card: contatori sintetici, elenco interventi di oggi (con tecnico), promemoria in arrivo a due fasce
+- Fix: `data_pianificata` con ora (`datetime-local`) nel form nuovo intervento; `NULLIF` su `ragsoc` per la denominazione delle persone fisiche
+- *Nota: notifiche vere (tabella dedicata + stato "visto" per-utente) rimandate; i promemoria scadono per data*
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
