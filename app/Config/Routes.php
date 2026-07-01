@@ -96,6 +96,12 @@ $routes->group('cantieri', function ($routes) {
     $routes->post('note/(:num)/elimina', 'CantieriController::eliminaNota/$1');
 });
 
+$routes->group('promemoria', function ($routes) {
+    $routes->post('store',         'PromemoriaController::store');
+    $routes->post('(:num)/update', 'PromemoriaController::update/$1');
+    $routes->post('(:num)/delete', 'PromemoriaController::delete/$1');
+});
+
 // Operativo (interventi, futuri: cantieri, ecc.)
 $routes->group('operativo', function ($routes) {
     $routes->group('interventi', function ($routes) {

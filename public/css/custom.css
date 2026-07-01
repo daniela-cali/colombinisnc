@@ -506,3 +506,54 @@ table.dataTable th.dt-type-numeric.text-center div.dt-column-header {
         margin: .5rem 0 0;
     }
 }
+
+/* =========================================================
+   Campanella avvisi (navbar)
+   ========================================================= */
+.dropdown-avvisi {
+    min-width: 300px;
+    max-width: 340px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+/* I titoli degli avvisi possono andare a capo invece di essere troncati */
+.dropdown-avvisi .dropdown-item {
+    white-space: normal;
+}
+
+/* Badge del contatore: rientrato dall'alto per non toccare/tagliarsi sul
+   bordo della navbar (sostituisce le utility top-0 start-100 translate-middle) */
+.badge-avvisi {
+    top: .32rem;
+    right: .15rem;
+    padding: .28em .45em;
+    font-size: .6rem;
+    line-height: 1;
+    min-width: 1.1em;
+}
+
+/* =========================================================
+   Card promemoria in dashboard — fasce colorate (viola #6f42c1)
+   ========================================================= */
+/* Outline della card in viola coerente col colore dei promemoria sul calendario */
+.card-promemoria {
+    --lte-card-variant-bg: #6f42c1;
+}
+
+/* Icona viola per l'info-box promemoria in dashboard */
+.bg-promemoria {
+    background-color: #6f42c1 !important;
+    color: #fff !important;
+}
+
+/* Questa settimana: viola tenue. Prossimi giorni: viola molto più tenue.
+   Un bordo sinistro (più sfumato nella seconda fascia) rinforza la distinzione. */
+.list-group-item.prom-settimana {
+    background-color: rgba(111, 66, 193, .10);
+    border-left: 3px solid rgba(111, 66, 193, .55);
+}
+.list-group-item.prom-prossimi {
+    background-color: rgba(111, 66, 193, .04);
+    border-left: 3px solid rgba(111, 66, 193, .22);
+}

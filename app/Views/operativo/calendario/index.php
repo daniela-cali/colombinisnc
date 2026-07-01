@@ -6,7 +6,9 @@
  * @var array[] $poolPerZona
  * @var array   $zoneLabel
  * @var array[] $scadenze
- * @var string  $oraInizio
+ * @var string      $oraInizio
+ * @var bool        $puoPromemoria
+ * @var string|null $dataIniziale
  */
 $this->extend('layouts/admin');
 ?>
@@ -279,6 +281,54 @@ $prioritaInfo = [
     </div>
 </div>
 
+<?php if ($puoPromemoria): ?>
+<div class="modal fade" id="modalPromemoria" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="formPromemoria" method="post" action="">
+                <?= csrf_field() ?>
+                <div class="modal-header bg-info py-2">
+                    <h5 class="modal-title text-white">
+                        <i class="bi bi-bell me-1"></i><span id="prom-modal-titolo">Nuovo promemoria</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Titolo <span class="text-danger">*</span></label>
+                            <input type="text" name="titolo" id="prom-titolo" class="form-control"
+                                   maxlength="150" placeholder="Es. Cliente arriva/chiede di aprire" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Inizio <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="data_ora_inizio" id="prom-inizio" class="form-control" required>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label">Fine</label>
+                            <input type="datetime-local" name="data_ora_fine" id="prom-fine" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Note</label>
+                            <textarea name="note" id="prom-note" class="form-control" rows="3"
+                                      placeholder="Dettagli facoltativi"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer py-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm me-auto d-none" id="prom-btn-elimina">
+                        <i class="bi bi-trash me-1"></i>Elimina
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg me-1"></i>Salva</button>
+                </div>
+            </form>
+            <form id="formPromemoriaDelete" method="post" action="" class="d-none"><?= csrf_field() ?></form>
+        </div>
+    </div>
+</div>
+<?php endif ?>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
@@ -473,9 +523,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ---- FullCalendar ----
     var isMobile = window.innerWidth < 768;
+    var puoPromemoria = <?= $puoPromemoria ? 'true' : 'false' ?>;
     var calendar = new FullCalendar.Calendar(document.getElementById('calendario'), {
         locale: 'it',
         initialView: isMobile ? 'timeGridDay' : 'timeGridWeek',
+<?php if ($dataIniziale): ?>
+        initialDate: '<?= $dataIniziale ?>',
+<?php endif ?>
+<?php if ($puoPromemoria): ?>
+        customButtons: {
+            nuovoPromemoria: {
+                text: '+ Promemoria',
+                click: function () { openPromemoriaModalNew(); },
+            },
+        },
+<?php endif ?>
         headerToolbar: isMobile ? {
             left:   'prev,next',
             center: 'title',
@@ -483,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } : {
             left:   'prev,next today',
             center: 'title',
-            right:  'timeGridDay,timeGridWeek,dayGridMonth',
+            right:  '<?= $puoPromemoria ? 'nuovoPromemoria ' : '' ?>timeGridDay,timeGridWeek,dayGridMonth',
         },
         buttonText: { today: 'Oggi', day: 'Giorno', week: 'Settimana', month: 'Mese' },
         slotMinTime:    '07:00:00',
@@ -552,6 +614,13 @@ document.addEventListener('DOMContentLoaded', function () {
         eventClick: function (info) {
             info.jsEvent.preventDefault();
             var p   = info.event.extendedProps;
+
+            // Promemoria: apre il modal di modifica (solo per chi può gestirli).
+            if (p.tipo_evento === 'promemoria') {
+                if (puoPromemoria) openPromemoriaModalEdit(info.event);
+                return;
+            }
+
             var url = info.event.url;
 
             var badgeClass = { da_pianificare: 'bg-secondary', pianificato: 'bg-primary', in_corso: 'bg-warning text-dark', completato: 'bg-success', annullato: 'bg-danger' };
@@ -591,6 +660,16 @@ document.addEventListener('DOMContentLoaded', function () {
         },
         eventContent: function (info) {
             var p        = info.event.extendedProps;
+
+            // Promemoria: campanella + titolo, senza il bottone × di rimozione pianificazione.
+            if (p.tipo_evento === 'promemoria') {
+                return { html: '<div style="padding:2px 4px;line-height:1.25;overflow:hidden;">'
+                    + '<div style="font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+                    + '<i class="bi bi-bell-fill" style="margin-right:3px;opacity:.85;"></i>'
+                    + info.timeText + ' &nbsp;' + info.event.title
+                    + '</div></div>' };
+            }
+
             var time     = info.timeText;
             var iconaCls = (p.icona || 'bi-tools');
             function fmtDd(s) { var pp = s.split('-'); return pp[2] + '/' + pp[1]; }
@@ -613,6 +692,46 @@ document.addEventListener('DOMContentLoaded', function () {
         },
     });
     calendar.render();
+
+<?php if ($puoPromemoria): ?>
+    // ---- Promemoria (modal create/edit/delete dal calendario) ----
+    var modalPromemoria = new bootstrap.Modal(document.getElementById('modalPromemoria'));
+    var formProm        = document.getElementById('formPromemoria');
+    var formPromDelete  = document.getElementById('formPromemoriaDelete');
+    var promBtnElimina  = document.getElementById('prom-btn-elimina');
+
+    function openPromemoriaModalNew() {
+        formProm.action = '<?= base_url('promemoria/store') ?>';
+        document.getElementById('prom-modal-titolo').textContent = 'Nuovo promemoria';
+        document.getElementById('prom-titolo').value = '';
+        // Precompila l'inizio con la giornata selezionata sul calendario (se presente),
+        // con un'orario di default alle 09:00; altrimenti lascia il campo vuoto.
+        var giornata = document.getElementById('form-data-giornata').value;
+        document.getElementById('prom-inizio').value = giornata ? giornata + 'T09:00' : '';
+        document.getElementById('prom-fine').value   = '';
+        document.getElementById('prom-note').value   = '';
+        promBtnElimina.classList.add('d-none');
+        modalPromemoria.show();
+    }
+
+    function openPromemoriaModalEdit(event) {
+        var p  = event.extendedProps;
+        var id = p.prom_id;
+        formProm.action       = '<?= base_url('promemoria') ?>/' + id + '/update';
+        formPromDelete.action = '<?= base_url('promemoria') ?>/' + id + '/delete';
+        document.getElementById('prom-modal-titolo').textContent = 'Modifica promemoria';
+        document.getElementById('prom-titolo').value = p.titolo || '';
+        document.getElementById('prom-inizio').value = (p.inizio || '').replace(' ', 'T').substring(0, 16);
+        document.getElementById('prom-fine').value   = p.fine ? p.fine.replace(' ', 'T').substring(0, 16) : '';
+        document.getElementById('prom-note').value   = p.note || '';
+        promBtnElimina.classList.remove('d-none');
+        modalPromemoria.show();
+    }
+
+    promBtnElimina.addEventListener('click', function () {
+        if (confirm('Eliminare questo promemoria?')) formPromDelete.submit();
+    });
+<?php endif ?>
 
     // ---- Rimozione pianificazione (bottone × sugli eventi) ----
     document.getElementById('calendario').addEventListener('click', function (e) {
