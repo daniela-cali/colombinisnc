@@ -219,6 +219,7 @@ class AbbonamentiModel extends Model
                     'data_pianificata'   => null,
                     'data_scadenza'      => $scadenza,
                     'pulizia_fondo'      => (int) ($periodo['con_pulizia_fondo'] ?? 0),
+                    'descrizione'        => 'Visita in abbonamento [#' . $abbonamentoId ."]",
                 ]);
                 $count++;
             }

@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.2] - 2026-07-01
+
+### Abbonamenti — lista e descrizioni
+
+- [APP] Gli interventi generati da un abbonamento ricevono ora una **descrizione automatica** ("Visita in abbonamento #N")
+- [APP] **Lista abbonamenti** rinnovata: filtri rapidi per stato (Attivi/Sospesi/Scaduti/Disdetti/Tutti, apertura su Attivi), colonna **riferimento #ID**, ricerca full-text e ordinamento su tutte le colonne
+- [DEV] Descrizione aggiunta in `AbbonamentiModel::generaInterventi()`
+- [DEV] Vista abbonamenti convertita a DataTable con filtri pill sullo stato calcolato (colonna nascosta)
+- [DEV] Fix globale in `custom.css`: la freccia di ordinamento DataTables resta a destra anche sulle colonne numeric/date (che il rilevamento automatico allineava a destra con freccia a sinistra)
+
 ## [0.21.1] - 2026-07-01
 
 ### Query spostate nei model

@@ -465,11 +465,14 @@
 }
 
 /* --- DataTables 2.x ------------------------------------ */
-/* DataTables imposta flex-direction:row-reverse su div.dt-column-header per le colonne
-   dt-type-numeric, mettendo le frecce a sinistra del testo. Per le colonne centrate
-   vogliamo le frecce a destra: forziamo row (ordine DOM naturale: testo → freccia). */
-table.dataTable th.dt-type-numeric.text-center div.dt-column-header {
-    flex-direction: row;
+/* DataTables rileva il tipo delle colonne e per quelle numeric/date imposta
+   flex-direction:row-reverse su div.dt-column-header, mettendo la freccia di
+   ordinamento a sinistra del testo. In tutte le nostre tabelle vogliamo la freccia
+   sempre a destra: forziamo row (ordine DOM naturale testo → freccia), a prescindere
+   dall'allineamento della colonna. Vale globalmente per ogni DataTable del gestionale. */
+table.dataTable th.dt-type-numeric div.dt-column-header,
+table.dataTable th.dt-type-date div.dt-column-header {
+    flex-direction: row !important;
 }
 
 /* --- Barra filtri a bottoni (riusabile) ----------------------------------
