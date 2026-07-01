@@ -59,43 +59,18 @@ class DashboardController extends BaseController
      */
     private function caricaDatiUfficio(array &$data, bool $includiAbbonamenti): void
     {
-        $data['countOggi'] = model(InterventiModel::class)
-            ->where('DATE(data_pianificata)', date('Y-m-d'))
-            ->where('stato', InterventiModel::STATO_PIANIFICATO)
-            ->countAllResults();
+        // Una sola query per gli interventi di oggi: il totale è count(), la lista mostra i primi 5.
+        $oggi = model(InterventiModel::class)->agendaGiorno(date('Y-m-d'));
+        $data['countOggi']      = count($oggi);
+        $data['interventiOggi'] = array_slice($oggi, 0, 5);
 
-        $data['interventiOggi'] = model(InterventiModel::class)
-            ->select("interventi.id, interventi.data_pianificata, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo, TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico")
-            ->join('clienti', 'clienti.id = interventi.cliente_id')
-            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
-            ->join('personale', 'personale.id = interventi.tecnico_id', 'left')
-            ->where('DATE(interventi.data_pianificata)', date('Y-m-d'))
-            ->where('interventi.stato', InterventiModel::STATO_PIANIFICATO)
-            ->orderBy('interventi.data_pianificata', 'ASC')
-            ->findAll(5);
-
-        $data['urgenti'] = model(InterventiModel::class)
-            ->select("interventi.id, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
-            ->join('clienti', 'clienti.id = interventi.cliente_id')
-            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
-            ->where('interventi.urgenza', 1)
-            ->where('interventi.stato', InterventiModel::STATO_DA_PIANIFICARE)
-            ->orderBy('interventi.data_scadenza', 'ASC')
-            ->findAll(10);
+        $data['urgenti'] = model(InterventiModel::class)->urgentiDaPianificare(null, 10);
 
         if (! $includiAbbonamenti) {
             return;
         }
 
-        $data['abbonamenti'] = model(AbbonamentiModel::class)
-            ->select("abbonamenti.id, abbonamenti.data_fine, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, tipi_intervento.nome AS tipo, DATEDIFF(abbonamenti.data_fine, CURDATE()) AS giorni_rimasti")
-            ->join('clienti', 'clienti.id = abbonamenti.cliente_id')
-            ->join('tipi_intervento', 'tipi_intervento.id = abbonamenti.tipo_intervento_id', 'left')
-            ->where('abbonamenti.stato', 'attivo')
-            ->where('abbonamenti.data_fine >=', date('Y-m-d'))
-            ->where('abbonamenti.data_fine <=', date('Y-m-d', strtotime('+30 days')))
-            ->orderBy('abbonamenti.data_fine', 'ASC')
-            ->findAll();
+        $data['abbonamenti'] = model(AbbonamentiModel::class)->inScadenza(30);
     }
 
     /**
@@ -109,25 +84,8 @@ class DashboardController extends BaseController
         }
         $myId = $myPersonale['id'];
 
-        $data['mieiOggi'] = model(InterventiModel::class)
-            ->select("interventi.id, interventi.data_pianificata, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, clienti.indirizzo, tipi_intervento.nome AS tipo")
-            ->join('clienti', 'clienti.id = interventi.cliente_id')
-            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
-            ->where('DATE(interventi.data_pianificata)', date('Y-m-d'))
-            ->where('interventi.stato', InterventiModel::STATO_PIANIFICATO)
-            ->where('interventi.tecnico_id', $myId)
-            ->orderBy('interventi.data_pianificata', 'ASC')
-            ->findAll();
-
-        $data['mieiUrgenti'] = model(InterventiModel::class)
-            ->select("interventi.id, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
-            ->join('clienti', 'clienti.id = interventi.cliente_id')
-            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
-            ->where('interventi.urgenza', 1)
-            ->where('interventi.stato', InterventiModel::STATO_DA_PIANIFICARE)
-            ->where('interventi.tecnico_id', $myId)
-            ->orderBy('interventi.data_scadenza', 'ASC')
-            ->findAll();
+        $data['mieiOggi']    = model(InterventiModel::class)->agendaGiorno(date('Y-m-d'), $myId);
+        $data['mieiUrgenti'] = model(InterventiModel::class)->urgentiDaPianificare($myId);
     }
 
     /**
@@ -159,31 +117,12 @@ class DashboardController extends BaseController
         $dataFine   = $giorni[count($giorni) - 1]['data'];
 
         // Interventi attivi del tecnico nella finestra dei 3 giorni.
-        $interventi = model(InterventiModel::class)
-            ->select("interventi.id, interventi.data_pianificata, interventi.stato, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.indirizzo, clienti.citta, clienti.cap, clienti.lat, clienti.lng, tipi_intervento.nome AS tipo")
-            ->join('clienti', 'clienti.id = interventi.cliente_id')
-            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
-            ->where('interventi.tecnico_id', $myId)
-            ->whereIn('interventi.stato', [InterventiModel::STATO_PIANIFICATO, InterventiModel::STATO_IN_CORSO])
-            ->where('DATE(interventi.data_pianificata) >=', $dataInizio)
-            ->where('DATE(interventi.data_pianificata) <=', $dataFine)
-            ->orderBy('interventi.data_pianificata', 'ASC')
-            ->findAll();
+        $interventi = model(InterventiModel::class)->agendaTecnicoPeriodo($myId, $dataInizio, $dataFine);
 
         // Materiali da portare di tutti gli interventi in un'unica query, raggruppati per intervento.
         $materialiPerIntervento = [];
-        if ($interventi) {
-            $ids = array_column($interventi, 'id');
-            $materiali = model(InterventiMaterialiModel::class)
-                ->select("interventi_materiali.intervento_id, interventi_materiali.quantita, COALESCE(a.descrizione, interventi_materiali.descrizione) AS desc_materiale")
-                ->join('articoli a', 'a.id = interventi_materiali.articolo_id', 'left')
-                ->whereIn('interventi_materiali.intervento_id', $ids)
-                ->where('interventi_materiali.stato', InterventiMaterialiModel::STATO_DA_PORTARE)
-                ->findAll();
-
-            foreach ($materiali as $m) {
-                $materialiPerIntervento[$m['intervento_id']][] = $m;
-            }
+        foreach (model(InterventiMaterialiModel::class)->daPortarePerInterventi(array_column($interventi, 'id')) as $m) {
+            $materialiPerIntervento[$m['intervento_id']][] = $m;
         }
 
         // Distribuisce ogni intervento (con i suoi materiali) nel giorno corrispondente.
@@ -198,15 +137,7 @@ class DashboardController extends BaseController
             }
         }
 
-        $urgenti = model(InterventiModel::class)
-            ->select("interventi.id, COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione, clienti.citta, tipi_intervento.nome AS tipo")
-            ->join('clienti', 'clienti.id = interventi.cliente_id')
-            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
-            ->where('interventi.urgenza', 1)
-            ->where('interventi.stato', InterventiModel::STATO_DA_PIANIFICARE)
-            ->where('interventi.tecnico_id', $myId)
-            ->orderBy('interventi.data_scadenza', 'ASC')
-            ->findAll();
+        $urgenti = model(InterventiModel::class)->urgentiDaPianificare($myId);
 
         return view('dashboard/tecnico', ['giorni' => $giorni, 'urgenti' => $urgenti, 'help_sezione' => 'dashboard_tecnico']);
     }

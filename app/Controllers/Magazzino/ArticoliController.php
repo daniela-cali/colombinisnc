@@ -5,6 +5,7 @@ namespace App\Controllers\Magazzino;
 use App\Controllers\BaseController;
 use App\Models\ArticoliModel;
 use App\Models\CategorieArticoliModel;
+use App\Models\InterventiMaterialiModel;
 
 class ArticoliController extends BaseController
 {
@@ -106,8 +107,7 @@ class ArticoliController extends BaseController
             return redirect()->to('magazzino/articoli')->with('error', 'Articolo non trovato.');
         }
 
-        $inUso = db_connect()->table('interventi_materiali')
-            ->where('articolo_id', $id)->countAllResults();
+        $inUso = (new InterventiMaterialiModel())->contaPerArticolo($id);
 
         if ($inUso > 0) {
             return redirect()->to('magazzino/articoli/' . $id . '/edit')

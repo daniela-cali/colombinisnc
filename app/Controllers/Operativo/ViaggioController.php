@@ -79,34 +79,11 @@ class ViaggioController extends BaseController
      */
     private function fetchGiornata(string $data): array
     {
-        $interventi = (new InterventiModel())
-            ->select("interventi.id, interventi.data_pianificata, interventi.durata_stimata,
-                      interventi.descrizione, interventi.urgenza, interventi.priorita,
-                      CASE WHEN c.tipo = 'persona_fisica'
-                           THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                           ELSE c.ragsoc
-                      END AS cliente_denominazione,
-                      c.indirizzo, c.citta, c.zona AS cliente_zona,
-                      TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome,
-                      ti.nome AS tipo_nome, ti.icona AS tipo_icona")
-            ->join('clienti c',         'c.id  = interventi.cliente_id',        'left')
-            ->join('personale p',        'p.id  = interventi.tecnico_id',         'left')
-            ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
-            ->where("DATE(interventi.data_pianificata)", $data)
-            ->where('interventi.stato !=', InterventiModel::STATO_ANNULLATO)
-            ->orderBy('interventi.data_pianificata', 'ASC')
-            ->findAll();
+        $interventi = (new InterventiModel())->perGiornata($data);
 
-        $ids = array_column($interventi, 'id');
         $materialiPerIntervento = [];
-        if ($ids) {
-            foreach ((new InterventiMaterialiModel())
-                ->select('intervento_id, quantita, descrizione, note')
-                ->whereIn('intervento_id', $ids)
-                ->where('stato', 'da_portare')
-                ->findAll() as $m) {
-                $materialiPerIntervento[(int) $m['intervento_id']][] = $m;
-            }
+        foreach ((new InterventiMaterialiModel())->daPortarePerInterventi(array_column($interventi, 'id')) as $m) {
+            $materialiPerIntervento[(int) $m['intervento_id']][] = $m;
         }
 
         $zoneLabel = ClientiModel::ZONE_LABEL + ['nessuna' => 'Senza zona'];

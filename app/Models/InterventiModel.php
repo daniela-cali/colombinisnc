@@ -354,4 +354,157 @@ class InterventiModel extends Model
                     ->orderBy('data_scadenza', 'ASC')
                     ->first();
     }
+
+    /**
+     * Prossimi interventi da abbonamento con scadenza successiva a quella data.
+     * A differenza di prossimoPerAbbonamento() restituisce fino a $limit righe: serve
+     * a rilevare l'ambiguità (due candidati con la stessa scadenza) prima di riassegnare
+     * automaticamente i materiali non consegnati.
+     */
+    public function prossimiPerAbbonamento(int $abbonamentoId, string $dataScadenza, int $limit = 2): array
+    {
+        return $this->where('abbonamento_id', $abbonamentoId)
+                    ->where('priorita', self::PRIORITA_ABBONAMENTO)
+                    ->where('data_scadenza >', $dataScadenza)
+                    ->orderBy('data_scadenza', 'ASC')
+                    ->findAll($limit);
+    }
+
+    /**
+     * Interventi pianificati in una data, con denominazione cliente, tipo e tecnico.
+     * Passando $tecnicoId limita a quel tecnico (agenda personale della dashboard).
+     */
+    public function agendaGiorno(string $data, ?int $tecnicoId = null): array
+    {
+        $this->select("interventi.id, interventi.data_pianificata,
+                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                clienti.citta, clienti.indirizzo,
+                tipi_intervento.nome AS tipo,
+                TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico")
+            ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
+            ->join('personale', 'personale.id = interventi.tecnico_id', 'left')
+            ->where('DATE(interventi.data_pianificata)', $data)
+            ->where('interventi.stato', self::STATO_PIANIFICATO);
+
+        if ($tecnicoId) {
+            $this->where('interventi.tecnico_id', $tecnicoId);
+        }
+
+        return $this->orderBy('interventi.data_pianificata', 'ASC')->findAll();
+    }
+
+    /**
+     * Interventi urgenti ancora da pianificare, con denominazione cliente e tipo.
+     * $tecnicoId limita al singolo tecnico; $limit=0 significa nessun limite.
+     */
+    public function urgentiDaPianificare(?int $tecnicoId = null, int $limit = 0): array
+    {
+        $this->select("interventi.id,
+                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                clienti.citta, tipi_intervento.nome AS tipo")
+            ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
+            ->where('interventi.urgenza', 1)
+            ->where('interventi.stato', self::STATO_DA_PIANIFICARE);
+
+        if ($tecnicoId) {
+            $this->where('interventi.tecnico_id', $tecnicoId);
+        }
+
+        return $this->orderBy('interventi.data_scadenza', 'ASC')->findAll($limit);
+    }
+
+    /**
+     * Interventi attivi (pianificati o in corso) di un tecnico in una finestra di date,
+     * con coordinate del cliente per la mappa dell'agenda mobile.
+     */
+    public function agendaTecnicoPeriodo(int $tecnicoId, string $dataInizio, string $dataFine): array
+    {
+        return $this->select("interventi.id, interventi.data_pianificata, interventi.stato,
+                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                clienti.indirizzo, clienti.citta, clienti.cap, clienti.lat, clienti.lng,
+                tipi_intervento.nome AS tipo")
+            ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
+            ->where('interventi.tecnico_id', $tecnicoId)
+            ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])
+            ->where('DATE(interventi.data_pianificata) >=', $dataInizio)
+            ->where('DATE(interventi.data_pianificata) <=', $dataFine)
+            ->orderBy('interventi.data_pianificata', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Interventi di una giornata (tutti gli stati tranne annullato) per il foglio viaggio,
+     * con denominazione, indirizzo e zona del cliente, tecnico e tipo lavoro.
+     */
+    public function perGiornata(string $data): array
+    {
+        return $this->select("interventi.id, interventi.data_pianificata, interventi.durata_stimata,
+                interventi.descrizione, interventi.urgenza, interventi.priorita,
+                CASE WHEN c.tipo = 'persona_fisica'
+                     THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
+                     ELSE c.ragsoc
+                END AS cliente_denominazione,
+                c.indirizzo, c.citta, c.zona AS cliente_zona,
+                TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome,
+                ti.nome AS tipo_nome, ti.icona AS tipo_icona")
+            ->join('clienti c',          'c.id  = interventi.cliente_id',         'left')
+            ->join('personale p',        'p.id  = interventi.tecnico_id',         'left')
+            ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
+            ->where('DATE(interventi.data_pianificata)', $data)
+            ->where('interventi.stato !=', self::STATO_ANNULLATO)
+            ->orderBy('interventi.data_pianificata', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Interventi pianificati in un range di date per il calendario (FullCalendar).
+     * Esclude gli annullati e quelli senza data. $tecnicoId filtra sul singolo tecnico.
+     */
+    public function eventiCalendario(string $start, string $end, ?int $tecnicoId = null): array
+    {
+        $this->select("interventi.id, interventi.stato, interventi.data_pianificata,
+                interventi.durata_stimata, interventi.descrizione, interventi.data_scadenza,
+                CASE WHEN c.tipo = 'persona_fisica'
+                     THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
+                     ELSE c.ragsoc
+                END AS cliente_denominazione,
+                c.citta AS cliente_citta,
+                p.nome AS tecnico_nome, p.cognome AS tecnico_cognome, p.colore AS tecnico_colore,
+                ti.durata_default AS tipo_durata, ti.nome AS tipo_nome, ti.icona AS tipo_icona")
+            ->join('clienti c',          'c.id  = interventi.cliente_id',         'left')
+            ->join('personale p',        'p.id  = interventi.tecnico_id',         'left')
+            ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
+            ->where('interventi.data_pianificata >=', $start)
+            ->where('interventi.data_pianificata <',  $end)
+            ->where('interventi.data_pianificata IS NOT NULL', null, false)
+            ->where('interventi.stato !=', self::STATO_ANNULLATO);
+
+        if ($tecnicoId) {
+            $this->where('interventi.tecnico_id', $tecnicoId);
+        }
+
+        return $this->findAll();
+    }
+
+    /**
+     * Interventi figli di un abbonamento, ordinati per data di scadenza.
+     */
+    public function perAbbonamento(int $abbonamentoId): array
+    {
+        return $this->select('id, codice, data_scadenza, data_pianificata, stato')
+            ->where('abbonamento_id', $abbonamentoId)
+            ->orderBy('data_scadenza', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Numero di interventi collegati a un tipo intervento (blocco cancellazione).
+     */
+    public function contaPerTipo(int $tipoId): int
+    {
+        return $this->where('tipo_intervento_id', $tipoId)->countAllResults();
+    }
 }

@@ -159,6 +159,38 @@ class InterventiMaterialiModel extends Model
     }
 
     /**
+     * Materiali "da portare" di più interventi in una sola query.
+     * Restituisce descrizione grezza e note (foglio viaggio) più desc_materiale
+     * dal catalogo con fallback sul testo libero (agenda mobile del tecnico).
+     */
+    public function daPortarePerInterventi(array $interventiIds): array
+    {
+        if (empty($interventiIds)) {
+            return [];
+        }
+
+        return $this->select([
+                'interventi_materiali.intervento_id',
+                'interventi_materiali.quantita',
+                'interventi_materiali.descrizione',
+                'interventi_materiali.note',
+                'COALESCE(a.descrizione, interventi_materiali.descrizione) AS desc_materiale',
+            ])
+            ->join('articoli a', 'a.id = interventi_materiali.articolo_id', 'left')
+            ->whereIn('interventi_materiali.intervento_id', $interventiIds)
+            ->where('interventi_materiali.stato', self::STATO_DA_PORTARE)
+            ->findAll();
+    }
+
+    /**
+     * Numero di righe materiale che usano un articolo (blocco cancellazione articolo).
+     */
+    public function contaPerArticolo(int $articoloId): int
+    {
+        return $this->where('articolo_id', $articoloId)->countAllResults();
+    }
+
+    /**
      * Materiali sospesi di un cliente: da portare ma non ancora legati a un intervento.
      */
     public function sospesiPerCliente(int $clienteId): array

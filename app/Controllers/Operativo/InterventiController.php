@@ -207,11 +207,11 @@ class InterventiController extends BaseController
 
             // Solo per interventi da abbonamento: provo a riassegnare i materiali al prossimo intervento.
             if (! empty($intervento['abbonamento_id']) && ! empty($idsDaPortare)) {
-                $prossimi = $model->where('abbonamento_id', $intervento['abbonamento_id'])
-                                  ->where('priorita', InterventiModel::PRIORITA_ABBONAMENTO)
-                                  ->where('data_scadenza >', $intervento['data_scadenza'])
-                                  ->orderBy('data_scadenza', 'ASC')
-                                  ->findAll(2); // max 2 per rilevare ambiguità: se ne tornano 2 con stessa scadenza, fallback manuale
+                // max 2 per rilevare ambiguità: se ne tornano 2 con stessa scadenza, fallback manuale
+                $prossimi = $model->prossimiPerAbbonamento(
+                    (int) $intervento['abbonamento_id'],
+                    $intervento['data_scadenza']
+                );
 
                 if (count($prossimi) === 1) {
                     $matModel->assegnaAdIntervento($idsDaPortare, $prossimi[0]['id']);

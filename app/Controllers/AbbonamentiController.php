@@ -98,11 +98,7 @@ class AbbonamentiController extends BaseController
             return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
         }
 
-        $interventi = (new InterventiModel())
-            ->select('id, codice, data_scadenza, data_pianificata, stato')
-            ->where('abbonamento_id', $id)
-            ->orderBy('data_scadenza', 'ASC')
-            ->findAll();
+        $interventi = (new InterventiModel())->perAbbonamento($id);
 
         return view('abbonamenti/show', [
             'title'                => 'Abbonamento',

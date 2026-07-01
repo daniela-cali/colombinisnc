@@ -83,30 +83,8 @@ class CalendarioController extends BaseController
         $end       = $this->request->getGet('end')   ?? date('Y-m-t');
         $tecnicoId = (int) ($this->request->getGet('tecnico_id') ?? 0);
 
-        $q = (new InterventiModel())
-            ->select("interventi.id, interventi.stato, interventi.data_pianificata,
-                      interventi.durata_stimata, interventi.descrizione, interventi.data_scadenza,
-                      CASE WHEN c.tipo = 'persona_fisica'
-                           THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                           ELSE c.ragsoc
-                      END AS cliente_denominazione,
-                      c.citta AS cliente_citta,
-                      p.nome AS tecnico_nome, p.cognome AS tecnico_cognome, p.colore AS tecnico_colore,
-                      ti.durata_default AS tipo_durata, ti.nome AS tipo_nome, ti.icona AS tipo_icona")
-            ->join('clienti c',         'c.id  = interventi.cliente_id',        'left')
-            ->join('personale p',        'p.id  = interventi.tecnico_id',         'left')
-            ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
-            ->where('interventi.data_pianificata >=', $start)
-            ->where('interventi.data_pianificata <',  $end)
-            ->where('interventi.data_pianificata IS NOT NULL', null, false)
-            ->where('interventi.stato !=', InterventiModel::STATO_ANNULLATO);
-
-        if ($tecnicoId) {
-            $q->where('interventi.tecnico_id', $tecnicoId);
-        }
-
         $events = [];
-        foreach ($q->findAll() as $i) {
+        foreach ((new InterventiModel())->eventiCalendario($start, $end, $tecnicoId ?: null) as $i) {
             $durata  = max(60, (int) ($i['durata_stimata'] ?: $i['tipo_durata'] ?: 60));
             $colore  = $i['tecnico_colore'] ?: '#6c757d';
             $tecnico = $i['tecnico_nome']

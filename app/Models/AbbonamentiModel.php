@@ -167,6 +167,25 @@ class AbbonamentiModel extends Model
     }
 
     /**
+     * Abbonamenti attivi in scadenza entro $giorni giorni, con denominazione cliente,
+     * tipo intervento e giorni rimanenti. Ordinati per data di fine crescente (dashboard).
+     */
+    public function inScadenza(int $giorni = 30): array
+    {
+        return $this->select("abbonamenti.id, abbonamenti.data_fine,
+                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                tipi_intervento.nome AS tipo,
+                DATEDIFF(abbonamenti.data_fine, CURDATE()) AS giorni_rimasti")
+            ->join('clienti', 'clienti.id = abbonamenti.cliente_id')
+            ->join('tipi_intervento', 'tipi_intervento.id = abbonamenti.tipo_intervento_id', 'left')
+            ->where('abbonamenti.stato', self::STATO_ATTIVO)
+            ->where('abbonamenti.data_fine >=', date('Y-m-d'))
+            ->where('abbonamenti.data_fine <=', date('Y-m-d', strtotime("+{$giorni} days")))
+            ->orderBy('abbonamenti.data_fine', 'ASC')
+            ->findAll();
+    }
+
+    /**
      * Genera in batch tutti gli interventi dai periodi dell'abbonamento e li inserisce in DB.
      * Va chiamato dentro una transazione nel controller: se un insert fallisce il rollback
      * annulla sia l'abbonamento che tutti gli interventi già inseriti.

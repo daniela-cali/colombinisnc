@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.1] - 2026-07-01
+
+### Query spostate nei model
+
+- [DEV] Tutte le query rimaste nei controller spostate nei rispettivi model: `InterventiModel` (`agendaGiorno`, `urgentiDaPianificare`, `agendaTecnicoPeriodo`, `perGiornata`, `eventiCalendario`, `perAbbonamento`, `prossimiPerAbbonamento`, `contaPerTipo`), `InterventiMaterialiModel` (`daPortarePerInterventi`, `contaPerArticolo`), `AbbonamentiModel` (`inScadenza`)
+- [DEV] Controller ripuliti: Dashboard, Viaggio, Calendario, Abbonamenti, Interventi, Articoli, TipiIntervento — ora contengono solo chiamate ai metodi del model
+- [DEV] Rimossi gli ultimi accessi diretti al DB dai controller (`db_connect()->table()` / `db()->table()` in ArticoliController e TipiInterventoController)
+- [DEV] Dashboard interventi di oggi: una sola query con `count()`/`array_slice` al posto di due (conteggio + lista)
+
 ## [0.21.0] - 2026-07-01
 
 ### Promemoria e avvisi

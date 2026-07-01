@@ -3,6 +3,7 @@
 namespace App\Controllers\Impostazioni;
 
 use App\Controllers\BaseController;
+use App\Models\InterventiModel;
 use App\Models\TipiInterventoModel;
 
 class TipiInterventoController extends BaseController
@@ -68,9 +69,7 @@ class TipiInterventoController extends BaseController
             return redirect()->to('impostazioni/tipi-intervento')->with('error', 'Tipo non trovato.');
         }
 
-        $usato = db()->table('interventi')
-            ->where('tipo_intervento_id', $id)
-            ->countAllResults();
+        $usato = (new InterventiModel())->contaPerTipo($id);
 
         if ($usato > 0) {
             return redirect()->to('impostazioni/tipi-intervento')
