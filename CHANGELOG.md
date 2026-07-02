@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.4] - 2026-07-02
+
+### Doppio click sulle righe per aprire le schede
+
+- [APP] **Doppio click su una riga** di elenco apre la relativa scheda: Interventi, Clienti, Abbonamenti, Cantieri, Personale e le tabelle Interventi/Abbonamenti/Cantieri dentro la scheda cliente. Il doppio click su un link esistente lascia agire quel link; con **Ctrl/Cmd** la scheda si apre in una nuova scheda del browser
+- [APP] Le tabelle **Abbonamenti** e **Cantieri** nella scheda cliente hanno ora una colonna **Rif. #ID** cliccabile, così la scheda si apre anche con un singolo click
+- [DEV] Nuovo script condiviso `public/js/row-dblclick.js`: handler `dblclick` delegato su `document` che naviga verso il link `.js-row-open` della riga (nessuna duplicazione di URL, sopravvive ai redraw di DataTables). Caricato globalmente dal layout
+- [DEV] Regola `custom.css` `tr:has(a.js-row-open) { cursor: pointer }` per l'affordance visiva
+
 ## [0.21.3] - 2026-07-02
 
 ### Cantieri — lista come abbonamenti + suggerimento ordinamento

@@ -73,7 +73,7 @@ $this->extend('layouts/admin');
                             <tr>
                                 <!-- 1 Rif. -->
                                 <td data-order="<?= (int) $c['id'] ?>">
-                                    <a href="<?= base_url('cantieri/' . $c['id']) ?>" class="text-decoration-none">
+                                    <a href="<?= base_url('cantieri/' . $c['id']) ?>" class="text-decoration-none js-row-open">
                                         <code class="small">#<?= (int) $c['id'] ?></code>
                                     </a>
                                 </td>

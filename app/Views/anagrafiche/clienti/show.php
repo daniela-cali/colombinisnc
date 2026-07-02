@@ -322,7 +322,7 @@ $statoBadge = [
                                 <tr title="ID intervento: <?= $iv['id'] ?>"><?php // ID utile per debug DB ?>
                                     <td>
                                         <a href="<?= base_url('operativo/interventi/' . $iv['id']) ?>"
-                                           class="text-decoration-none">
+                                           class="text-decoration-none js-row-open">
                                             <code class="small"><?= esc($iv['codice']) ?></code>
                                         </a>
                                     </td>
@@ -400,6 +400,7 @@ $statoBadge = [
                         <table class="table table-sm table-hover align-middle mb-0">
                             <thead>
                                 <tr>
+                                    <th>Rif.</th>
                                     <th>Tipo</th>
                                     <th>Frequenza</th>
                                     <th>Periodo</th>
@@ -411,6 +412,11 @@ $statoBadge = [
                             <tbody>
                                 <?php foreach ($abbonamenti as $ab): ?>
                                     <tr>
+                                        <td>
+                                            <a href="<?= base_url('abbonamenti/' . $ab['id']) ?>" class="text-decoration-none js-row-open">
+                                                <code class="small">#<?= (int) $ab['id'] ?></code>
+                                            </a>
+                                        </td>
                                         <td><?= esc($ab['tipo_nome'] ?? '—') ?></td>
                                         <td>
                                             <?php if ($ab['num_periodi'] > 1): ?>
@@ -472,6 +478,7 @@ $statoBadge = [
                         <table class="table table-sm table-hover align-middle mb-0">
                             <thead>
                                 <tr>
+                                    <th>Rif.</th>
                                     <th>Titolo</th>
                                     <th>Tipo</th>
                                     <th>Periodo</th>
@@ -484,6 +491,11 @@ $statoBadge = [
                             <tbody>
                                 <?php foreach ($cantieri as $ct): ?>
                                     <tr>
+                                        <td>
+                                            <a href="<?= base_url('cantieri/' . $ct['id']) ?>" class="text-decoration-none js-row-open">
+                                                <code class="small">#<?= (int) $ct['id'] ?></code>
+                                            </a>
+                                        </td>
                                         <td class="fw-semibold"><?= esc($ct['titolo']) ?></td>
                                         <td class="text-muted small"><?= esc($cantieriTipiLabel[$ct['tipo']] ?? $ct['tipo']) ?></td>
                                         <td class="text-nowrap small">

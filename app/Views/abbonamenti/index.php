@@ -77,7 +77,7 @@ $this->extend('layouts/admin');
                             <tr>
                                 <!-- 1 Rif. -->
                                 <td data-order="<?= (int) $a['id'] ?>">
-                                    <a href="<?= base_url('abbonamenti/' . $a['id']) ?>" class="text-decoration-none">
+                                    <a href="<?= base_url('abbonamenti/' . $a['id']) ?>" class="text-decoration-none js-row-open">
                                         <code class="small">#<?= (int) $a['id'] ?></code>
                                     </a>
                                 </td>

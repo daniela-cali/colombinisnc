@@ -299,6 +299,7 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
 <script src="<?= base_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js') ?>"></script>
 <script src="<?= base_url('assets/vendor/adminlte/adminlte.min.js') ?>"></script>
+<script src="<?= base_url('js/row-dblclick.js') ?>"></script>
 <script>
     OverlayScrollbarsGlobal.OverlayScrollbars(document.querySelector('.sidebar-wrapper'), {
         scrollbars: { autoHide: 'leave' }

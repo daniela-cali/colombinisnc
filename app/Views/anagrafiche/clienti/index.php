@@ -72,7 +72,7 @@ $this->extend('layouts/admin');
                                         </td>
                                         <td>
                                             <a href="<?= base_url('anagrafiche/clienti/' . $c['id']) ?>"
-                                               class="text-body fw-semibold text-decoration-none">
+                                               class="text-body fw-semibold text-decoration-none js-row-open">
                                                 <?= esc($c['denominazione']) ?>
                                             </a>
                                         </td>

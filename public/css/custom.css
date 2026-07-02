@@ -560,3 +560,10 @@ table.dataTable th.dt-type-date div.dt-column-header {
     background-color: rgba(111, 66, 193, .04);
     border-left: 3px solid rgba(111, 66, 193, .22);
 }
+
+/* --- Righe apribili in doppio click ------------------- */
+/* Vedi public/js/row-dblclick.js: le righe con un link .js-row-open
+   si aprono in doppio click, quindi mostrano il cursore a manina. */
+tr:has(a.js-row-open) {
+    cursor: pointer;
+}

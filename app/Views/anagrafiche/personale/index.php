@@ -49,7 +49,7 @@
                                                 </span>
                                             <?php endif ?>
                                             <a href="<?= base_url('anagrafiche/personale/' . $p['id']) ?>"
-                                               class="text-body text-decoration-none">
+                                               class="text-body text-decoration-none js-row-open">
                                                 <strong><?= esc($p['cognome']) ?></strong>
                                                 <?= esc($p['nome']) ?>
                                             </a>

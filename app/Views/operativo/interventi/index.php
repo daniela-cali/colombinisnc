@@ -110,7 +110,7 @@ $prioritaBadge = [
                                         <!-- 1 Codice -->
                                         <td> 
                                             <a href="<?= base_url('operativo/interventi/' . $i['id']) ?>"
-                                               class="text-decoration-none">
+                                               class="text-decoration-none js-row-open">
                                                 <code class="small"><?= esc($i['codice']) ?></code>
                                             </a>
                                         </td>
