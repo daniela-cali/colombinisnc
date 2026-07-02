@@ -41,6 +41,10 @@ $prioritaBadge = [
             <div class="card-header d-flex align-items-center">
                 <h3 class="card-title mb-0">
                     <i class="bi bi-tools me-2"></i><?= esc($sezioneLabel) ?>
+                    <i class="bi bi-info-circle text-muted ms-2"
+                       style="font-size:.85rem; font-weight:normal"
+                       data-bs-toggle="tooltip"
+                       title="Clicca su un'intestazione per ordinare. Tieni premuto Shift e clicca su altre colonne per ordinare su più criteri."></i>
                 </h3>
                 <div class="card-tools ms-auto">
                     <a href="<?= base_url('operativo/interventi/nuovo') ?>" class="btn btn-sm btn-primary">
@@ -206,7 +210,7 @@ $(function () {
             paginate: { first: '«', last: '»', next: '›', previous: '‹' }
         },
         responsive: true,
-        orderMulti: true,
+        orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
         pageLength:  25,
         order:       [[4, 'desc']],
         columnDefs: [
@@ -264,25 +268,6 @@ $(function () {
                 });
         }
     });
-    /*var table = $('#tabella-interventi').DataTable({
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
-        },
-        orderMulti: true,
-        pageLength:  25,
-        order:       [[4, 'desc']],
-        columnDefs:  [
-            { orderable: false, searchable: false, targets: 8 },
-            { visible: false, searchable: true, targets: [9, 10] }
-        ]
-    
-    });*/
 
     // q  → colonna 9  (stato), q10 → colonna 10 (origine), q11 → colonna 11 (fase apertura/chiusura)
     var filtri = {

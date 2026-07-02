@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.3] - 2026-07-02
+
+### Cantieri — lista come abbonamenti + suggerimento ordinamento
+
+- [APP] **Lista cantieri** rinnovata: colonna **riferimento #ID**, ricerca full-text, ordinamento su tutte le colonne e filtri rapidi per stato (Aperti/Sospesi/Chiusi/Tutti, apertura su Aperti)
+- [APP] Sotto il tipo di ogni cantiere compare un'**anteprima delle note** di testata (descrizione del lavoro), troncata
+- [APP] Icona informativa accanto ai titoli delle liste (Interventi, Clienti, Abbonamenti, Articoli, Cantieri) che spiega l'**ordinamento su più colonne** (Shift+clic)
+- [DEV] Vista cantieri convertita a DataTable con filtri pill sullo stato (colonna nascosta), riusando il pattern di abbonamenti
+- [DEV] Commento chiarificatore sulle righe `orderMulti: true` (già default di DataTables)
+
 ## [0.21.2] - 2026-07-01
 
 ### Abbonamenti — lista e descrizioni

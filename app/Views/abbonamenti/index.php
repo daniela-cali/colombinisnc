@@ -24,7 +24,12 @@ $this->extend('layouts/admin');
 <?= $this->section('content') ?>
 <div class="card card-outline card-primary">
     <div class="card-header d-flex align-items-center">
-        <h3 class="card-title mb-0"><i class="bi bi-file-earmark-text me-2"></i>Abbonamenti</h3>
+        <h3 class="card-title mb-0"><i class="bi bi-file-earmark-text me-2"></i>Abbonamenti
+            <i class="bi bi-info-circle text-muted ms-2"
+               style="font-size:.85rem; font-weight:normal"
+               data-bs-toggle="tooltip"
+               title="Clicca su un'intestazione per ordinare. Tieni premuto Shift e clicca su altre colonne per ordinare su più criteri."></i>
+        </h3>
         <div class="card-tools ms-auto">
             <a href="<?= base_url('abbonamenti/nuovo') ?>" class="btn btn-sm">
                 <i class="bi bi-plus-lg me-1"></i>Nuovo
@@ -150,7 +155,7 @@ $(function () {
             paginate: { first: '«', last: '»', next: '›', previous: '‹' }
         },
         responsive: true,
-        orderMulti: true,
+        orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
         pageLength:  25,
         order:       [[0, 'desc']],
         columnDefs: [
