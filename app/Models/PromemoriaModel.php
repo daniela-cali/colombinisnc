@@ -91,7 +91,7 @@ class PromemoriaModel extends Model
      */
     protected function normalizza(array $data): array
     {
-        $userId = session()->get('user_id');
+        $userId = user_id();
 
         if (! array_key_exists('id', $data)) {
             $data['data']['created_by'] = $userId;

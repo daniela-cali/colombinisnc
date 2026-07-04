@@ -45,7 +45,7 @@ class ClientiModel extends Model
      */
     protected function normalizza(array $data): array
     {
-        $userId = session()->get('user_id');
+        $userId = user_id();
 
         // created_by si imposta solo all'inserimento: CI4 passa $data['id'] solo negli update
         if (! isset($data['id'])) {

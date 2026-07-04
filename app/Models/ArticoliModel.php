@@ -35,7 +35,7 @@ class ArticoliModel extends Model
      */
     protected function normalizza(array $data): array
     {
-        $userId = session()->get('user_id');
+        $userId = user_id();
         if (! isset($data['id'])) {
             $data['data']['created_by'] = $userId;
         }

@@ -409,6 +409,9 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `data_ora_fine` di default = inizio + 1 ora quando non specificata
 - *Nota: risponde parzialmente alla nota di v0.21.0 sullo stato "visto" per-utente — resta specifico ai promemoria, non ancora una tabella `notifiche` generica*
 
+#### ✅ v0.21.7 — Fix created_by/updated_by promemoria
+- `PromemoriaModel::normalizza()` usava `session()->get('user_id')` (sempre `null` in questo progetto) invece dell'helper Shield `user_id()` — `created_by`/`updated_by` ora popolati correttamente
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

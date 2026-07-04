@@ -66,7 +66,7 @@ class InterventiModel extends Model
      */
     protected function normalizza(array $data): array
     {
-        $userId = session()->get('user_id');
+        $userId = user_id();
 
         // array_key_exists distingue insert (nessuna chiave 'id') da update (chiave 'id' presente,
         // anche se null nei bulk update senza id — caso in cui isset() restituisce erroneamente false)

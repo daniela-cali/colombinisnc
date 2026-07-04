@@ -1,5 +1,11 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.7] - 2026-07-04
+
+### Fix created_by/updated_by in tutti i model
+
+- [DEV] Tutti i model con `normalizza()` (`PromemoriaModel`, `PersonaleModel`, `AbbonamentiModel`, `AbbonamentiPeriodiModel`, `ArticoliModel`, `CantieriModel`, `CantieriNoteModel`, `CategorieArticoliModel`, `ClientiModel`, `InterventiModel`, `InterventiNoteModel`, `InterventiMaterialiModel`, `TipiInterventoModel`) usavano `session()->get('user_id')`, che in questo progetto restituisce sempre `null` (Shield salva l'utente sotto la chiave di sessione `'user'`, non `'user_id'`) — sostituito ovunque con l'helper Shield `user_id()`. `created_by`/`updated_by` ora si popolano correttamente in tutto il gestionale, non solo sui promemoria
+
 ## [0.21.6] - 2026-07-04
 
 ### Promemoria di oggi — modal informativa

@@ -53,6 +53,12 @@ Se il diff delle modifiche smette di apparire nell'IDE VSCode:
 2. Eseguire `Ctrl+Shift+P` → **Developer: Reload Window** per ricaricare l'estensione
 3. Se non basta, aprire una nuova sessione di Claude Code
 
+**ID utente loggato: usare `user_id()`, non `session()->get('user_id')`**
+Shield salva i dati dell'utente in sessione sotto la chiave `'user'` (array con `id`, email, ecc. — vedi `Config\Auth::$sessionConfig['field']`), non sotto una chiave piatta `'user_id'`. `session()->get('user_id')` restituisce quindi sempre `null`, silenziosamente (nessun errore). Per ottenere l'ID dell'utente loggato usare l'helper Shield **`user_id()`** (o `auth()->id()`), già autoloadato. Bug noto: `PromemoriaModel::normalizza()` usa ancora il pattern sbagliato → `created_by`/`updated_by` dei promemoria sono sempre `NULL`.
+
+**`dd()` funziona regolarmente**
+CodeIgniter 4 include una copia vendorizzata di Kint dentro il framework (`vendor/codeigniter4/framework/system/ThirdParty/Kint/`), attivata automaticamente quando `CI_DEBUG` è `true` (ambiente `development`) — non serve installare `kint-php/kint` separatamente. Verificato con `dd()` diretto: dump completo e corretto. Se in una sessione di debug sembra non fare nulla, sospettare prima il contesto (output engoiato da un ob_start() esterno, contenuto che appare ma passa inosservato più in alto/basso nella pagina) prima di concludere che Kint sia assente.
+
 ## Sistema di ritorno "from"
 Quando un form (edit o nuovo) può essere aperto da contesti diversi (lista, scheda cliente, ecc.), si usa il parametro `from` per tornare alla pagina di origine dopo salvataggio o eliminazione.
 
@@ -132,7 +138,7 @@ $this->forge->addField('created_at DATETIME NULL');
 $this->forge->addField('updated_at DATETIME NULL');
 ```
 
-Nel model: `$useTimestamps = true` per `created_at`/`updated_at`. I campi `created_by` e `updated_by` vengono popolati automaticamente dal callback `normalizza()` leggendo `session()->get('user_id')`. `updated_by` va impostato in `$beforeUpdate`; `created_by` in `$beforeInsert` (e non va mai sovrascritto negli update).
+Nel model: `$useTimestamps = true` per `created_at`/`updated_at`. I campi `created_by` e `updated_by` vengono popolati automaticamente dal callback `normalizza()` leggendo l'helper Shield **`user_id()`** (non `session()->get('user_id')` — vedi nota in "Note ambiente e troubleshooting"). `updated_by` va impostato in `$beforeUpdate`; `created_by` in `$beforeInsert` (e non va mai sovrascritto negli update).
 
 ## Query nei model — usare $this, non $this->db->table()
 Nei metodi di un model, usare sempre `$this` (il Query Builder del model) invece di `$this->db->table(...)`. Questo garantisce che timestamp e altri comportamenti del model vengano applicati automaticamente.
