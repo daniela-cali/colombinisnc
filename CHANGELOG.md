@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.6] - 2026-07-04
+
+### Promemoria di oggi — modal informativa
+
+- [APP] Ad ogni accesso al gestionale, se ci sono **promemoria previsti per oggi** compare una modal informativa in alto, bloccante finché non si clicca **"Ho letto"** — stile Google Calendar
+- [APP] Il click su "Ho letto" segna il promemoria come visto **per l'utente e per la giornata**: la conferma è salvata a DB (non nel browser), quindi resta valida anche cambiando dispositivo o browser
+- [APP] Campanella e dashboard mostrano una fascia **"Oggi"** (al posto di "Questa settimana"), sempre visibile per l'intera giornata anche a orario già passato; il badge rosso conta solo i promemoria di oggi
+- [APP] I promemoria già letti restano visibili in campanella e dashboard (fino a fine giornata) con una **spunta verde**, invece di sparire
+- [APP] Creando un promemoria senza indicare l'orario di fine, viene impostato automaticamente **inizio + 1 ora** (come Google Calendar)
+- [DEV] Nuova tabella `promemoria_dismiss` (FK `promemoria_id` e `utente_id`, chiave unica sulla coppia) per il tracciamento "visto" per utente
+- [DEV] Nuovo Cell `PromemoriaOggiCell` dedicato alla modal, separato da `AvvisiCell` (campanella) per non mischiare comportamento bloccante e informativo
+- [DEV] `PromemoriaModel::inArrivo()` semplificato a confronto sulla sola data (nessun filtro sull'orario); join con `promemoria_dismiss` per il flag `letto` per utente; nuova query `oggiNonVisti()` per la modal
+
 ## [0.21.5] - 2026-07-04
 
 ### Colore profilo — selezione a tavolozza

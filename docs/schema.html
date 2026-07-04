@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.17.0 · 2026-06-27</span></h1>
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.21.6 · 2026-07-04</span></h1>
 
 <div class="toc">
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
@@ -50,6 +50,8 @@
   <a href="#abbonamenti_periodi">abbonamenti_periodi</a>
   <a href="#cantieri">cantieri</a>
   <a href="#cantieri_note">cantieri_note</a>
+  <a href="#promemoria">promemoria</a>
+  <a href="#promemoria_dismiss">promemoria_dismiss</a>
   <a href="#relazioni">Relazioni</a>
   <a href="#log">Log modifiche DB</a>
 </div>
@@ -319,6 +321,34 @@
   <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
 </table>
 
+<!-- ═══════════════════════════════════════════════════════ promemoria -->
+<h2 id="promemoria">promemoria</h2>
+<p class="note">Promemoria aziendali gestiti da ufficio/admin, visibili sul calendario e in campanella/dashboard. Aggiunta v0.20.0.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><code>titolo</code></td><td>VARCHAR(150)</td><td></td><td></td><td></td></tr>
+  <tr><td><code>data_ora_inizio</code></td><td>DATETIME</td><td></td><td></td><td></td></tr>
+  <tr><td><code>data_ora_fine</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Se non indicata, il model la imposta a inizio + 1 ora (v0.21.6)</td></tr>
+  <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ promemoria_dismiss -->
+<h2 id="promemoria_dismiss">promemoria_dismiss</h2>
+<p class="note">Traccia quali promemoria di oggi un utente ha già chiuso nella modal informativa. Aggiunta v0.21.6.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>promemoria_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ promemoria.id · ON DELETE CASCADE</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>utente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ users.id · ON DELETE CASCADE</td></tr>
+  <tr><td><span class="badge badge-uq">UQ</span></td><td colspan="4">(<code>promemoria_id</code>, <code>utente_id</code>) — un utente non può chiudere due volte lo stesso promemoria</td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
 <hr class="section-sep">
 
 <!-- ═══════════════════════════════════════════════════════ relazioni -->
@@ -327,6 +357,8 @@
   <tr><th>Tabella</th><th>Campo</th><th>Riferimento</th><th>ON DELETE</th></tr>
   <tr><td>personale</td><td>user_id</td><td>users.id</td><td>SET NULL</td></tr>
   <tr><td>clienti</td><td>user_id</td><td>users.id</td><td>SET NULL</td></tr>
+  <tr><td>promemoria_dismiss</td><td>promemoria_id</td><td>promemoria.id</td><td>CASCADE</td></tr>
+  <tr><td>promemoria_dismiss</td><td>utente_id</td><td>users.id</td><td>CASCADE</td></tr>
   <tr><td>clienti</td><td>tecnico_preferito_id</td><td>personale.id</td><td>SET NULL</td></tr>
   <tr><td>interventi</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
   <tr><td>interventi</td><td>tecnico_id</td><td>personale.id</td><td>SET NULL</td></tr>
@@ -353,6 +385,14 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.21.6</td>
+    <td><code>CreatePromemoriaDismissTable</code></td>
+    <td>
+      Nuova tabella <code>promemoria_dismiss</code>: FK <code>promemoria_id</code> CASCADE, FK <code>utente_id</code> (→ users.id) CASCADE,
+      chiave unica su (<code>promemoria_id</code>, <code>utente_id</code>). Traccia il "letto" per utente sulla modal dei promemoria di oggi.
+    </td>
+  </tr>
   <tr>
     <td>v0.17.0</td>
     <td><code>CreateCantieriTable</code><br><code>CreateCantieriNoteTable</code><br><code>AddTipoInterventoToCantieri</code></td>

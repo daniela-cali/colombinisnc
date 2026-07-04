@@ -263,6 +263,8 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
 </div>
 <?php endif ?>
 
+<?= view_cell('App\Cells\PromemoriaOggiCell') ?>
+
 <div class="modal fade" id="modalChangelog" tabindex="-1">
     <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">

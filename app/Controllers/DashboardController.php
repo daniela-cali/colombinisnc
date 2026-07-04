@@ -38,7 +38,7 @@ class DashboardController extends BaseController
             'abbonamenti' => [],
             'mieiOggi'    => [],
             'mieiUrgenti' => [],
-            'promemoria'  => model(PromemoriaModel::class)->inArrivoRaggruppati(),
+            'promemoria'  => model(PromemoriaModel::class)->inArrivoRaggruppati((int) $user->id),
             'help_sezione' => 'dashboard',
         ];
 
