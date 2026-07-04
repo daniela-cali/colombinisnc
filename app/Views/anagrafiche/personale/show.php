@@ -62,9 +62,10 @@ $nomeCognome = esc($persona['cognome'] . ' ' . $persona['nome']);
                             <?php if ($persona['colore']): ?>
                                 <dt class="col-sm-4 text-muted fw-normal">Colore profilo</dt>
                                 <dd class="col-sm-8">
-                                    <span class="badge rounded-circle p-2 me-1"
-                                          style="background-color:<?= esc($persona['colore']) ?>"></span>
-                                    <code class="text-muted"><?= esc($persona['colore']) ?></code>
+                                    <span class="badge p-2 me-1"
+                                          style="background-color:<?= esc($persona['colore']) ?>">
+                                        <code class="text-light"><?= esc($persona['colore']) ?></code>
+                                    </span>
                                 </dd>
                             <?php endif ?>
                         </dl>

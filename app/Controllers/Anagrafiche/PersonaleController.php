@@ -10,17 +10,18 @@ use CodeIgniter\Shield\Entities\User;
 class PersonaleController extends BaseController
 {
     private array $gruppi = [
-        'ufficio'   => 'Ufficio',
-        'tecnico'   => 'Tecnico',
         'admin'     => 'Amministratore',
+        'ufficio'   => 'Ufficio',
         'developer' => 'Sviluppatore',
+        'tecnico'   => 'Tecnico',
     ];
 
-    // Scorciatoie colore nel picker profilo (S=75%, L=73% per coerenza con lo slider)
+    // Palette colore profilo: tinte distinte per identificare il dipendente nel calendario
     private const PASTELLI = [
-        '#d73a49', '#ee8686', '#eeab86', '#d4a574', '#eec886', '#eee586',
-        '#cfee86', '#98ee86', '#86eebf', 
-        '#86e5ee', '#86b5ee', '#9386ee', '#d986ee', '#ee86b5',
+        '#e5645a', '#ef8b5a', '#f2b04a', '#e8ce4d', '#b5d24f',
+        '#78c15c', '#4fb389', '#4cb6c4', '#4f9fe0', '#5b7ce0',
+        '#7d6fd6', '#a469d3', '#c96ec4', '#e46a9b', '#8b98a8',
+        '#3a4149',
     ];
 
     /**

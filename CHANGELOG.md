@@ -1,5 +1,17 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.21.5] - 2026-07-04
+
+### Colore profilo — selezione a tavolozza
+
+- [APP] La scelta del **colore profilo** del dipendente (nuovo/modifica) avviene ora su una **tavolozza di pastelli**: si clicca il cerchio desiderato, senza più codici esadecimali né slider
+- [APP] I colori **già assegnati** ad altri dipendenti appaiono **sbarrati** e non selezionabili, così è subito chiaro quali tinte sono libere
+- [APP] Nuovo dipendente: viene **preselezionato automaticamente** il primo colore libero della tavolozza
+- [APP] **Scheda dipendente**: il colore profilo è mostrato come pallino colorato accanto al codice, non più solo come testo esadecimale
+- [DEV] Partial riutilizzabile `_colore_picker.php` (radio nascosti, nessun JavaScript) condiviso tra le view nuovo/modifica; rimosso il vecchio picker con slider hue e relativo script
+- [DEV] Indicatore "già assegnato" realizzato in CSS con doppio `linear-gradient` (barra diagonale + alone bianco), senza immagini né icone
+- [DEV] Aggiunta la specifica tecnica ed economica per l'integrazione del **centralino Voxloud** (`docs/spec/centralino.md`)
+
 ## [0.21.4] - 2026-07-02
 
 ### Doppio click sulle righe per aprire le schede
