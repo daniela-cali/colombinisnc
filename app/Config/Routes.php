@@ -100,6 +100,7 @@ $routes->group('promemoria', function ($routes) {
     $routes->post('store',         'PromemoriaController::store');
     $routes->post('(:num)/update', 'PromemoriaController::update/$1');
     $routes->post('(:num)/delete', 'PromemoriaController::delete/$1');
+    $routes->post('(:num)/dismiss','PromemoriaController::dismiss/$1');
 });
 
 // Operativo (interventi, futuri: cantieri, ecc.)

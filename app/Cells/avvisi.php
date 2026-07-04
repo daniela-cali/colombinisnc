@@ -1,19 +1,21 @@
 <?php
 /**
- * @var array $questaSettimana
+ * @var array $oggi
  * @var array $prossimi
  * @var int   $badge
  */
-$vuoto = $questaSettimana === [] && $prossimi === [];
+$vuoto = $oggi === [] && $prossimi === [];
 
 // Rende una voce del dropdown: link al calendario aperto sul giorno del promemoria.
 $voce = static function (array $p): string {
     $giorno = date('Y-m-d', strtotime($p['data_ora_inizio']));
     $quando = date('d/m H:i', strtotime($p['data_ora_inizio']));
 
+    $letto = ! empty($p['letto']) ? ' <i class="bi bi-check-circle-fill text-success" title="Già letto"></i>' : '';
+
     return '<li><a class="dropdown-item" href="' . base_url('operativo/calendario') . '?data=' . $giorno . '">'
         . '<span class="d-block small text-muted"><i class="bi bi-calendar-event me-1"></i>' . $quando . '</span>'
-        . '<span class="d-block">' . esc($p['titolo']) . '</span>'
+        . '<span class="d-block">' . esc($p['titolo']) . $letto . '</span>'
         . '</a></li>';
 };
 ?>
@@ -33,13 +35,13 @@ $voce = static function (array $p): string {
         <li><span class="dropdown-item-text text-muted small">Nessun avviso in arrivo</span></li>
         <?php endif ?>
 
-        <?php if ($questaSettimana !== []): ?>
-        <li><h6 class="dropdown-header text-uppercase small text-secondary">Questa settimana</h6></li>
-        <?php foreach ($questaSettimana as $p) echo $voce($p) ?>
+        <?php if ($oggi !== []): ?>
+        <li><h6 class="dropdown-header text-uppercase small text-secondary">Oggi</h6></li>
+        <?php foreach ($oggi as $p) echo $voce($p) ?>
         <?php endif ?>
 
         <?php if ($prossimi !== []): ?>
-            <?php if ($questaSettimana !== []): ?>
+            <?php if ($oggi !== []): ?>
             <li><hr class="dropdown-divider"></li>
             <?php endif ?>
         <li><h6 class="dropdown-header text-uppercase small text-secondary">Prossimi giorni</h6></li>

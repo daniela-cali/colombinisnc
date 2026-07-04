@@ -11,25 +11,26 @@ use CodeIgniter\View\Cells\Cell;
  */
 class AvvisiCell extends Cell
 {
-    /** Promemoria che iniziano entro la fine di questa settimana (gli imminenti). */
-    public array $questaSettimana = [];
+    /** Promemoria di oggi. */
+    public array $oggi = [];
 
     /** Promemoria successivi, entro i 14 giorni. */
     public array $prossimi = [];
 
-    /** Numero di avvisi imminenti mostrato nel badge rosso. */
+    /** Numero di avvisi di oggi mostrato nel badge rosso. */
     public int $badge = 0;
 
     /**
-     * Carica gli avvisi già divisi per fascia. Il badge conta solo gli imminenti
-     * (quelli entro la fine di questa settimana).
+     * Carica gli avvisi già divisi per fascia. Il badge conta solo quelli di oggi,
+     * indipendentemente dal fatto che l'utente li abbia già chiusi nella modal
+     * (il dismiss riguarda solo il popup forzato, non la campanella).
      */
     public function mount(): void
     {
-        $gruppi = (new PromemoriaModel())->inArrivoRaggruppati();
+        $gruppi = (new PromemoriaModel())->inArrivoRaggruppati((int) user_id());
 
-        $this->questaSettimana = $gruppi['settimana'];
-        $this->prossimi        = $gruppi['prossimi'];
-        $this->badge           = count($this->questaSettimana);
+        $this->oggi     = $gruppi['oggi'];
+        $this->prossimi = $gruppi['prossimi'];
+        $this->badge    = count($this->oggi);
     }
 }

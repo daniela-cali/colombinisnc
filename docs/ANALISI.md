@@ -403,6 +403,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Fix: `data_pianificata` con ora (`datetime-local`) nel form nuovo intervento; `NULLIF` su `ragsoc` per la denominazione delle persone fisiche
 - *Nota: notifiche vere (tabella dedicata + stato "visto" per-utente) rimandate; i promemoria scadono per data*
 
+#### ✅ v0.21.6 — Promemoria di oggi: modal e stato "letto"
+- Modal informativa forzata con i promemoria di oggi ad ogni accesso (stile Google Calendar); il bottone "Ho letto" salva il dismiss su tabella dedicata `promemoria_dismiss`, per utente e indipendente da browser/dispositivo
+- Campanella e dashboard: fascia "Oggi" (al posto di "Questa settimana") sempre visibile per l'intera giornata anche a orario passato; spunta verde sui promemoria già letti, che restano comunque visibili
+- `data_ora_fine` di default = inizio + 1 ora quando non specificata
+- *Nota: risponde parzialmente alla nota di v0.21.0 sullo stato "visto" per-utente — resta specifico ai promemoria, non ancora una tabella `notifiche` generica*
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

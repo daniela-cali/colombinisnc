@@ -20,38 +20,56 @@ class PromemoriaModel extends Model
     protected $beforeUpdate = ['normalizza'];
 
     /**
-     * Promemoria ancora in corso o futuri, entro una finestra di giorni in avanti.
-     * Usato dalla campanella e dalla dashboard per mostrare i "prossimi in arrivo".
+     * Promemoria da oggi in avanti, entro una finestra di giorni. Solo confronto
+     * sulla data (nessun filtro sull'orario): un promemoria di oggi resta incluso
+     * anche a orario già passato. Include il flag `letto` (dismiss dell'utente
+     * indicato): i promemoria già letti non vengono esclusi, solo segnalati.
      */
-    public function inArrivo(int $giorni = 14): array
+    public function inArrivo(int $utenteId, int $giorni = 14): array
     {
-        $ora   = date('Y-m-d H:i:s');
-        $fine  = date('Y-m-d 23:59:59', strtotime("+{$giorni} days"));
+        $oggi = date('Y-m-d');
+        $fine = date('Y-m-d', strtotime("+{$giorni} days"));
 
-        return $this->where('COALESCE(data_ora_fine, data_ora_inizio) >=', $ora)
-            ->where('data_ora_inizio <=', $fine)
+        return $this->select('promemoria.*, (pd.id IS NOT NULL) AS letto')
+            ->join('promemoria_dismiss pd', 'pd.promemoria_id = promemoria.id AND pd.utente_id = ' . $this->db->escape($utenteId), 'left')
+            ->where('DATE(data_ora_inizio) >=', $oggi)
+            ->where('DATE(data_ora_inizio) <=', $fine)
             ->orderBy('data_ora_inizio', 'ASC')
             ->findAll();
     }
 
     /**
-     * Promemoria in arrivo divisi in due fasce: quelli entro la fine di questa
-     * settimana ("settimana", gli imminenti) e quelli successivi entro la
+     * Promemoria in arrivo divisi in due fasce: quelli di oggi ("oggi", il badge
+     * della campanella conta solo questi) e quelli dei prossimi giorni entro la
      * finestra ("prossimi"). Riusato dalla campanella e dalla dashboard.
      *
-     * @return array{settimana: array, prossimi: array}
+     * @return array{oggi: array, prossimi: array}
      */
-    public function inArrivoRaggruppati(int $giorni = 14): array
+    public function inArrivoRaggruppati(int $utenteId, int $giorni = 14): array
     {
-        $fineSettimana = date('Y-m-d 23:59:59', strtotime('sunday this week'));
-        $gruppi        = ['settimana' => [], 'prossimi' => []];
+        $oggi   = date('Y-m-d');
+        $gruppi = ['oggi' => [], 'prossimi' => []];
 
-        foreach ($this->inArrivo($giorni) as $p) {
-            $chiave = $p['data_ora_inizio'] <= $fineSettimana ? 'settimana' : 'prossimi';
+        foreach ($this->inArrivo($utenteId, $giorni) as $p) {
+            $chiave = substr($p['data_ora_inizio'], 0, 10) === $oggi ? 'oggi' : 'prossimi';
             $gruppi[$chiave][] = $p;
         }
 
         return $gruppi;
+    }
+
+    /**
+     * Promemoria di oggi (data_ora_inizio) che l'utente indicato non ha ancora
+     * chiuso. Usato per la modal informativa mostrata ad ogni accesso.
+     */
+    public function oggiNonVisti(int $utenteId): array
+    {
+        return $this->select('promemoria.*')
+            ->join('promemoria_dismiss pd', 'pd.promemoria_id = promemoria.id AND pd.utente_id = ' . $this->db->escape($utenteId), 'left')
+            ->where('DATE(data_ora_inizio)', date('Y-m-d'))
+            ->where('pd.id', null)
+            ->orderBy('data_ora_inizio', 'ASC')
+            ->findAll();
     }
 
     /**
@@ -87,10 +105,17 @@ class PromemoriaModel extends Model
             }
         }
 
-        foreach (['data_ora_fine', 'note'] as $campo) {
-            if (isset($data['data'][$campo]) && $data['data'][$campo] === '') {
-                $data['data'][$campo] = null;
-            }
+        // Fine non specificata: default a inizio + 1 ora (come Google Calendar),
+        // invece di NULL — evita che il promemoria risulti "scaduto" (e sparisca
+        // dalla campanella) nell'istante esatto dell'orario di inizio.
+        if (empty($data['data']['data_ora_fine'])) {
+            $data['data']['data_ora_fine'] = ! empty($data['data']['data_ora_inizio'])
+                ? date('Y-m-d H:i:s', strtotime($data['data']['data_ora_inizio']) + 3600)
+                : null;
+        }
+
+        if (isset($data['data']['note']) && $data['data']['note'] === '') {
+            $data['data']['note'] = null;
         }
 
         return $data;

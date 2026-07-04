@@ -9,7 +9,7 @@
  * @var array      $abbonamenti
  * @var array      $mieiOggi
  * @var array      $mieiUrgenti
- * @var array{settimana: array, prossimi: array} $promemoria
+ * @var array{oggi: array, prossimi: array} $promemoria
  */
 $this->extend('layouts/admin');
 ?>
@@ -22,17 +22,18 @@ $this->extend('layouts/admin');
 $numUrgenti = count($urgenti);
 $numAbb     = count($abbonamenti);
 
-$promSett = $promemoria['settimana'];
+$promOggi = $promemoria['oggi'];
 $promDopo = $promemoria['prossimi'];
-$numProm  = count($promSett) + count($promDopo);
+$numProm  = count($promOggi) + count($promDopo);
 
 // Rende una voce promemoria: titolo (link al calendario sul giorno) + ora a destra + note.
 $voceProm = static function (array $p, string $classe): string {
     $giorno = date('Y-m-d', strtotime($p['data_ora_inizio']));
+    $letto  = ! empty($p['letto']) ? ' <i class="bi bi-check-circle-fill text-success" title="Già letto"></i> ' : '';
     $html   = '<li class="list-group-item py-2 ' . $classe . '">'
         . '<div class="d-flex justify-content-between align-items-start">'
         . '<a href="' . base_url('operativo/calendario?data=' . $giorno) . '" class="fw-semibold text-decoration-none">' . esc($p['titolo']) . '</a>'
-        . '<small class="text-muted text-nowrap ms-2">' . date('d/m H:i', strtotime($p['data_ora_inizio'])) . '</small>'
+        . '<small class="text-muted text-nowrap ms-2">' . $letto . date('d/m H:i', strtotime($p['data_ora_inizio'])) . '</small>'
         . '</div>';
     if (! empty($p['note'])) {
         $html .= '<small class="text-muted d-block">' . esc($p['note']) . '</small>';
@@ -41,9 +42,9 @@ $voceProm = static function (array $p, string $classe): string {
     return $html . '</li>';
 };
 
-$capSett      = array_slice($promSett, 0, 5);
+$capOggi      = array_slice($promOggi, 0, 5);
 $capDopo      = array_slice($promDopo, 0, 5);
-$mostratiProm = count($capSett) + count($capDopo);
+$mostratiProm = count($capOggi) + count($capDopo);
 ?>
 
 <!-- Riga contatori: info-box compatti, un link alla pagina relativa -->
@@ -207,9 +208,9 @@ $mostratiProm = count($capSett) + count($capDopo);
             <?php if ($numProm): ?>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    <?php if ($capSett): ?>
-                    <li class="list-group-item py-1 bg-body-tertiary"><small class="text-uppercase text-secondary fw-semibold">Questa settimana</small></li>
-                    <?php foreach ($capSett as $p) echo $voceProm($p, 'prom-settimana') ?>
+                    <?php if ($capOggi): ?>
+                    <li class="list-group-item py-1 bg-body-tertiary"><small class="text-uppercase text-secondary fw-semibold">Oggi</small></li>
+                    <?php foreach ($capOggi as $p) echo $voceProm($p, 'prom-oggi') ?>
                     <?php endif ?>
                     <?php if ($capDopo): ?>
                     <li class="list-group-item py-1 bg-body-tertiary"><small class="text-uppercase text-secondary fw-semibold">Prossimi giorni</small></li>

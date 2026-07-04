@@ -562,9 +562,22 @@ table.dataTable th.dt-type-date div.dt-column-header {
     color: #fff !important;
 }
 
-/* Questa settimana: viola tenue. Prossimi giorni: viola molto più tenue.
+/* Bottone viola coerente, per la modal dei promemoria di oggi */
+.btn-promemoria {
+    --bs-btn-color:              #fff;
+    --bs-btn-bg:                 #6f42c1;
+    --bs-btn-border-color:       #6f42c1;
+    --bs-btn-hover-color:        #fff;
+    --bs-btn-hover-bg:           #5d3aa5;
+    --bs-btn-hover-border-color: #5d3aa5;
+    --bs-btn-active-color:       #fff;
+    --bs-btn-active-bg:          #5d3aa5;
+    --bs-btn-active-border-color:#5d3aa5;
+}
+
+/* Oggi: viola tenue. Prossimi giorni: viola molto più tenue.
    Un bordo sinistro (più sfumato nella seconda fascia) rinforza la distinzione. */
-.list-group-item.prom-settimana {
+.list-group-item.prom-oggi {
     background-color: rgba(111, 66, 193, .10);
     border-left: 3px solid rgba(111, 66, 193, .55);
 }

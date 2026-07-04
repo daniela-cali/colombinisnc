@@ -2,8 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Models\PromemoriaDismissModel;
 use App\Models\PromemoriaModel;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 
 class PromemoriaController extends BaseController
 {
@@ -65,6 +67,18 @@ class PromemoriaController extends BaseController
         $model->delete($id);
 
         return $this->ritorno('Promemoria eliminato.');
+    }
+
+    /**
+     * Segna il promemoria come visto dall'utente corrente (modal informativa
+     * "promemoria di oggi", mostrata ad ogni accesso). Chiamato via fetch dal
+     * layout: risponde in JSON, nessun redirect.
+     */
+    public function dismiss(int $id): ResponseInterface
+    {
+        (new PromemoriaDismissModel())->segnaVisto($id, (int) user_id());
+
+        return $this->response->setJSON(['ok' => true, 'csrf' => csrf_hash()]);
     }
 
     // -------------------------------------------------------------------------
