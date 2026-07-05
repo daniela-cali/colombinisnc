@@ -431,6 +431,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Guida della sezione Clienti aggiornata
 - *Vedi `docs/spec/mappa_cliente_spec.md` per il dettaglio delle decisioni*
 
+#### ✅ v0.23.1 — Piccoli ritocchi
+- Scheda intervento: data pianificata mostra anche l'ora (`d/m/Y H:i`), prima solo il giorno
+- Query denominazione cliente unificate su un solo pattern SQL (`CASE WHEN tipo`) in 4 metodi che usavano ancora `COALESCE(NULLIF(ragsoc,''),...)`, equivalente ma diverso dal pattern già in uso ovunque
+- Chiusi anche senza modifiche di codice: bottoni PDF/Stampa foglio di viaggio su mobile (già a posto da v0.19.0, nota superata) e layout a blocchi impilati mobile (non serve più, va bene lo scroll orizzontale attuale)
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

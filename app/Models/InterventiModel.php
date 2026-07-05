@@ -377,7 +377,10 @@ class InterventiModel extends Model
     public function agendaGiorno(string $data, ?int $tecnicoId = null): array
     {
         $this->select("interventi.id, interventi.data_pianificata,
-                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                CASE WHEN clienti.tipo = 'persona_fisica'
+                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
+                     ELSE clienti.ragsoc
+                END AS cliente_denominazione,
                 clienti.citta, clienti.indirizzo,
                 tipi_intervento.nome AS tipo,
                 TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico")
@@ -401,7 +404,10 @@ class InterventiModel extends Model
     public function urgentiDaPianificare(?int $tecnicoId = null, int $limit = 0): array
     {
         $this->select("interventi.id,
-                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                CASE WHEN clienti.tipo = 'persona_fisica'
+                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
+                     ELSE clienti.ragsoc
+                END AS cliente_denominazione,
                 clienti.citta, tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
@@ -422,7 +428,10 @@ class InterventiModel extends Model
     public function agendaTecnicoPeriodo(int $tecnicoId, string $dataInizio, string $dataFine): array
     {
         return $this->select("interventi.id, interventi.data_pianificata, interventi.stato,
-                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                CASE WHEN clienti.tipo = 'persona_fisica'
+                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
+                     ELSE clienti.ragsoc
+                END AS cliente_denominazione,
                 clienti.indirizzo, clienti.citta, clienti.cap, clienti.lat, clienti.lng,
                 tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')

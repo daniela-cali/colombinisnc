@@ -120,7 +120,7 @@ $statoBadge = [
                     <div class="col-md-4">
                         <p class="text-muted small mb-1">Data pianificata</p>
                         <span><?= $intervento['data_pianificata']
-                            ? esc(date('d/m/Y', strtotime($intervento['data_pianificata'])))
+                            ? esc(date('d/m/Y H:i', strtotime($intervento['data_pianificata'])))
                             : '<span class="text-muted">Da pianificare</span>' ?></span>
                     </div>
                     <div class="col-md-4">

@@ -18,6 +18,12 @@
 ## Brainstorming prima di implementare
 Prima di iniziare qualsiasi feature nuova o non banale, proporre sempre un brainstorming onesto sui pro e contro — senza dare per scontato che si proceda. L'utente vuole valutare se vale la pena e confrontare approcci alternativi prima di investire tempo. Non cercare file né scrivere codice finché non si è concordato l'approccio.
 
+## Spec scritta prima di implementare (feature non banali)
+Una volta concordato l'approccio nel brainstorming, per le feature non banali scrivere uno spec in `docs/spec/<nome>_spec.md` **prima** di scrivere codice — segue la traccia degli spec già esistenti nella cartella (es. `abbonamenti_next_visita_spec.md`): contesto/problema, soluzione con le decisioni chiave e il *perché*, eventuali alternative scartate, riepilogo puntuale delle modifiche file per file, sezione esplicita "fuori scope". Serve a tenere traccia dei ragionamenti fatti insieme, non solo del risultato finale. Non serve per fix di una riga o modifiche ovvie — solo per feature con più decisioni di design da ricordare.
+
+## Roadmap — non proporre la v1.0.0
+La v1.0.0 (release finale: test, deploy su colombini-snc.it, ottimizzazione percorsi OpenRouteService) è prevista per **metà settembre 2026**, non è imminente. Non proporla come prossimo passo a inizio sessione. Al momento si aggiungono le funzionalità che vengono in mente via via, senza un ordine rigido pianificato — chiedere all'utente cosa vuole affrontare piuttosto che assumere si proceda verso v1.0.0.
+
 ## Stack tecnologico
 - **PHP**: 8.2+
 - **CodeIgniter**: 4.7.3

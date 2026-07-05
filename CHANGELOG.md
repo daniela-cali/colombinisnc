@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.23.1] - 2026-07-05
+
+### Piccoli ritocchi
+
+- [APP] Scheda intervento: la **data pianificata** mostra ora anche l'**ora** (`d/m/Y H:i`), prima solo il giorno — coerente con la lista interventi
+- [DEV] Unificato su un solo pattern SQL (`CASE WHEN tipo = 'persona_fisica'`) il calcolo della denominazione cliente in `InterventiModel::agendaGiorno()`, `urgentiDaPianificare()`, `agendaTecnicoPeriodo()` e `AbbonamentiModel::inScadenza()` — prima usavano `COALESCE(NULLIF(ragsoc, ''), ...)`, equivalente ma diverso dal pattern già in uso ovunque altrove nel progetto
+
 ## [0.23.0] - 2026-07-05
 
 ### Mappa in scheda cliente

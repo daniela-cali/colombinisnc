@@ -173,7 +173,10 @@ class AbbonamentiModel extends Model
     public function inScadenza(int $giorni = 30): array
     {
         return $this->select("abbonamenti.id, abbonamenti.data_fine,
-                COALESCE(NULLIF(clienti.ragsoc, ''), TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))) AS cliente_denominazione,
+                CASE WHEN clienti.tipo = 'persona_fisica'
+                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
+                     ELSE clienti.ragsoc
+                END AS cliente_denominazione,
                 tipi_intervento.nome AS tipo,
                 DATEDIFF(abbonamenti.data_fine, CURDATE()) AS giorni_rimasti")
             ->join('clienti', 'clienti.id = abbonamenti.cliente_id')
