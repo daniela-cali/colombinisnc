@@ -97,7 +97,7 @@ $model->insert(array_merge($this->request->getPost(), ['stato' => 1]));
 Non creare metodi helper `campiDaRequest()` né array espliciti campo per campo nel controller.
 
 ## Flashdata e layout
-Il layout `app/Views/layouts/admin.php` gestisce già `success`, `error` e `error_html` per tutte le pagine. Non duplicarli nelle singole view — causa visualizzazione doppia. Nelle view includere solo `errors` (plurale) per la lista errori di validazione, che il layout non gestisce.
+Il layout `app/Views/layouts/admin.php` gestisce già `success`, `error` e `warning` per tutte le pagine. Non duplicarli nelle singole view — causa visualizzazione doppia. Nelle view includere solo `errors` (plurale) per la lista errori di validazione, che il layout non gestisce.
 
 ## Campi con valori limitati nelle migrazioni
 Non usare il tipo `ENUM` di MySQL. Seguire queste convenzioni:

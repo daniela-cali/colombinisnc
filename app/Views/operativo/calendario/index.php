@@ -9,6 +9,7 @@
  * @var string      $oraInizio
  * @var bool        $puoPromemoria
  * @var string|null $dataIniziale
+ * @var array       $assenzePerDipendente Map personale_id => [['data_inizio','data_fine','tipo_label'], ...]
  */
 $this->extend('layouts/admin');
 ?>
@@ -260,6 +261,7 @@ $prioritaInfo = [
                 <p class="mb-0 fw-bold" id="pian-cliente"></p>
                 <p class="small text-muted mb-2" id="pian-tipo"></p>
                 <div id="pian-avviso-scadenza" class="alert py-2 mb-3 d-none" role="alert"></div>
+                <div id="pian-avviso-assenza" class="alert alert-warning py-2 mb-3 d-none" role="alert"></div>
                 <div class="row g-2">
                     <div class="col-sm-5 mb-2">
                         <label class="small">Orario <span class="text-danger">*</span></label>
@@ -347,6 +349,8 @@ document.addEventListener('DOMContentLoaded', function () {
         'cognome' => $t['cognome'],
     ], $tecnici)) ?>;
 
+    var assenzePerDipendente = <?= json_encode($assenzePerDipendente) ?>;
+
     var from = encodeURIComponent('<?= base_url('operativo/calendario') ?>');
 
     // ---- Giorno selezionato (Genera viaggio) ----
@@ -416,6 +420,31 @@ document.addEventListener('DOMContentLoaded', function () {
     var pendingCard    = null;
     var pendingDateStr = null;
 
+    // Avviso: il tecnico scelto nel select ha un'assenza che copre pendingDateStr?
+    function aggiornaAvvisoAssenza() {
+        var avvisoEl   = document.getElementById('pian-avviso-assenza');
+        var tecnicoId  = pianTecnicoEl.value;
+        var assenze    = tecnicoId ? (assenzePerDipendente[tecnicoId] || []) : [];
+        var trovata    = null;
+
+        if (pendingDateStr) {
+            assenze.forEach(function (a) {
+                if (pendingDateStr >= a.data_inizio && pendingDateStr <= a.data_fine) trovata = a;
+            });
+        }
+
+        if (trovata) {
+            var nome = pianTecnicoEl.options[pianTecnicoEl.selectedIndex].text;
+            avvisoEl.classList.remove('d-none');
+            avvisoEl.innerHTML = '<i class="bi bi-calendar-x me-1"></i>'
+                + '<strong>' + nome + '</strong> risulta assente (' + trovata.tipo_label + ') in questa data. Puoi comunque procedere.';
+        } else {
+            avvisoEl.classList.add('d-none');
+            avvisoEl.innerHTML = '';
+        }
+    }
+    pianTecnicoEl.addEventListener('change', aggiornaAvvisoAssenza);
+
     function showModalPianifica(cardEl, dateStr, timeStr) {
         pendingCard    = cardEl;
         pendingDateStr = dateStr;
@@ -428,6 +457,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('pian-tipo').textContent    = cardEl.dataset.tipoNome || '';
         pianOraEl.value = timeStr || oraInizio;
         buildTecnicoSelect(pianTecnicoEl);
+        aggiornaAvvisoAssenza();
 
         // Avviso scadenza: se la data del drop è successiva alla data_scadenza dell'intervento.
         var avvisoEl  = document.getElementById('pian-avviso-scadenza');
@@ -551,7 +581,7 @@ document.addEventListener('DOMContentLoaded', function () {
         slotMinTime:    '07:00:00',
         slotMaxTime:    '20:00:00',
         slotDuration:   '00:30:00',
-        allDaySlot:     false,
+        allDaySlot:     true,
         nowIndicator:   true,
         height:         'auto',
         editable:       true,
@@ -621,6 +651,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
+            // Assenze: non editabili dal calendario, si gestiscono dalla scheda Personale.
+            if (p.tipo_evento === 'assenza') {
+                return;
+            }
+
             var url = info.event.url;
 
             var badgeClass = { da_pianificare: 'bg-secondary', pianificato: 'bg-primary', in_corso: 'bg-warning text-dark', completato: 'bg-success', annullato: 'bg-danger' };
@@ -667,6 +702,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     + '<div style="font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
                     + '<i class="bi bi-bell-fill" style="margin-right:3px;opacity:.85;"></i>'
                     + info.timeText + ' &nbsp;' + info.event.title
+                    + '</div></div>' };
+            }
+
+            // Assenze: icona dedicata, nessun bottone di rimozione (non editabili da qui).
+            if (p.tipo_evento === 'assenza') {
+                return { html: '<div style="padding:2px 4px;line-height:1.25;overflow:hidden;">'
+                    + '<div style="font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
+                    + '<i class="bi bi-calendar-x" style="margin-right:3px;opacity:.85;"></i>'
+                    + info.event.title
                     + '</div></div>' };
             }
 

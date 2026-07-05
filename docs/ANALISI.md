@@ -376,7 +376,7 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - **Tecnico**: sezione personale con i propri interventi di oggi (ora, cliente, indirizzo) e i propri urgenti non pianificati; chi è sia admin che tecnico vede entrambe le sezioni
 - `DashboardController` riscritto con metodi privati `caricaDatiUfficio()` / `caricaDatiTecnico()`
 - Fix: `COALESCE(ragsoc, TRIM(CONCAT_WS(' ', cognome, nome)))` per denominazione cliente; fix validazione `data_pianificata` a `valid_date[Y-m-d\TH:i]` + conversione `T`→spazio in `normalizza()`
-- *Rimandato a versione futura: presenze/assenze tecnici; report PDF interventi/abbonamenti; statistiche interventi per tipo/periodo*
+- *Rimandato a versione futura: report PDF interventi/abbonamenti; statistiche interventi per tipo/periodo (presenze/assenze tecnici implementate in v0.22.0)*
 
 #### ✅ v0.19.0 — Adattamento mobile
 - **Dashboard tecnico mobile**: agenda dei prossimi 3 giorni (oggi/domani/dopodomani) con orario, cliente, indirizzo, materiali da portare e mappa Leaflet (OpenStreetMap) con link a Google Maps; i tecnici "puri" vengono indirizzati a questa vista
@@ -409,8 +409,18 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `data_ora_fine` di default = inizio + 1 ora quando non specificata
 - *Nota: risponde parzialmente alla nota di v0.21.0 sullo stato "visto" per-utente — resta specifico ai promemoria, non ancora una tabella `notifiche` generica*
 
-#### ✅ v0.21.7 — Fix created_by/updated_by promemoria
-- `PromemoriaModel::normalizza()` usava `session()->get('user_id')` (sempre `null` in questo progetto) invece dell'helper Shield `user_id()` — `created_by`/`updated_by` ora popolati correttamente
+#### ✅ v0.21.7 — Fix created_by/updated_by in tutti i model
+- Tutti i model con `normalizza()` usavano `session()->get('user_id')` (sempre `null` in questo progetto) invece dell'helper Shield `user_id()` — bug scoperto inizialmente su `PromemoriaModel`, poi esteso a tutti gli altri 12 model con lo stesso problema (`PersonaleModel`, `AbbonamentiModel`, `AbbonamentiPeriodiModel`, `ArticoliModel`, `CantieriModel`, `CantieriNoteModel`, `CategorieArticoliModel`, `ClientiModel`, `InterventiModel`, `InterventiNoteModel`, `InterventiMaterialiModel`, `TipiInterventoModel`) — `created_by`/`updated_by` ora popolati correttamente in tutto il gestionale
+
+#### ✅ v0.22.0 — Assenze personale
+- **Sezione Assenze nella scheda dipendente** (Anagrafiche → Personale): registrazione ferie/malattia/permesso/altro con data inizio/fine (giornata intera) e note facoltative; gestione riservata a ufficio/admin/developer
+- Sovrapposizioni tra assenze dello stesso dipendente: avviso non bloccante, il salvataggio procede comunque (es. malattia durante le ferie)
+- **Calendario**: le assenze compaiono come eventi arancioni nella riga "all-day" (`allDaySlot` abilitato, prima disattivato); non editabili da lì, si gestiscono solo dalla scheda Personale
+- Avviso non bloccante nel modal "Pianifica" se si assegna un intervento a un tecnico assente in quella data
+- **Dashboard** (admin/ufficio): info-box "Assenti oggi" e card con l'elenco di chi è assente oggi (nome, tipo assenza), link alla scheda Personale
+- Tabella `assenze` (FK `personale_id` CASCADE, non `users` — coerente con `interventi.tecnico_id`); `AssenzeModel`
+- Nuovo flashdata `warning` (alert giallo) nel layout, usato per le sovrapposizioni
+- *Fuori scope per ora: saldo ferie maturate/residue, report PDF*
 
 #### 🔲 v1.0.0 — Release
 - Test e fix generali

@@ -55,6 +55,8 @@ $routes->group('anagrafiche', function ($routes) {
         $routes->get('(:num)/edit',    'Anagrafiche\PersonaleController::edit/$1');
         $routes->post('(:num)/update', 'Anagrafiche\PersonaleController::update/$1');
         $routes->post('(:num)/delete', 'Anagrafiche\PersonaleController::delete/$1');
+        $routes->post('assenze/aggiungi',       'Anagrafiche\PersonaleController::aggiungiAssenza');
+        $routes->post('assenze/(:num)/elimina', 'Anagrafiche\PersonaleController::eliminaAssenza/$1');
     });
 
     $routes->group('clienti', function ($routes) {

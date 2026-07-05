@@ -2,11 +2,16 @@
 /**
  * @var array                                  $persona
  * @var string                                 $email
- * @var array                                  $gruppi   Map chiave → label leggibile
+ * @var array                                  $gruppi            Map chiave → label leggibile
  * @var \CodeIgniter\Shield\Entities\User|null $user
+ * @var array                                  $assenze           Da AssenzeModel::perPersonale()
+ * @var array                                  $tipiAssenzaLabel  AssenzeModel::TIPI_LABEL
+ * @var array                                  $tipiAssenzaBadge  AssenzeModel::TIPI_BADGE
+ * @var bool                                   $puoGestireAssenze
  */
 $this->extend('layouts/admin');
 $nomeCognome = esc($persona['cognome'] . ' ' . $persona['nome']);
+$assenzeUrl  = base_url('anagrafiche/personale/' . $persona['id']) . '#sec-assenze';
 ?>
 <?= $this->section('title') ?>Scheda — <?= $nomeCognome ?><?= $this->endSection() ?>
 
@@ -98,6 +103,91 @@ $nomeCognome = esc($persona['cognome'] . ' ' . $persona['nome']);
                     <?php endif ?>
 
                 </div>
+            </div>
+        </div>
+
+        <!-- Assenze -->
+        <div class="card card-outline card-warning mt-3" id="sec-assenze">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-calendar-x me-2"></i>Assenze
+                    <span class="badge bg-secondary ms-1"><?= count($assenze) ?></span>
+                </h3>
+            </div>
+            <div class="card-body">
+
+                <?php if (! empty($assenze)): ?>
+                    <ul class="list-group list-group-flush mb-4">
+                        <?php foreach ($assenze as $a): ?>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-start">
+                                <div class="me-2">
+                                    <span class="badge <?= esc($tipiAssenzaBadge[$a['tipo']] ?? 'bg-secondary') ?> me-2">
+                                        <?= esc($tipiAssenzaLabel[$a['tipo']] ?? ucfirst($a['tipo'])) ?>
+                                    </span>
+                                    <span class="small">
+                                        <?= esc(date('d/m/Y', strtotime($a['data_inizio']))) ?>
+                                        <?php if ($a['data_fine'] !== $a['data_inizio']): ?>
+                                            – <?= esc(date('d/m/Y', strtotime($a['data_fine']))) ?>
+                                        <?php endif ?>
+                                    </span>
+                                    <?php if (! empty($a['note'])): ?>
+                                        <div class="text-muted small text-preline"><?= esc($a['note']) ?></div>
+                                    <?php endif ?>
+                                </div>
+                                <?php if ($puoGestireAssenze): ?>
+                                <form method="post"
+                                      action="<?= base_url('anagrafiche/personale/assenze/' . $a['id'] . '/elimina') ?>"
+                                      class="d-inline" onsubmit="return confirm('Eliminare questa assenza?')">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="from" value="<?= esc($assenzeUrl) ?>">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Elimina assenza">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                <?php endif ?>
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                <?php else: ?>
+                    <p class="text-muted small mb-4">Nessuna assenza registrata.</p>
+                <?php endif ?>
+
+                <?php if ($puoGestireAssenze): ?>
+                <!-- Mini-form aggiunta assenza -->
+                <form method="post" action="<?= base_url('anagrafiche/personale/assenze/aggiungi') ?>">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="personale_id" value="<?= $persona['id'] ?>">
+                    <input type="hidden" name="from" value="<?= esc($assenzeUrl) ?>">
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label small">Tipo</label>
+                            <select name="tipo" class="form-select form-select-sm">
+                                <?php foreach ($tipiAssenzaLabel as $val => $label): ?>
+                                    <option value="<?= esc($val) ?>"><?= esc($label) ?></option>
+                                <?php endforeach ?>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Dal</label>
+                            <input type="date" name="data_inizio" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">Al</label>
+                            <input type="date" name="data_fine" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">Note</label>
+                            <input type="text" name="note" class="form-control form-control-sm" placeholder="Facoltative">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="bi bi-plus-lg me-1"></i>Aggiungi
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <?php endif ?>
+
             </div>
         </div>
 

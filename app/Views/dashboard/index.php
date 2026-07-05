@@ -7,6 +7,8 @@
  * @var array      $interventiOggi
  * @var array      $urgenti
  * @var array      $abbonamenti
+ * @var array      $assentiOggi
+ * @var array      $tipiAssenzaLabel
  * @var array      $mieiOggi
  * @var array      $mieiUrgenti
  * @var array{oggi: array, prossimi: array} $promemoria
@@ -21,6 +23,7 @@ $this->extend('layouts/admin');
 <?php
 $numUrgenti = count($urgenti);
 $numAbb     = count($abbonamenti);
+$numAssenti = count($assentiOggi);
 
 $promOggi = $promemoria['oggi'];
 $promDopo = $promemoria['prossimi'];
@@ -48,9 +51,9 @@ $mostratiProm = count($capOggi) + count($capDopo);
 ?>
 
 <!-- Riga contatori: info-box compatti, un link alla pagina relativa -->
-<div class="row g-3 mb-3">
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 mb-3">
 
-    <div class="col-sm-6 col-xl-3">
+    <div class="col">
         <a href="<?= base_url('operativo/calendario') ?>" class="info-box text-reset text-decoration-none h-100">
             <span class="info-box-icon text-bg-primary"><i class="bi bi-tools"></i></span>
             <div class="info-box-content">
@@ -60,7 +63,7 @@ $mostratiProm = count($capOggi) + count($capDopo);
         </a>
     </div>
 
-    <div class="col-sm-6 col-xl-3">
+    <div class="col">
         <a href="<?= base_url('operativo/interventi') ?>" class="info-box text-reset text-decoration-none h-100">
             <span class="info-box-icon <?= $numUrgenti > 0 ? 'text-bg-danger' : 'text-bg-success' ?>"><i class="bi bi-exclamation-triangle"></i></span>
             <div class="info-box-content">
@@ -70,7 +73,17 @@ $mostratiProm = count($capOggi) + count($capDopo);
         </a>
     </div>
 
-    <div class="col-sm-6 col-xl-3">
+    <div class="col">
+        <a href="<?= base_url('anagrafiche/personale') ?>" class="info-box text-reset text-decoration-none h-100">
+            <span class="info-box-icon <?= $numAssenti > 0 ? 'bg-assenza' : 'text-bg-success' ?>"><i class="bi bi-person-x"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Assenti oggi</span>
+                <span class="info-box-number"><?= $numAssenti ?></span>
+            </div>
+        </a>
+    </div>
+
+    <div class="col">
         <a href="<?= base_url('operativo/calendario') ?>" class="info-box text-reset text-decoration-none h-100">
             <span class="info-box-icon bg-promemoria"><i class="bi bi-bell"></i></span>
             <div class="info-box-content">
@@ -81,7 +94,7 @@ $mostratiProm = count($capOggi) + count($capDopo);
     </div>
 
     <?php if ($isUfficio): ?>
-    <div class="col-sm-6 col-xl-3">
+    <div class="col">
         <a href="<?= base_url('abbonamenti') ?>" class="info-box text-reset text-decoration-none h-100">
             <span class="info-box-icon <?= $numAbb > 0 ? 'text-bg-warning' : 'text-bg-success' ?>"><i class="bi bi-calendar-x"></i></span>
             <div class="info-box-content">
@@ -149,10 +162,10 @@ $mostratiProm = count($capOggi) + count($capDopo);
 </div>
 
 <!-- Riga liste: card outline uniformi -->
-<div class="row g-3 mb-3">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-3">
 
     <!-- Card: urgenti non pianificati -->
-    <div class="col-lg-4">
+    <div class="col">
         <div class="card card-outline <?= $numUrgenti > 0 ? 'card-danger' : 'card-success' ?> h-100">
             <div class="card-header">
                 <h3 class="card-title">
@@ -193,8 +206,47 @@ $mostratiProm = count($capOggi) + count($capDopo);
         </div>
     </div>
 
+    <!-- Card: assenze di oggi -->
+    <div class="col">
+        <div class="card card-outline <?= $numAssenti > 0 ? 'card-assenza' : 'card-success' ?> h-100">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-person-x me-1"></i>
+                    Assenze di oggi
+                </h3>
+                <div class="card-tools">
+                    <span class="badge <?= $numAssenti > 0 ? 'bg-assenza' : 'bg-success' ?>"><?= $numAssenti ?></span>
+                </div>
+            </div>
+            <?php if ($assentiOggi): ?>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <?php foreach ($assentiOggi as $a): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                        <a href="<?= base_url('anagrafiche/personale/' . $a['personale_id']) ?>" class="fw-semibold text-decoration-none">
+                            <?= esc(trim($a['personale_cognome'] . ' ' . $a['personale_nome'])) ?>
+                        </a>
+                        <span class="text-muted small"><?= esc($tipiAssenzaLabel[$a['tipo']] ?? ucfirst($a['tipo'])) ?></span>
+                    </li>
+                    <?php endforeach ?>
+                </ul>
+            </div>
+            <?php else: ?>
+            <div class="card-body text-center text-muted py-3">
+                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                Nessuna assenza oggi
+            </div>
+            <?php endif ?>
+            <div class="card-footer text-end">
+                <a href="<?= base_url('anagrafiche/personale') ?>" class="small">
+                    Vedi il personale <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Card: promemoria in arrivo -->
-    <div class="col-lg-4">
+    <div class="col">
         <div class="card card-outline card-promemoria h-100">
             <div class="card-header">
                 <h3 class="card-title">
@@ -234,7 +286,7 @@ $mostratiProm = count($capOggi) + count($capDopo);
 
     <?php if ($isUfficio): ?>
     <!-- Card: abbonamenti in scadenza (solo gruppo ufficio) -->
-    <div class="col-lg-4">
+    <div class="col">
         <div class="card card-warning card-outline h-100">
             <div class="card-header">
                 <h3 class="card-title">
