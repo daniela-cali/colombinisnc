@@ -174,9 +174,23 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                     </div>
                     <div class="row g-3 mb-4 mt-1">
                         <div class="col-md-6">
+                            <?php
+                                $nazioneAttuale = old('nazione', $cliente['nazione'] ?? 'ITALIA');
+                                $nazioneAltra   = in_array($nazioneAttuale, \App\Models\ClientiModel::NAZIONI_PREDEFINITE, true) ? '' : $nazioneAttuale;
+                            ?>
                             <label class="form-label">Nazione</label>
-                            <input type="text" name="nazione" class="form-control"
-                                   value="<?= esc(old('nazione', $cliente['nazione'] ?? 'ITALIA')) ?>">
+                            <select id="sel-nazione" class="form-select">
+                                <?php foreach (\App\Models\ClientiModel::NAZIONI_PREDEFINITE as $n): ?>
+                                    <option value="<?= esc($n) ?>" <?= $nazioneAttuale === $n ? 'selected' : '' ?>>
+                                        <?= esc(ucfirst(mb_strtolower($n))) ?>
+                                    </option>
+                                <?php endforeach ?>
+                                <option value="ALTRA" <?= $nazioneAltra !== '' ? 'selected' : '' ?>>Altra…</option>
+                            </select>
+                            <input type="text" id="nazione-altra-testo"
+                                   class="form-control mt-2 <?= $nazioneAltra === '' ? 'd-none' : '' ?>"
+                                   placeholder="Specifica la nazione" value="<?= esc($nazioneAltra) ?>" maxlength="50">
+                            <input type="hidden" name="nazione" id="nazione-hidden" value="<?= esc($nazioneAttuale) ?>">
                         </div>
                         <?php if ($cliente['distanza_sede'] !== null): ?>
                             <div class="col-md-6 d-flex align-items-end">
@@ -273,6 +287,28 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
 
     var tipoAttivo = document.querySelector('[name="tipo"]:checked');
     if (tipoAttivo) toggleTipo(tipoAttivo.value);
+})();
+
+// Select nazione con opzione "Altra…" — il valore effettivo inviato al server
+// resta sempre il campo hidden #nazione-hidden.
+(function () {
+    var sel    = document.getElementById('sel-nazione');
+    var altra  = document.getElementById('nazione-altra-testo');
+    var hidden = document.getElementById('nazione-hidden');
+    if (! sel || ! altra || ! hidden) return;
+
+    function sincronizza() {
+        if (sel.value === 'ALTRA') {
+            altra.classList.remove('d-none');
+            hidden.value = altra.value.trim().toUpperCase();
+        } else {
+            altra.classList.add('d-none');
+            hidden.value = sel.value;
+        }
+    }
+
+    sel.addEventListener('change', sincronizza);
+    altra.addEventListener('input', sincronizza);
 })();
 </script>
 <?= $this->endSection() ?>

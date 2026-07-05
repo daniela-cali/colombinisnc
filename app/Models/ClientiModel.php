@@ -40,6 +40,10 @@ class ClientiModel extends Model
          1 => 'Savona',
     ];
 
+    // Nazioni proposte nella select del form cliente (zona di confine Italia/Francia).
+    // Aggiungerne una nuova: basta aggiungerla qui, la select in nuovo.php/edit.php la recepisce da sola.
+    const NAZIONI_PREDEFINITE = ['ITALIA', 'FRANCIA'];
+
     /**
      * Imposta created_by/updated_by e ricalcola distanza_sede se lat/lng sono presenti.
      */

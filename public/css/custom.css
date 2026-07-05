@@ -605,3 +605,10 @@ table.dataTable th.dt-type-date div.dt-column-header {
 tr:has(a.js-row-open) {
     cursor: pointer;
 }
+
+/* --- Mappa Leaflet nella scheda cliente ---------------- */
+#mappaCliente {
+    height: 320px;
+    width: 100%;
+    border-radius: .375rem;
+}

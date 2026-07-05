@@ -1,5 +1,21 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.23.0] - 2026-07-05
+
+### Mappa in scheda cliente
+
+- [APP] Nuova sezione **Posizione** nella scheda cliente: mappa Leaflet con il punto geografico del cliente e link diretto per aprirlo in Google Maps
+- [APP] Pulsante **Correggi posizione** sempre disponibile (non solo quando la geocodifica automatica fallisce): clicca sulla mappa o trascina il pin per spostarlo, poi conferma con **Salva posizione** — utile anche per correggere un punto impreciso (es. centro città invece dell'indirizzo esatto)
+- [APP] Se il cliente non ha ancora una posizione precisa, la mappa si centra comunque su un riferimento utile: la **città** indicata (se presente) o, in mancanza, la **sede aziendale** — solo per orientarsi, senza salvare nulla finché non si posiziona il pin manualmente
+- [APP] **Pallino rosso fisso della sede aziendale**, sempre visibile sulla mappa (quando le coordinate sede sono impostate nei parametri), non modificabile
+- [APP] Campo **Nazione** (nuovo/modifica cliente): ora una tendina con **Italia** e **Francia** già pronte, più l'opzione **Altra…** per i casi eccezionali
+- [APP] Guida della sezione Clienti aggiornata con le nuove funzionalità
+- [DEV] Nuova rotta/metodo `ClientiController::aggiornaPosizione()`, sotto-risorsa nello stesso schema di `aggiungiAssenza()`/`aggiungiNota()`; nessuna modifica al model, i campi `lat`/`lng`/`geocoded_at`/`geocodifica_fallita` erano già presenti
+- [DEV] Nuova costante `ClientiModel::NAZIONI_PREDEFINITE` — punto unico da aggiornare per aggiungere altre nazioni alla tendina
+- [DEV] Fix bug Leaflet: `L.Icon.Default._getIconUrl()` anteponeva sempre un `imagePath` auto-rilevato dal CSS anche davanti a un URL già assoluto, causando un URL doppio e 404 sulle icone marker — corretto sia nella nuova mappa che nel bug preesistente identico in `dashboard/tecnico.php`
+- [DEV] Fix bug: il listener `dragend` veniva collegato solo ai marker creati già `draggable: true`, quindi trascinare il pin esistente (view-mode, non draggable alla creazione) non aggiornava le coordinate da salvare
+- [DEV] Nuova spec `docs/spec/mappa_cliente_spec.md`
+
 ## [0.22.0] - 2026-07-05
 
 ### Assenze personale

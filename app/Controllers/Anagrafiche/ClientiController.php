@@ -185,6 +185,45 @@ class ClientiController extends BaseController
             ->with('success', esc($denom) . ' eliminato/a.');
     }
 
+    /**
+     * Salva la posizione del pin impostata manualmente dalla scheda cliente
+     * (mappa Leaflet, vedi docs/spec/mappa_cliente_spec.md). Sostituisce
+     * un'eventuale geocodifica automatica fallita.
+     */
+    public function aggiornaPosizione(int $id)
+    {
+        $model   = new ClientiModel();
+        $cliente = $model->find($id);
+
+        if (! $cliente) {
+            return redirect()->to('anagrafiche/clienti')->with('error', 'Cliente non trovato.');
+        }
+
+        $rules = [
+            'lat' => 'required|decimal|greater_than_equal_to[-90]|less_than_equal_to[90]',
+            'lng' => 'required|decimal|greater_than_equal_to[-180]|less_than_equal_to[180]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->to('anagrafiche/clienti/' . $id . '#sec-posizione')
+                ->with('error', 'Coordinate non valide.');
+        }
+
+        $model->update($id, [
+            'lat'                 => $this->request->getPost('lat'),
+            'lng'                 => $this->request->getPost('lng'),
+            'geocoded_at'         => date('Y-m-d H:i:s'),
+            'geocodifica_fallita' => 0,
+            // Passata esplicitamente: senza questo campo normalizza() la ricalcolerebbe
+            // sempre dalla longitudine, sovrascrivendo una zona assegnata manualmente
+            // (vedi ClientiModel::normalizza()).
+            'zona'                => $cliente['zona'],
+        ]);
+
+        return redirect()->to('anagrafiche/clienti/' . $id . '#sec-posizione')
+            ->with('success', 'Posizione aggiornata.');
+    }
+
     // -------------------------------------------------------------------------
 
     /**

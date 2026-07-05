@@ -176,7 +176,10 @@ $this->extend('layouts/admin');
     let marker = null;
     let target = { lat: 0, lng: 0 };
 
-    // Corregge il path delle icone marker (Leaflet le cerca relative al CSS).
+    // Corregge il path delle icone marker. _getIconUrl di default antepone sempre
+    // un imagePath auto-rilevato dal CSS, anche davanti a un URL già assoluto
+    // (causa doppio URL / 404) — va rimosso per usare le nostre URL così come sono.
+    delete L.Icon.Default.prototype._getIconUrl;
     const iconBase = '<?= base_url('assets/vendor/leaflet/images/') ?>';
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: iconBase + 'marker-icon-2x.png',

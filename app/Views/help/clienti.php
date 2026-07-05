@@ -31,12 +31,33 @@
 <p>
     La <strong>zona</strong> (Ovest, Centro, Est) viene proposta in base alla posizione
     geografica e serve a raggruppare gli interventi nel calendario. Se la geocodifica
-    fallisce puoi rilanciarla dalla scheda dopo aver corretto l'indirizzo.
+    fallisce puoi rilanciarla dalla scheda dopo aver corretto l'indirizzo. Il campo
+    <strong>Nazione</strong> propone Italia e Francia già pronte in elenco (le più
+    frequenti per la zona di confine): scegliendo <strong>Altra…</strong> compare un
+    campo libero per indicarne una diversa.
+</p>
+
+<h6 class="border-bottom pb-1 mt-4"><i class="bi bi-pin-map me-1"></i>Posizione su mappa</h6>
+<p>
+    Nella scheda cliente, la sezione <strong>Posizione</strong> mostra una mappa con il
+    punto geografico del cliente e un link per aprirlo direttamente in Google Maps.
+    Se l'indirizzo non è ancora stato geocodificato o la geocodifica automatica non ha
+    trovato un risultato preciso, la mappa si orienta comunque su un punto di
+    riferimento (la città, se indicata, altrimenti la sede aziendale) in attesa che il
+    pin venga posizionato manualmente.
+</p>
+<p>
+    Il pulsante <strong>Correggi posizione</strong> è sempre disponibile, non solo
+    quando la geocodifica fallisce: è utile anche per spostare un pin impreciso (es.
+    Nominatim ha trovato il centro della città invece dell'indirizzo esatto). Clicca
+    sulla mappa o trascina il pin nel punto giusto, poi conferma con
+    <strong>Salva posizione</strong>.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-card-text me-1"></i>Scheda cliente</h6>
 <p>La scheda raccoglie in un'unica pagina scorrevole:</p>
 <ul>
+    <li><strong>Posizione</strong> su mappa, correggibile manualmente in ogni momento;</li>
     <li><strong>Interventi</strong> del cliente (esclusi quelli dentro un cantiere);</li>
     <li><strong>Abbonamenti</strong> attivi e il loro stato;</li>
     <li><strong>Cantieri</strong> collegati;</li>
