@@ -3,8 +3,10 @@
 namespace App\Controllers\Anagrafiche;
 
 use App\Controllers\BaseController;
+use App\Models\AssenzeModel;
 use App\Models\PersonaleModel;
 use App\Models\UserModel;
+use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\Shield\Entities\User;
 
 class PersonaleController extends BaseController
@@ -50,10 +52,14 @@ class PersonaleController extends BaseController
         $email = $user?->getEmailIdentity()?->secret ?? '';
 
         return view('anagrafiche/personale/show', [
-            'persona' => $persona,
-            'user'    => $user,
-            'email'   => $email,
-            'gruppi'  => $this->gruppi,
+            'persona'           => $persona,
+            'user'              => $user,
+            'email'             => $email,
+            'gruppi'            => $this->gruppi,
+            'assenze'           => (new AssenzeModel())->perPersonale($id),
+            'tipiAssenzaLabel'  => AssenzeModel::TIPI_LABEL,
+            'tipiAssenzaBadge'  => AssenzeModel::TIPI_BADGE,
+            'puoGestireAssenze' => auth()->user()->inGroup('ufficio', 'admin', 'developer'),
         ]);
     }
 
@@ -250,5 +256,90 @@ class PersonaleController extends BaseController
 
         return redirect()->to('anagrafiche/personale')
             ->with('success', esc($persona['cognome'] . ' ' . $persona['nome']) . ' eliminato.');
+    }
+
+    /**
+     * Aggiunge un'assenza al diario del dipendente, tornando alla pagina di origine.
+     * Se si sovrappone a un'assenza già registrata per lo stesso dipendente, il salvataggio
+     * procede comunque: viene solo segnalato con un avviso (non è un blocco).
+     */
+    public function aggiungiAssenza(): RedirectResponse
+    {
+        if ($r = $this->soloGestoriAssenze()) {
+            return $r;
+        }
+
+        if (! $this->validate([
+            'personale_id' => 'required|is_natural_no_zero',
+            'tipo'         => 'required|in_list[ferie,malattia,permesso,altro]',
+            'data_inizio'  => 'required|valid_date[Y-m-d]',
+            'data_fine'    => 'required|valid_date[Y-m-d]',
+            'note'         => 'permit_empty',
+        ])) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
+        }
+
+        $personaleId = (int) $this->request->getPost('personale_id');
+        $dataInizio  = $this->request->getPost('data_inizio');
+        $dataFine    = $this->request->getPost('data_fine');
+
+        if ($dataFine < $dataInizio) {
+            return redirect()->back()->with('error', 'La data di fine non può precedere la data di inizio.');
+        }
+
+        $model = new AssenzeModel();
+        $model->insert($this->request->getPost());
+
+        $sovrapposte = $model->sovrapposizioni($personaleId, $dataInizio, $dataFine, (int) $model->getInsertID());
+
+        $from = $this->request->getPost('from');
+        $dest = ($from && str_starts_with($from, base_url()))
+            ? $from
+            : 'anagrafiche/personale/' . $personaleId . '#sec-assenze';
+
+        if ($sovrapposte) {
+            return redirect()->to($dest)->with('warning', 'Assenza aggiunta, ma si sovrappone a un\'altra assenza già registrata per questo dipendente.');
+        }
+
+        return redirect()->to($dest)->with('success', 'Assenza aggiunta.');
+    }
+
+    /**
+     * Elimina un'assenza dal diario, tornando alla scheda del dipendente di origine.
+     */
+    public function eliminaAssenza(int $id): RedirectResponse
+    {
+        if ($r = $this->soloGestoriAssenze()) {
+            return $r;
+        }
+
+        $model   = new AssenzeModel();
+        $assenza = $model->find($id);
+        if (! $assenza) {
+            return redirect()->back()->with('error', 'Assenza non trovata.');
+        }
+
+        $personaleId = (int) $assenza['personale_id'];
+        $model->delete($id);
+
+        $from = $this->request->getPost('from');
+        $dest = ($from && str_starts_with($from, base_url()))
+            ? $from
+            : 'anagrafiche/personale/' . $personaleId . '#sec-assenze';
+
+        return redirect()->to($dest)->with('success', 'Assenza eliminata.');
+    }
+
+    /**
+     * Consente la gestione delle assenze solo a ufficio e amministratori.
+     * Restituisce un RedirectResponse se l'utente non è autorizzato, altrimenti null.
+     */
+    private function soloGestoriAssenze(): ?RedirectResponse
+    {
+        if (! auth()->user()->inGroup('ufficio', 'admin', 'developer')) {
+            return redirect()->back()->with('error', 'Non hai i permessi per gestire le assenze.');
+        }
+
+        return null;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\AbbonamentiModel;
+use App\Models\AssenzeModel;
 use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
@@ -36,6 +37,8 @@ class DashboardController extends BaseController
             'interventiOggi' => [],
             'urgenti'     => [],
             'abbonamenti' => [],
+            'assentiOggi' => [],
+            'tipiAssenzaLabel' => AssenzeModel::TIPI_LABEL,
             'mieiOggi'    => [],
             'mieiUrgenti' => [],
             'promemoria'  => model(PromemoriaModel::class)->inArrivoRaggruppati((int) $user->id),
@@ -64,7 +67,8 @@ class DashboardController extends BaseController
         $data['countOggi']      = count($oggi);
         $data['interventiOggi'] = array_slice($oggi, 0, 5);
 
-        $data['urgenti'] = model(InterventiModel::class)->urgentiDaPianificare(null, 10);
+        $data['urgenti']     = model(InterventiModel::class)->urgentiDaPianificare(null, 10);
+        $data['assentiOggi'] = model(AssenzeModel::class)->oggi();
 
         if (! $includiAbbonamenti) {
             return;

@@ -575,6 +575,19 @@ table.dataTable th.dt-type-date div.dt-column-header {
     --bs-btn-active-border-color:#5d3aa5;
 }
 
+/* =========================================================
+   Card assenze in dashboard — arancione #e8590c, coerente
+   col colore dell'evento assenza sul calendario
+   ========================================================= */
+.card-assenza {
+    --lte-card-variant-bg: #e8590c;
+}
+
+.bg-assenza {
+    background-color: #e8590c !important;
+    color: #fff !important;
+}
+
 /* Oggi: viola tenue. Prossimi giorni: viola molto più tenue.
    Un bordo sinistro (più sfumato nella seconda fascia) rinforza la distinzione. */
 .list-group-item.prom-oggi {

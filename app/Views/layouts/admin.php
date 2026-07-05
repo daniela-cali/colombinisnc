@@ -215,6 +215,13 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
             </div>
         <?php endif ?>
 
+        <?php if (session()->getFlashdata('warning')): ?>
+            <div class="alert alert-warning alert-dismissible m-3" role="alert">
+                <?= session()->getFlashdata('warning') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif ?>
+
         <div class="app-content-header">
             <div class="container-fluid">
                 <div class="row align-items-center">

@@ -3,6 +3,7 @@
 namespace App\Controllers\Operativo;
 
 use App\Controllers\BaseController;
+use App\Models\AssenzeModel;
 use App\Models\ClientiModel;
 use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
@@ -57,6 +58,16 @@ class CalendarioController extends BaseController
         $data         = $this->request->getGet('data');
         $dataIniziale = ($data && strtotime($data)) ? date('Y-m-d', strtotime($data)) : null;
 
+        // Assenze future raggruppate per dipendente: usate in JS per l'avviso nel modal Pianifica.
+        $assenzePerDipendente = [];
+        foreach ((new AssenzeModel())->daOggiInPoi() as $a) {
+            $assenzePerDipendente[(int) $a['personale_id']][] = [
+                'data_inizio' => $a['data_inizio'],
+                'data_fine'   => $a['data_fine'],
+                'tipo_label'  => AssenzeModel::TIPI_LABEL[$a['tipo']] ?? ucfirst($a['tipo']),
+            ];
+        }
+
         return view('operativo/calendario/index', [
             'title'      => 'Calendario',
             'page_title' => 'Calendario Interventi',
@@ -70,6 +81,7 @@ class CalendarioController extends BaseController
             'help_sezione' => 'calendario',
             'puoPromemoria' => auth()->user()->inGroup('ufficio', 'admin', 'developer'),
             'dataIniziale'  => $dataIniziale,
+            'assenzePerDipendente' => $assenzePerDipendente,
         ]);
     }
 
@@ -127,6 +139,29 @@ class CalendarioController extends BaseController
                     'inizio'      => $p['data_ora_inizio'],
                     'fine'        => $p['data_ora_fine'],
                     'note'        => $p['note'] ?? '',
+                ],
+            ];
+        }
+
+        // Assenze personale: eventi all-day arancioni, non trascinabili, non cliccabili.
+        foreach ((new AssenzeModel())->perCalendario($start, $end) as $a) {
+            $tecnico = trim($a['personale_cognome'] . ' ' . $a['personale_nome']);
+            $tipoLabel = AssenzeModel::TIPI_LABEL[$a['tipo']] ?? ucfirst($a['tipo']);
+
+            $events[] = [
+                'id'       => 'ass-' . $a['id'],
+                'title'    => trim($tecnico . ' — ' . $tipoLabel),
+                'start'    => $a['data_inizio'],
+                // 'end' è esclusivo negli eventi all-day di FullCalendar: +1 giorno per includere l'ultimo giorno di assenza.
+                'end'      => date('Y-m-d', strtotime($a['data_fine'] . ' +1 day')),
+                'allDay'   => true,
+                'color'    => '#e8590c',
+                'editable' => false,
+                'extendedProps' => [
+                    'tipo_evento' => 'assenza',
+                    'tecnico'     => $tecnico,
+                    'tipo_label'  => $tipoLabel,
+                    'note'        => $a['note'] ?? '',
                 ],
             ];
         }

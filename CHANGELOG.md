@@ -1,5 +1,21 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.22.0] - 2026-07-05
+
+### Assenze personale
+
+- [APP] Nuova sezione **Assenze** nella scheda dipendente (Anagrafiche → Personale): registrazione di ferie, malattia, permesso o altro con data di inizio/fine (giornata intera) e note facoltative. Gestione riservata a ufficio, admin e developer
+- [APP] Se una nuova assenza si sovrappone a un'altra già registrata per lo stesso dipendente, il salvataggio procede comunque con un **avviso** (non è un blocco) — utile ad es. per una malattia durante le ferie
+- [APP] **Calendario**: le assenze compaiono come eventi arancioni nella riga "tutto il giorno" (viste Giorno/Settimana) o come barra in vista Mese; non sono modificabili da lì, solo dalla scheda Personale
+- [APP] **Calendario — modal Pianifica**: avviso non bloccante se si assegna un intervento a un tecnico che risulta assente in quella data
+- [APP] **Dashboard** (admin/ufficio): nuovo info-box "Assenti oggi" e card con l'elenco di chi è assente oggi, con link alla scheda Personale; icona e colore dedicati (arancione, coerenti con l'evento calendario) per distinguerla da "Abbonamenti in scadenza"
+- [APP] **Dashboard**: le 5 info-box e le 4 card di riepilogo sono ora affiancate su un'unica riga sui monitor larghi (`row-cols` responsive), nello stesso ordine su entrambe le righe (Urgenti → Assenti oggi → Promemoria → Abbonamenti)
+- [DEV] Nuova tabella `assenze` (FK `personale_id` con `ON DELETE CASCADE`, non `users` — coerente con `interventi.tecnico_id` che punta a `personale`); `AssenzeModel` con costanti tipo/label/badge, `perPersonale()`, `sovrapposizioni()`, `perCalendario()`, `daOggiInPoi()`, `oggi()`
+- [DEV] `PersonaleController::aggiungiAssenza()`/`eliminaAssenza()` sul modello delle note di cantieri/interventi (sotto-risorsa del controller genitore, non un controller dedicato)
+- [DEV] Nuovo flashdata `warning` (alert giallo) nel layout `admin.php`, usato per le sovrapposizioni
+- [DEV] Calendario: `allDaySlot` abilitato (prima disattivato) per poter mostrare eventi senza orario preciso nelle viste Giorno/Settimana
+- [DEV] Nuove classi `.card-assenza`/`.bg-assenza` in `custom.css` (arancione `#e8590c`), stesso pattern già usato per `.card-promemoria`/`.bg-promemoria`
+
 ## [0.21.7] - 2026-07-04
 
 ### Fix created_by/updated_by in tutti i model

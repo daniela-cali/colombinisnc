@@ -52,6 +52,7 @@
   <a href="#cantieri_note">cantieri_note</a>
   <a href="#promemoria">promemoria</a>
   <a href="#promemoria_dismiss">promemoria_dismiss</a>
+  <a href="#assenze">assenze</a>
   <a href="#relazioni">Relazioni</a>
   <a href="#log">Log modifiche DB</a>
 </div>
@@ -349,6 +350,23 @@
   <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
 </table>
 
+<!-- ═══════════════════════════════════════════════════════ assenze -->
+<h2 id="assenze">assenze</h2>
+<p class="note">Assenze pianificate del personale (ferie/malattia/permesso/altro), giornata intera. Gestite da ufficio/admin/developer dalla scheda dipendente; visibili anche su calendario e dashboard. Aggiunta v0.22.0.</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>personale_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ personale.id · ON DELETE CASCADE</td></tr>
+  <tr><td><code>tipo</code></td><td>VARCHAR(20)</td><td></td><td></td><td>ferie, malattia, permesso, altro — costanti in <code>AssenzeModel</code></td></tr>
+  <tr><td><code>data_inizio</code></td><td>DATE</td><td></td><td></td><td></td></tr>
+  <tr><td><code>data_fine</code></td><td>DATE</td><td></td><td></td><td></td></tr>
+  <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
 <hr class="section-sep">
 
 <!-- ═══════════════════════════════════════════════════════ relazioni -->
@@ -359,6 +377,7 @@
   <tr><td>clienti</td><td>user_id</td><td>users.id</td><td>SET NULL</td></tr>
   <tr><td>promemoria_dismiss</td><td>promemoria_id</td><td>promemoria.id</td><td>CASCADE</td></tr>
   <tr><td>promemoria_dismiss</td><td>utente_id</td><td>users.id</td><td>CASCADE</td></tr>
+  <tr><td>assenze</td><td>personale_id</td><td>personale.id</td><td>CASCADE</td></tr>
   <tr><td>clienti</td><td>tecnico_preferito_id</td><td>personale.id</td><td>SET NULL</td></tr>
   <tr><td>interventi</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
   <tr><td>interventi</td><td>tecnico_id</td><td>personale.id</td><td>SET NULL</td></tr>
@@ -385,6 +404,14 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.22.0</td>
+    <td><code>CreateAssenzeTable</code></td>
+    <td>
+      Nuova tabella <code>assenze</code>: FK <code>personale_id</code> CASCADE (non <code>users</code> — coerente con <code>interventi.tecnico_id</code>),
+      <code>tipo VARCHAR(20)</code> (ferie/malattia/permesso/altro), <code>data_inizio</code>/<code>data_fine DATE</code>, campi standard.
+    </td>
+  </tr>
   <tr>
     <td>v0.21.6</td>
     <td><code>CreatePromemoriaDismissTable</code></td>
