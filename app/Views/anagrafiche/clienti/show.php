@@ -72,6 +72,10 @@ $statoBadge = [
                 </small>
             </div>
             <div class="ms-auto d-flex gap-2 flex-wrap">
+                <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/pdf') ?>"
+                   target="_blank" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>Stampa PDF
+                </a>
                 <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/edit') ?>"
                    class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-pencil me-1"></i>Modifica
