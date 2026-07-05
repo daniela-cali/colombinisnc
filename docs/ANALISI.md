@@ -422,6 +422,15 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Nuovo flashdata `warning` (alert giallo) nel layout, usato per le sovrapposizioni
 - *Fuori scope per ora: saldo ferie maturate/residue, report PDF*
 
+#### ✅ v0.23.0 — Mappa in scheda cliente
+- **Sezione Posizione nella scheda cliente**: mappa Leaflet col punto del cliente, link "Apri in Google Maps"; pallino rosso fisso non modificabile per la sede aziendale
+- **Correggi posizione sempre disponibile** (non solo su geocodifica fallita): click sulla mappa o drag del pin, poi salvataggio con form POST dedicato (`ClientiController::aggiornaPosizione()`, sotto-risorsa come `aggiungiAssenza()`/`aggiungiNota()`)
+- Se manca una posizione precisa, centraggio provvisorio (non salvato) sulla città indicata via Nominatim, altrimenti sulla sede aziendale
+- Campo **Nazione** (nuovo/modifica cliente) da testo libero a select con Italia/Francia predefinite (`ClientiModel::NAZIONI_PREDEFINITE`) + opzione "Altra…"
+- Fix bug Leaflet preesistente: `L.Icon.Default._getIconUrl()` raddoppiava l'URL delle icone marker (anche in `dashboard/tecnico.php`, stesso codice copiato)
+- Guida della sezione Clienti aggiornata
+- *Vedi `docs/spec/mappa_cliente_spec.md` per il dettaglio delle decisioni*
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

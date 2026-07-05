@@ -44,6 +44,7 @@ $statoBadge = [
 <?= $this->section('styles') ?>
 <?= $this->include('partials/datatables_styles') ?>
 <link rel="stylesheet" href="<?= base_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= base_url('assets/vendor/leaflet/leaflet.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -177,6 +178,68 @@ $statoBadge = [
                     <?php endif ?>
 
                 </div>
+            </div>
+        </div>
+
+        <!-- ══ POSIZIONE ═══════════════════════════════════════ -->
+        <div class="section-anchor" id="sec-posizione">
+            <div class="section-title"><i class="bi bi-geo-alt"></i> Posizione</div>
+        </div>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+
+                <div id="posizione-stato" class="small mb-2">
+                    <?php if ($cliente['geocoded_at']): ?>
+                        <span class="text-success">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Geocodificato il <?= esc(date('d/m/Y H:i', strtotime($cliente['geocoded_at']))) ?>
+                        </span>
+                    <?php elseif ($cliente['geocodifica_fallita']): ?>
+                        <span class="text-danger">
+                            <i class="bi bi-x-circle me-1"></i>Geocodifica automatica fallita — posiziona il pin manualmente.
+                        </span>
+                    <?php else: ?>
+                        <span class="text-muted">
+                            <i class="bi bi-question-circle me-1"></i>Posizione non ancora impostata.
+                        </span>
+                    <?php endif ?>
+                </div>
+
+                <div id="mappaCliente"
+                     data-lat="<?= esc($cliente['lat'] ?? '') ?>"
+                     data-lng="<?= esc($cliente['lng'] ?? '') ?>"
+                     data-citta="<?= esc($cliente['citta'] ?? '') ?>"
+                     data-nazione="<?= esc($cliente['nazione'] ?? 'Italia') ?>"
+                     data-sede-lat="<?= esc(setting('Azienda.sede_lat') ?? '') ?>"
+                     data-sede-lng="<?= esc(setting('Azienda.sede_lng') ?? '') ?>"
+                ></div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" id="btn-correggi-posizione" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil me-1"></i>Correggi posizione
+                    </button>
+                    <a href="#" id="btn-google-maps" target="_blank" rel="noopener"
+                       class="btn btn-sm btn-outline-primary <?= $cliente['lat'] === null ? 'disabled' : '' ?>">
+                        <i class="bi bi-sign-turn-right-fill me-1"></i>Apri in Google Maps
+                    </a>
+                </div>
+
+                <form id="form-posizione" class="d-none mt-2"
+                      action="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/posizione') ?>" method="post">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="lat" id="posizione-lat-input">
+                    <input type="hidden" name="lng" id="posizione-lng-input">
+                    <p class="small text-muted mb-2">Clicca sulla mappa o trascina il pin per posizionarlo, poi salva.</p>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="bi bi-check-lg me-1"></i>Salva posizione
+                        </button>
+                        <button type="button" id="btn-annulla-posizione" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Annulla
+                        </button>
+                    </div>
+                </form>
+
             </div>
         </div>
 
@@ -548,6 +611,7 @@ $statoBadge = [
     <div class="col-auto d-none d-xxl-block ps-3" style="width:130px">
         <nav class="page-nav">
             <a href="#sec-anagrafica">Anagrafica</a>
+            <a href="#sec-posizione">Posizione</a>
             <a href="#sec-materiali">
                 Da portare
                 <?php if (! empty($sospesi)): ?>
@@ -682,6 +746,146 @@ $(function () {
     }, { root: null, rootMargin: '-10% 0px -80% 0px' });
 
     sections.forEach(function (s) { observer.observe(s); });
+})();
+</script>
+
+<script src="<?= base_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
+<script>
+// Mappa Leaflet in scheda cliente — vedi docs/spec/mappa_cliente_spec.md
+(function () {
+    'use strict';
+    var container = document.getElementById('mappaCliente');
+    if (! container) return;
+
+    // Corregge il path delle icone marker. _getIconUrl di default antepone sempre
+    // un imagePath auto-rilevato dal CSS, anche davanti a un URL già assoluto
+    // (causa doppio URL / 404) — va rimosso per usare le nostre URL così come sono.
+    delete L.Icon.Default.prototype._getIconUrl;
+    var iconBase = '<?= base_url('assets/vendor/leaflet/images/') ?>';
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: iconBase + 'marker-icon-2x.png',
+        iconUrl:       iconBase + 'marker-icon.png',
+        shadowUrl:     iconBase + 'marker-shadow.png',
+    });
+
+    var latDb = parseFloat(container.dataset.lat);
+    var lngDb = parseFloat(container.dataset.lng);
+    var haPosizione = ! isNaN(latDb) && ! isNaN(lngDb);
+
+    var sedeLat = parseFloat(container.dataset.sedeLat);
+    var sedeLng = parseFloat(container.dataset.sedeLng);
+
+    var btnGoogle     = document.getElementById('btn-google-maps');
+    var btnCorreggi   = document.getElementById('btn-correggi-posizione');
+    var btnAnnulla    = document.getElementById('btn-annulla-posizione');
+    var formPosizione = document.getElementById('form-posizione');
+    var latInput      = document.getElementById('posizione-lat-input');
+    var lngInput      = document.getElementById('posizione-lng-input');
+
+    var map = L.map('mappaCliente');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap',
+    }).addTo(map);
+
+    // Pallino fisso della sede aziendale, sempre visibile e mai modificabile da qui
+    // (si distingue volutamente dal pin del cliente, non è un marker trascinabile).
+    if (! isNaN(sedeLat) && ! isNaN(sedeLng)) {
+        L.circleMarker([sedeLat, sedeLng], {
+            radius: 8,
+            color: '#fff',
+            weight: 2,
+            fillColor: '#dc3545',
+            fillOpacity: 1,
+        }).addTo(map).bindTooltip('Sede aziendale');
+    }
+
+    var marker = null;
+    var modificaAttiva = false;
+
+    function aggiornaHidden(lat, lng) {
+        latInput.value = lat.toFixed(7);
+        lngInput.value = lng.toFixed(7);
+    }
+
+    function aggiornaLinkGoogle(lat, lng) {
+        btnGoogle.href = 'https://www.google.com/maps/dir/?api=1&destination=' + lat + ',' + lng;
+        btnGoogle.classList.remove('disabled');
+    }
+
+    function piazzaMarker(lat, lng, draggable) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker([lat, lng], { draggable: draggable }).addTo(map);
+        // Il listener va collegato sempre, non solo quando draggable è già true alla
+        // creazione: il marker iniziale (view-mode) nasce non trascinabile e diventa
+        // draggable solo dopo, tramite marker.dragging.enable() in "Correggi posizione".
+        marker.on('dragend', function () {
+            var p = marker.getLatLng();
+            aggiornaHidden(p.lat, p.lng);
+        });
+        aggiornaHidden(lat, lng);
+    }
+
+    function centraSuSede() {
+        if (! isNaN(sedeLat) && ! isNaN(sedeLng)) {
+            map.setView([sedeLat, sedeLng], 10);
+        } else {
+            map.setView([44.3, 8.3], 9); // fallback estremo: area Liguria
+        }
+    }
+
+    if (haPosizione) {
+        map.setView([latDb, lngDb], 16);
+        piazzaMarker(latDb, lngDb, false);
+        aggiornaLinkGoogle(latDb, lngDb);
+    } else {
+        // Nessuna posizione precisa: prova a centrare sulla città (non salvato, solo per orientare la mappa)
+        var citta   = container.dataset.citta;
+        var nazione = container.dataset.nazione || 'Italia';
+
+        if (citta) {
+            var q = encodeURIComponent(citta + ', ' + nazione);
+            fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + q, { headers: { 'Accept-Language': 'it' } })
+                .then(function (r) { return r.ok ? r.json() : []; })
+                .then(function (data) {
+                    if (data && data[0]) {
+                        map.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 13);
+                    } else {
+                        centraSuSede();
+                    }
+                })
+                .catch(centraSuSede);
+        } else {
+            centraSuSede();
+        }
+    }
+
+    map.on('click', function (e) {
+        if (! modificaAttiva) return;
+        piazzaMarker(e.latlng.lat, e.latlng.lng, true);
+    });
+
+    btnCorreggi.addEventListener('click', function () {
+        modificaAttiva = true;
+        formPosizione.classList.remove('d-none');
+        btnCorreggi.classList.add('d-none');
+        btnGoogle.classList.add('d-none');
+        if (marker) marker.dragging.enable();
+    });
+
+    btnAnnulla.addEventListener('click', function () {
+        modificaAttiva = false;
+        formPosizione.classList.add('d-none');
+        btnCorreggi.classList.remove('d-none');
+        btnGoogle.classList.remove('d-none');
+        if (haPosizione) {
+            piazzaMarker(latDb, lngDb, false);
+            map.setView([latDb, lngDb], 16);
+        } else if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+        }
+    });
 })();
 </script>
 <?= $this->endSection() ?>

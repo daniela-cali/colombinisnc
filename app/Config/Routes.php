@@ -69,6 +69,7 @@ $routes->group('anagrafiche', function ($routes) {
         $routes->get('(:num)/edit',    'Anagrafiche\ClientiController::edit/$1');
         $routes->post('(:num)/update', 'Anagrafiche\ClientiController::update/$1');
         $routes->post('(:num)/delete', 'Anagrafiche\ClientiController::delete/$1');
+        $routes->post('(:num)/posizione', 'Anagrafiche\ClientiController::aggiornaPosizione/$1');
     });
 });
 
