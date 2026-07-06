@@ -15,7 +15,6 @@ $routes->get('login', '\CodeIgniter\Shield\Controllers\LoginController::loginVie
 // Impostazioni
 $routes->group('impostazioni', function ($routes) {
     $routes->get('/',    'Impostazioni\GeneraleController::index');
-    $routes->post('salva', 'Impostazioni\GeneraleController::salva');
 
     $routes->get('parametri',        'Impostazioni\GeneraleController::parametri');
     $routes->post('parametri',       'Impostazioni\GeneraleController::salvaParametri');
@@ -65,6 +64,7 @@ $routes->group('anagrafiche', function ($routes) {
         $routes->post('store',         'Anagrafiche\ClientiController::store');
         $routes->get('(:num)',           'Anagrafiche\ClientiController::show/$1');
         $routes->get('(:num)/materiali','Anagrafiche\ClientiController::materiali/$1');
+        $routes->get('(:num)/pdf',      'Anagrafiche\ClientiController::pdf/$1');
         $routes->get('(:num)/sospesi',  'Anagrafiche\ClientiController::sospesiJson/$1');
         $routes->get('(:num)/edit',    'Anagrafiche\ClientiController::edit/$1');
         $routes->post('(:num)/update', 'Anagrafiche\ClientiController::update/$1');
@@ -91,6 +91,7 @@ $routes->group('cantieri', function ($routes) {
     $routes->get('nuovo',           'CantieriController::nuovo');
     $routes->post('store',          'CantieriController::store');
     $routes->get('(:num)',          'CantieriController::show/$1');
+    $routes->get('(:num)/pdf',      'CantieriController::pdf/$1');
     $routes->get('(:num)/edit',     'CantieriController::edit/$1');
     $routes->post('(:num)/update',  'CantieriController::update/$1');
     $routes->post('(:num)/stato',   'CantieriController::cambiaStato/$1');

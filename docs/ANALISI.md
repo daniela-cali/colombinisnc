@@ -436,6 +436,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Query denominazione cliente unificate su un solo pattern SQL (`CASE WHEN tipo`) in 4 metodi che usavano ancora `COALESCE(NULLIF(ragsoc,''),...)`, equivalente ma diverso dal pattern già in uso ovunque
 - Chiusi anche senza modifiche di codice: bottoni PDF/Stampa foglio di viaggio su mobile (già a posto da v0.19.0, nota superata) e layout a blocchi impilati mobile (non serve più, va bene lo scroll orizzontale attuale)
 
+#### ✅ v0.24.0 — Stampe PDF: scheda Cliente e Cantiere
+- **Scheda Cliente**: documento operativo essenziale — anagrafica, materiali sospesi, interventi da pianificare/pianificati (visite da abbonamento limitate al mese corrente), abbonamento attivo, cantieri aperti/sospesi. Niente storico completo, niente mappa (solo link "Apri in Google Maps")
+- **Scheda Cantiere**: riepilogo completo (non l'essenziale) — anagrafica cliente e dati cantiere completi affiancati, diario integrale, tutti gli interventi collegati in ogni stato con i relativi materiali portati/da portare
+- Pattern comune: view HTML/CSS dedicata per dompdf (niente flexbox/grid), palette ripresa dal vecchio progetto (accento blu, tabelle etichetta/valore, badge di stato), stream inline
+- Rimosso codice morto: secondo gruppo di impostazioni azienda mai raggiungibile da nessuna view (`Azienda.ragione_sociale`/`partita_iva`/`logo_path`)
+- *Vedi `docs/spec/stampa_cliente_pdf_spec.md` e `docs/spec/stampa_cantiere_pdf_spec.md`. Stampe di Intervento e Abbonamento rimandate, da pianificare senza scadenza precisa*
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

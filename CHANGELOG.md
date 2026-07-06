@@ -1,5 +1,17 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.0] - 2026-07-06
+
+### Stampe PDF: scheda Cliente e Cantiere
+
+- [APP] Nuovo bottone **Stampa PDF** nella scheda Cliente: documento operativo essenziale (anagrafica, materiali sospesi, interventi da pianificare/pianificati, abbonamento attivo, cantieri aperti/sospesi) — niente storico completo, pensato per essere stampato o consultato prima di un intervento
+- [APP] Nuovo bottone **Stampa PDF** nella scheda Cantiere: riepilogo completo, non solo l'essenziale — anagrafica cliente e dati cantiere completi affiancati, **diario integrale** (tutte le note, non solo le ultime), **tutti gli interventi collegati** (ogni stato, storico incluso) con i relativi materiali portati/da portare
+- [DEV] `ClientiController::pdf()` e `CantieriController::pdf()`, stesso pattern già in uso per il foglio di viaggio: view HTML/CSS dedicata (dompdf, niente flexbox/grid), `Options::isRemoteEnabled = false`, stream inline senza forzare il download
+- [DEV] Palette grafica delle stampe ripresa dal vecchio progetto (accento blu, tabelle etichetta/valore, badge di stato) invece dello stile spoglio del foglio di viaggio esistente
+- [DEV] Rimosso codice morto: secondo gruppo di impostazioni azienda (`Azienda.ragione_sociale`/`partita_iva`/`logo_path`, `GeneraleController::salva()`) mai raggiungibile da nessuna view, superato dalla pagina "Parametri Generali" (`Azienda.sede_*`) usata per i dati d'intestazione dei PDF
+- [DEV] Nuove spec `docs/spec/stampa_cliente_pdf_spec.md` e `docs/spec/stampa_cantiere_pdf_spec.md`
+- *Nota: stampe di Intervento e Abbonamento rimandate, da pianificare senza scadenza precisa*
+
 ## [0.23.1] - 2026-07-05
 
 ### Piccoli ritocchi
