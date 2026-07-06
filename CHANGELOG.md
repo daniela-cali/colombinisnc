@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.2] - 2026-07-06
+
+### Dettaglio intervento anche dal pool di pianificazione
+
+- [APP] Cliccando una card nel pool "Da pianificare" si apre ora lo stesso modal di dettaglio già usato per gli eventi pianificati nel calendario, con i bottoni "Modifica" e "Apri scheda"
+- [APP] Il modal dettaglio intervento (sia dal pool che dal calendario) mostra ora anche i **materiali da portare**, quando presenti
+- [DEV] `CalendarioController::index()` ed `eventi()` raggruppano i materiali "da portare" per intervento riusando `InterventiMaterialiModel::daPortarePerInterventi()`, stesso pattern già in uso in `ViaggioController`
+- [DEV] Fix bordo colorato del modal: era applicato solo a `#modal-header` (alto quanto il titolo), creando uno scalino nel bordo sinistro dove l'header incontra il body; spostato su `#modal-content` per coprire tutta l'altezza senza interruzioni
+
 ## [0.24.1] - 2026-07-06
 
 ### Blocco cancellazione cliente e view di consultazione

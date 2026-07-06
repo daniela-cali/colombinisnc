@@ -448,6 +448,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `ClientiModel::relazioniBloccanti()`: scopre da `information_schema` quali tabelle hanno FK RESTRICT/NO ACTION su `clienti.id`, si aggiorna da solo con le future tabelle collegate ai clienti
 - Nuove view di sola lettura per query manuali a DB: `v_abbonamenti_clienti`, `v_abbonamenti_clienti_interventi`, `v_interventi_clienti`
 
+#### ✅ v0.24.2 — Dettaglio intervento anche dal pool di pianificazione
+- Click su una card nel pool "Da pianificare": apre lo stesso modal di dettaglio usato per gli eventi pianificati nel calendario (tipo, tecnico, data, stato, descrizione, scadenza), con bottoni Modifica/Apri scheda
+- Modal dettaglio intervento (pool e calendario): mostra anche i materiali da portare, quando presenti
+- `CalendarioController::index()`/`eventi()` raggruppano i materiali per intervento riusando `InterventiMaterialiModel::daPortarePerInterventi()`, stesso pattern di `ViaggioController`
+- Fix bordo colorato del modal spezzato tra header e body: spostato da `#modal-header` a `#modal-content`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

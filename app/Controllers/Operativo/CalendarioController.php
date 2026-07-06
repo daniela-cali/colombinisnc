@@ -5,6 +5,7 @@ namespace App\Controllers\Operativo;
 use App\Controllers\BaseController;
 use App\Models\AssenzeModel;
 use App\Models\ClientiModel;
+use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
 use App\Models\PromemoriaModel;
@@ -25,6 +26,11 @@ class CalendarioController extends BaseController
         }
 
         $pool = (new InterventiModel())->poolDaPianificare();
+
+        $materialiPerIntervento = [];
+        foreach ((new InterventiMaterialiModel())->daPortarePerInterventi(array_column($pool, 'id')) as $m) {
+            $materialiPerIntervento[(int) $m['intervento_id']][] = $m;
+        }
 
         // Ordinamento PHP: urgenza desc, scadenza asc (null in fondo), distanza asc (null in fondo)
         usort($pool, function ($a, $b) {
@@ -74,6 +80,7 @@ class CalendarioController extends BaseController
             'tecnici'    => $tecnici,
             'tipiPerId'  => $tipiPerId,
             'pool'       => $pool,
+            'materialiPerIntervento' => $materialiPerIntervento,
             'poolPerZona'=> $poolPerZona,
             'zoneLabel'  => $zoneLabel,
             'scadenze'   => $scadenze,
@@ -95,8 +102,19 @@ class CalendarioController extends BaseController
         $end       = $this->request->getGet('end')   ?? date('Y-m-t');
         $tecnicoId = (int) ($this->request->getGet('tecnico_id') ?? 0);
 
+        $interventiEventi = (new InterventiModel())->eventiCalendario($start, $end, $tecnicoId ?: null);
+
+        $materialiPerIntervento = [];
+        foreach ((new InterventiMaterialiModel())->daPortarePerInterventi(array_column($interventiEventi, 'id')) as $m) {
+            $materialiPerIntervento[(int) $m['intervento_id']][] = [
+                'desc' => $m['desc_materiale'],
+                'qta'  => $m['quantita'],
+                'note' => $m['note'],
+            ];
+        }
+
         $events = [];
-        foreach ((new InterventiModel())->eventiCalendario($start, $end, $tecnicoId ?: null) as $i) {
+        foreach ($interventiEventi as $i) {
             $durata  = max(60, (int) ($i['durata_stimata'] ?: $i['tipo_durata'] ?: 60));
             $colore  = $i['tecnico_colore'] ?: '#6c757d';
             $tecnico = $i['tecnico_nome']
@@ -118,6 +136,7 @@ class CalendarioController extends BaseController
                     'descrizione'  => $i['descrizione'] ?: '',
                     'citta'        => $i['cliente_citta'] ?: '',
                     'data_scadenza'=> $i['data_scadenza'] ?? null,
+                    'materiali'    => $materialiPerIntervento[(int) $i['id']] ?? [],
                 ],
             ];
         }

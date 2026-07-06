@@ -3,6 +3,7 @@
  * @var array[] $tecnici
  * @var array[] $tipiPerId
  * @var array[] $pool
+ * @var array[] $materialiPerIntervento
  * @var array[] $poolPerZona
  * @var array   $zoneLabel
  * @var array[] $scadenze
@@ -93,16 +94,23 @@ $prioritaInfo = [
                                 $pi = $prioritaInfo[$i['priorita']] ?? ['badge' => 'bg-secondary', 'label' => $i['priorita']];
                                 $badge = $pi['badge']; $badgeLabel = $pi['label'];
                             }
+                            $materialiJson = json_encode(array_map(fn($m) => [
+                                'desc' => $m['desc_materiale'],
+                                'qta'  => $m['quantita'],
+                                'note' => $m['note'],
+                            ], $materialiPerIntervento[(int) $i['id']] ?? []));
                         ?>
                         <div class="pool-card <?= esc($i['urgenza'] ? 'urgente' : ($i['priorita'] ?? 'normale')) ?>"
                              data-id="<?= $i['id'] ?>"
                              data-tipo-id="<?= (int) ($i['tipo_intervento_id'] ?? 0) ?>"
+                             data-icona="<?= htmlspecialchars($tipoInfo['icona'], ENT_QUOTES) ?>"
                              data-cliente="<?= htmlspecialchars($i['cliente_denominazione'] ?? '', ENT_QUOTES) ?>"
                              data-durata="<?= (int) ($i['durata_stimata'] ?: $tipoInfo['durata_default']) ?>"
                              data-tipo-nome="<?= htmlspecialchars($tipoInfo['nome'], ENT_QUOTES) ?>"
                              data-descr="<?= htmlspecialchars($i['descrizione'] ?? '', ENT_QUOTES) ?>"
                              data-scadenza="<?= esc($i['data_scadenza'] ?? '') ?>"
-                             data-urgenza="<?= (int) ($i['urgenza'] ?? 0) ?>">
+                             data-urgenza="<?= (int) ($i['urgenza'] ?? 0) ?>"
+                             data-materiali="<?= esc($materialiJson, 'attr') ?>">
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <div class="d-flex gap-1">
                                     <span class="badge <?= esc($badge) ?>" style="font-size:.65rem;"><?= esc($badgeLabel) ?></span>
@@ -208,8 +216,8 @@ $prioritaInfo = [
 <!-- Modal dettaglio intervento (click su evento FC) -->
 <div class="modal fade" id="modalIntervento" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" id="modal-header">
+        <div class="modal-content" id="modal-content">
+            <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="bi bi-tools me-2" id="modal-icona"></i>
                     <span id="modal-cliente"></span>
@@ -232,6 +240,12 @@ $prioritaInfo = [
                 <div id="modal-descrizione-wrap" class="mt-3 pt-3 border-top" style="display:none;">
                     <p class="small text-muted mb-1">Descrizione</p>
                     <p id="modal-descrizione" class="mb-0" style="white-space:pre-wrap;font-size:.9rem;"></p>
+                </div>
+                <div id="modal-materiali-wrap" class="mt-3 pt-3 border-top" style="display:none;">
+                    <p class="small text-warning-emphasis fw-semibold mb-1">
+                        <i class="bi bi-box-seam me-1"></i>Materiali da portare
+                    </p>
+                    <ul id="modal-materiali-list" class="mb-0 ps-3 small text-muted"></ul>
                 </div>
             </div>
             <div class="modal-footer">
@@ -352,6 +366,27 @@ document.addEventListener('DOMContentLoaded', function () {
     var assenzePerDipendente = <?= json_encode($assenzePerDipendente) ?>;
 
     var from = encodeURIComponent('<?= base_url('operativo/calendario') ?>');
+    var urlInterventi = '<?= base_url('operativo/interventi') ?>';
+
+    function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Riempie (o nasconde) il blocco "Materiali da portare" nel modal dettaglio intervento.
+    function popolaMaterialiModal(lista) {
+        var wrap = document.getElementById('modal-materiali-wrap');
+        var list = document.getElementById('modal-materiali-list');
+        if (!lista || !lista.length) {
+            wrap.style.display = 'none';
+            list.innerHTML = '';
+            return;
+        }
+        list.innerHTML = lista.map(function (m) {
+            var nota = m.note ? ' <em>(' + escHtml(m.note) + ')</em>' : '';
+            return '<li>' + (m.qta != null ? escHtml(m.qta) + '&times; ' : '') + escHtml(m.desc || '') + nota + '</li>';
+        }).join('');
+        wrap.style.display = '';
+    }
 
     // ---- Giorno selezionato (Genera viaggio) ----
     function selezionaData(dateStr) {
@@ -409,6 +444,46 @@ document.addEventListener('DOMContentLoaded', function () {
                 duration: { minutes: parseInt(cardEl.dataset.durata) || 60 },
             };
         },
+    });
+
+    // ---- Click su card del pool: stesso modal dettaglio degli eventi pianificati ----
+    document.getElementById('pool-container').addEventListener('click', function (e) {
+        var card = e.target.closest('.pool-card');
+        if (!card) return;
+
+        var id = card.dataset.id;
+        var url = urlInterventi + '/' + id;
+
+        var scadenzaStr = null;
+        if (card.dataset.scadenza) {
+            var ep = card.dataset.scadenza.split('-');
+            scadenzaStr = ep[2] + '/' + ep[1] + '/' + ep[0];
+        }
+
+        var materiali = [];
+        try { materiali = JSON.parse(card.dataset.materiali || '[]'); } catch (err) {}
+
+        document.getElementById('modal-icona').className = 'bi ' + (card.dataset.icona || 'bi-tools') + ' me-2';
+        document.getElementById('modal-cliente').textContent = card.dataset.cliente || ('#' + id);
+        document.getElementById('modal-content').style.borderLeft = '4px solid #6c757d';
+        document.getElementById('modal-tipo').textContent    = card.dataset.tipoNome || '—';
+        document.getElementById('modal-tecnico').textContent = 'Non assegnato';
+        document.getElementById('modal-data').textContent    = 'Da pianificare';
+        document.getElementById('modal-stato').innerHTML     = '<span class="badge bg-secondary">Da pianificare</span>';
+        document.getElementById('modal-descrizione').textContent = card.dataset.descr || '';
+        document.getElementById('modal-descrizione-wrap').style.display = card.dataset.descr ? '' : 'none';
+        if (scadenzaStr) {
+            document.getElementById('modal-scadenza').textContent = scadenzaStr;
+            document.getElementById('modal-scadenza').style.display       = '';
+            document.getElementById('modal-scadenza-label').style.display = '';
+        } else {
+            document.getElementById('modal-scadenza').style.display       = 'none';
+            document.getElementById('modal-scadenza-label').style.display = 'none';
+        }
+        popolaMaterialiModal(materiali);
+        document.getElementById('modal-btn-apri').href     = url + '?from=' + from;
+        document.getElementById('modal-btn-modifica').href = url + '/edit?from=' + from;
+        modalIntervento.show();
     });
 
     // ---- Modal pianifica ----
@@ -670,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var iconaClass = p.icona || 'bi-tools';
             document.getElementById('modal-icona').className = 'bi ' + iconaClass + ' me-2';
             document.getElementById('modal-cliente').textContent = info.event.title;
-            document.getElementById('modal-header').style.borderLeft = '4px solid ' + (info.event.backgroundColor || '#6c757d');
+            document.getElementById('modal-content').style.borderLeft = '4px solid ' + (info.event.backgroundColor || '#6c757d');
             document.getElementById('modal-tipo').textContent    = p.tipo || '—';
             document.getElementById('modal-tecnico').textContent = p.tecnico || 'Non assegnato';
             document.getElementById('modal-data').textContent    = dataFmt;
@@ -686,6 +761,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('modal-scadenza').style.display       = 'none';
                 document.getElementById('modal-scadenza-label').style.display = 'none';
             }
+            popolaMaterialiModal(p.materiali);
             document.getElementById('modal-btn-apri').href     = url + '?from=' + from;
             document.getElementById('modal-btn-modifica').href = url + '/edit?from=' + from;
             modalIntervento.show();
