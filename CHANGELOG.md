@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.1] - 2026-07-06
+
+### Blocco cancellazione cliente e view di consultazione
+
+- [APP] Cancellare un cliente con interventi/cantieri/abbonamenti ancora collegati ora mostra un messaggio chiaro (es. "22 in interventi, 1 in abbonamenti") invece dell'errore grezzo del database
+- [DEV] `ClientiModel::relazioniBloccanti()`: scopre dinamicamente da `information_schema` quali tabelle hanno FK RESTRICT/NO ACTION su `clienti.id`, invece di un elenco scritto a mano — si aggiorna da solo quando in futuro si aggiungono nuove tabelle collegate ai clienti (es. impianti, preventivi)
+- [DEV] Nuove view di sola lettura per le query manuali a DB: `v_abbonamenti_clienti`, `v_abbonamenti_clienti_interventi`, `v_interventi_clienti`
+
 ## [0.24.0] - 2026-07-06
 
 ### Stampe PDF: scheda Cliente e Cantiere

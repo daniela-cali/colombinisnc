@@ -443,6 +443,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Rimosso codice morto: secondo gruppo di impostazioni azienda mai raggiungibile da nessuna view (`Azienda.ragione_sociale`/`partita_iva`/`logo_path`)
 - *Vedi `docs/spec/stampa_cliente_pdf_spec.md` e `docs/spec/stampa_cantiere_pdf_spec.md`. Stampe di Intervento e Abbonamento rimandate, da pianificare senza scadenza precisa*
 
+#### ✅ v0.24.1 — Blocco cancellazione cliente e view di consultazione
+- Cancellare un cliente con interventi/cantieri/abbonamenti ancora collegati mostra ora un messaggio chiaro sui record da rimuovere prima, invece dell'eccezione grezza del DB
+- `ClientiModel::relazioniBloccanti()`: scopre da `information_schema` quali tabelle hanno FK RESTRICT/NO ACTION su `clienti.id`, si aggiorna da solo con le future tabelle collegate ai clienti
+- Nuove view di sola lettura per query manuali a DB: `v_abbonamenti_clienti`, `v_abbonamenti_clienti_interventi`, `v_interventi_clienti`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

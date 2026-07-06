@@ -260,7 +260,9 @@ class ClientiController extends BaseController
 
     /**
      * Elimina il cliente (hard delete).
-     * Da v0.8.0: aggiungere controllo su interventi collegati prima di procedere.
+     * Blocca preventivamente se esistono record collegati in una qualunque tabella con
+     * FK RESTRICT su clienti.id (vedi ClientiModel::relazioniBloccanti) — evita che
+     * l'utente veda l'eccezione grezza del DB e mostra invece cosa va rimosso prima.
      */
     public function delete(int $id)
     {
@@ -269,6 +271,19 @@ class ClientiController extends BaseController
 
         if (! $cliente) {
             return redirect()->to('anagrafiche/clienti')->with('error', 'Cliente non trovato.');
+        }
+
+        $vincoli = $model->relazioniBloccanti($id);
+
+        if (! empty($vincoli)) {
+            $motivi = array_map(
+                static fn (array $v) => $v['count'] . ' in "' . $v['tabella'] . '"',
+                $vincoli
+            );
+
+            return redirect()->to('anagrafiche/clienti')
+                ->with('error', 'Impossibile eliminare ' . esc(ClientiModel::denominazione($cliente))
+                    . ': record collegati — ' . implode(', ', $motivi) . '.');
         }
 
         $denom = ClientiModel::denominazione($cliente);

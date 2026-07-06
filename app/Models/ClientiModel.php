@@ -148,6 +148,43 @@ class ClientiModel extends Model
     }
 
     /**
+     * Tabelle e colonne collegate a clienti.id con FK RESTRICT/NO ACTION, lette da
+     * information_schema invece che da un elenco scritto a mano: quando in futuro si
+     * aggiunge una tabella (es. impianti, preventivi) con FK RESTRICT su clienti.id,
+     * il controllo la include automaticamente senza toccare questo metodo.
+     * Restituisce solo le tabelle che hanno almeno un record collegato all'id dato.
+     *
+     * @return array<int, array{tabella: string, count: int}>
+     */
+    public function relazioniBloccanti(int $id): array
+    {
+        $righe = $this->db->query("
+            SELECT kcu.TABLE_NAME, kcu.COLUMN_NAME
+            FROM information_schema.KEY_COLUMN_USAGE kcu
+            JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+                ON rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
+               AND rc.CONSTRAINT_NAME   = kcu.CONSTRAINT_NAME
+            WHERE kcu.REFERENCED_TABLE_SCHEMA = DATABASE()
+              AND kcu.REFERENCED_TABLE_NAME   = 'clienti'
+              AND kcu.REFERENCED_COLUMN_NAME  = 'id'
+              AND rc.DELETE_RULE IN ('RESTRICT', 'NO ACTION')
+        ")->getResultArray();
+
+        $vincoli = [];
+        foreach ($righe as $riga) {
+            $numero = $this->db->table($riga['TABLE_NAME'])
+                ->where($riga['COLUMN_NAME'], $id)
+                ->countAllResults();
+
+            if ($numero > 0) {
+                $vincoli[] = ['tabella' => $riga['TABLE_NAME'], 'count' => $numero];
+            }
+        }
+
+        return $vincoli;
+    }
+
+    /**
      * Genera il prossimo codice INT-xxx per clienti non presenti nel software contabile.
      */
     public function generaCodice(): string

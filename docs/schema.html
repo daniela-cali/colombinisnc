@@ -54,6 +54,7 @@
   <a href="#promemoria_dismiss">promemoria_dismiss</a>
   <a href="#assenze">assenze</a>
   <a href="#relazioni">Relazioni</a>
+  <a href="#view">View di consultazione</a>
   <a href="#log">Log modifiche DB</a>
 </div>
 
@@ -400,10 +401,38 @@
 
 <hr class="section-sep">
 
+<!-- ═══════════════════════════════════════════════════════ view -->
+<h2 id="view">View di consultazione</h2>
+<p>Sola lettura, non usate da nessun codice applicativo — servono per semplificare le query manuali a DB (DBeaver ecc.).</p>
+<table>
+  <tr><th>Vista</th><th>Contenuto</th></tr>
+  <tr>
+    <td><code>v_abbonamenti_clienti</code></td>
+    <td>Un abbonamento per riga, con denominazione/città/telefono/email del cliente, nome del tipo intervento e stato calcolato (scaduto se <code>data_fine</code> passata ma stato ancora "attivo").</td>
+  </tr>
+  <tr>
+    <td><code>v_abbonamenti_clienti_interventi</code></td>
+    <td>Come sopra, con <code>LEFT JOIN</code> sulle visite generate dall'abbonamento (<code>interventi.abbonamento_id</code>) — include anche gli abbonamenti senza ancora nessuna visita pianificata.</td>
+  </tr>
+  <tr>
+    <td><code>v_interventi_clienti</code></td>
+    <td>Tutti gli interventi (non solo quelli da abbonamento) con cliente, tipo, tecnico e cantiere collegato.</td>
+  </tr>
+</table>
+
+<hr class="section-sep">
+
 <!-- ═══════════════════════════════════════════════════════ log -->
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.24.1</td>
+    <td><code>CreateViewsAbbonamentiInterventi</code></td>
+    <td>
+      Nuove view di sola lettura <code>v_abbonamenti_clienti</code>, <code>v_abbonamenti_clienti_interventi</code>, <code>v_interventi_clienti</code> — vedi sezione dedicata sopra.
+    </td>
+  </tr>
   <tr>
     <td>v0.22.0</td>
     <td><code>CreateAssenzeTable</code></td>
