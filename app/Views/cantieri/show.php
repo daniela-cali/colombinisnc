@@ -43,6 +43,10 @@ $nuovoInterventoUrl = base_url('operativo/interventi/nuovo?cantiere_id=' . $cant
                     </span>
                 </h3>
                 <div class="card-tools">
+                    <a href="<?= base_url('cantieri/' . $cantiere['id'] . '/pdf') ?>"
+                       class="btn btn-sm" title="Stampa PDF" target="_blank">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </a>
                     <a href="<?= base_url('cantieri/' . $cantiere['id'] . '/edit') ?>"
                        class="btn btn-sm" title="Modifica">
                         <i class="bi bi-pencil"></i>

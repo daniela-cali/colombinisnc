@@ -5,9 +5,12 @@ namespace App\Controllers;
 use App\Models\CantieriModel;
 use App\Models\CantieriNoteModel;
 use App\Models\ClientiModel;
+use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
 use App\Models\TipiInterventoModel;
 use CodeIgniter\HTTP\RedirectResponse;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class CantieriController extends BaseController
 {
@@ -87,6 +90,51 @@ class CantieriController extends BaseController
             'interventiStatiLabel' => InterventiModel::STATI_LABEL,
             'interventiBadge'      => InterventiModel::STATI_BADGE,
         ]);
+    }
+
+    /**
+     * Stampa PDF riepilogativa del cantiere: anagrafica cliente e dati cantiere completi,
+     * diario integrale (nessun troncamento) e tutti gli interventi collegati con i relativi
+     * materiali (portati e da portare) — a differenza del PDF Cliente non filtra per stato,
+     * è pensato come riepilogo storico completo, non come documento "cosa resta da fare".
+     */
+    public function pdf(int $id): string|RedirectResponse
+    {
+        $cantiere = (new CantieriModel())->conCliente($id);
+        if (! $cantiere) {
+            return redirect()->to('cantieri')->with('error', 'Cantiere non trovato.');
+        }
+
+        $cliente = (new ClientiModel())->find($cantiere['cliente_id']);
+
+        $interventi     = (new InterventiModel())->perCantiere($id);
+        $materialiModel = new InterventiMaterialiModel();
+        foreach ($interventi as &$iv) {
+            $iv['materiali'] = $materialiModel->perIntervento($iv['id']);
+        }
+        unset($iv);
+
+        $html = view('cantieri/pdf_scheda_cantiere', [
+            'cantiere'             => $cantiere,
+            'cliente'              => $cliente,
+            'note'                 => (new CantieriNoteModel())->perCantiere($id),
+            'interventi'           => $interventi,
+            'tipiLabel'            => CantieriModel::TIPI_LABEL,
+            'statiLabel'           => CantieriModel::STATI_LABEL,
+            'interventiStatiLabel' => InterventiModel::STATI_LABEL,
+            'materialiStatiLabel'  => InterventiMaterialiModel::STATI_LABEL,
+        ]);
+
+        $options = new Options();
+        $options->set('defaultFont', 'Helvetica');
+        $options->set('isRemoteEnabled', false);
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $dompdf->stream('cantiere-' . $cantiere['id'] . '.pdf', ['Attachment' => false]);
+        exit;
     }
 
     /**

@@ -91,6 +91,7 @@ $routes->group('cantieri', function ($routes) {
     $routes->get('nuovo',           'CantieriController::nuovo');
     $routes->post('store',          'CantieriController::store');
     $routes->get('(:num)',          'CantieriController::show/$1');
+    $routes->get('(:num)/pdf',      'CantieriController::pdf/$1');
     $routes->get('(:num)/edit',     'CantieriController::edit/$1');
     $routes->post('(:num)/update',  'CantieriController::update/$1');
     $routes->post('(:num)/stato',   'CantieriController::cambiaStato/$1');
