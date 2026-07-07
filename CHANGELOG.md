@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.3] - 2026-07-07
+
+### Fix ordinamento iniziale lista clienti
+
+- [APP] La lista clienti si apre ora ordinata alfabeticamente per denominazione come previsto, invece che per codice
+- [DEV] `ClientiModel::elencoCompleto()`: `orderBy()` referenzia ora l'alias SQL `denominazione` invece di ripetere l'intera espressione `CASE WHEN...`, che il Query Builder alterava con l'escaping automatico degli identificatori
+- [DEV] DataTables (`clienti/index.php`): aggiunto `order: [[1, 'asc']]` esplicito — senza, il default di DataTables (ordina per la prima colonna) sovrascriveva silenziosamente l'ordine restituito dal backend
+
 ## [0.24.2] - 2026-07-06
 
 ### Dettaglio intervento anche dal pool di pianificazione

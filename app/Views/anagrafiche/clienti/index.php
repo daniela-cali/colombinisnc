@@ -150,6 +150,7 @@ $(function () {
             paginate: { first: '«', last: '»', next: '›', previous: '‹' }
         },
         responsive: true,
+        order: [[1, 'asc']],
         orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
         pageLength:  25,
         columnDefs: [
