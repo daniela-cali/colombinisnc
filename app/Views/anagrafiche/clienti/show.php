@@ -341,8 +341,9 @@ $statoBadge = [
             <div class="card-body">
 
                 <div class="mb-3 filtri-bar">
-                    <div class="filtri-scroll">
-                        <button class="btn btn-sm btn-outline-primary" data-filtro="aperti">
+                    <div class="filtri-scroll" data-pill-tabella="tbl-interventi"
+                         data-pill-filtri='{"aperti":{"col":8,"q":"^da_pianificare$","regex":true,"col2":9,"q2":"^(?!abbonamento)","regex2":true},"pianificati":{"col":8,"q":"^(pianificato|in_corso)$","regex":true},"completati":{"col":8,"q":"^completato$","regex":true},"annullati":{"col":8,"q":"^annullato$","regex":true},"abbonamento":{"col":9,"q":"abbonamento"},"tutti":{}}'>
+                        <button class="btn btn-sm btn-outline-primary" data-filtro="aperti" data-default>
                             <i class="bi bi-folder2-open me-1"></i>Da pianificare
                         </button>
                         <button class="btn btn-sm btn-outline-info" data-filtro="pianificati">
@@ -453,10 +454,28 @@ $statoBadge = [
         </div>
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
-                <div class="mb-3 d-flex">
+                <div class="mb-3 filtri-bar">
+                    <div class="filtri-scroll" data-pill-tabella="tbl-abbonamenti"
+                         data-pill-filtri='{"attivo":{"col":6,"q":"^attivo$","regex":true},"sospeso":{"col":6,"q":"^sospeso$","regex":true},"scaduto":{"col":6,"q":"^scaduto$","regex":true},"disdetto":{"col":6,"q":"^disdetto$","regex":true},"tutti":{}}'>
+                        <button class="btn btn-sm btn-outline-success" data-filtro="attivo" data-default>
+                            <i class="bi bi-check-circle me-1"></i>Attivi
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" data-filtro="sospeso">
+                            <i class="bi bi-pause-circle me-1"></i>Sospesi
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" data-filtro="scaduto">
+                            <i class="bi bi-clock-history me-1"></i>Scaduti
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" data-filtro="disdetto">
+                            <i class="bi bi-x-circle me-1"></i>Disdetti
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" data-filtro="tutti">
+                            Tutti (<?= count($abbonamenti) ?>)
+                        </button>
+                    </div>
                     <a href="<?= base_url('abbonamenti/nuovo?cliente_id=' . $cliente['id']
                         . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-abbonamenti')) ?>"
-                       class="btn btn-sm btn-outline-success ms-auto">
+                       class="btn btn-sm btn-outline-success filtri-nuovo">
                         <i class="bi bi-plus-lg me-1"></i>Nuovo abbonamento
                     </a>
                 </div>
@@ -464,7 +483,7 @@ $statoBadge = [
                     <p class="text-muted small mb-0">Nessun abbonamento.</p>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover align-middle mb-0">
+                        <table id="tbl-abbonamenti" class="table table-sm table-hover align-middle mb-0">
                             <thead>
                                 <tr>
                                     <th>Rif.</th>
@@ -473,6 +492,7 @@ $statoBadge = [
                                     <th>Periodo</th>
                                     <th class="text-end">Prezzo</th>
                                     <th class="text-center">Stato</th>
+                                    <th></th><!-- stato raw — nascosto, usato dal filtro -->
                                     <th style="width:40px"></th>
                                 </tr>
                             </thead>
@@ -505,6 +525,7 @@ $statoBadge = [
                                                 <?= esc($abbonamentiLabel[$ab['stato_calcolato']] ?? $ab['stato_calcolato']) ?>
                                             </span>
                                         </td>
+                                        <td><?= esc($ab['stato_calcolato']) ?></td>
                                         <td>
                                             <a href="<?= base_url('abbonamenti/' . $ab['id']) ?>"
                                                class="btn btn-sm btn-outline-secondary" title="Scheda">
@@ -649,6 +670,8 @@ $statoBadge = [
 <?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <?= $this->include('partials/datatables_scripts') ?>
+<script src="<?= base_url('js/pill-filtri.js') ?>"></script>
+
 <script>
 // Tom Select — form materiali sospesi
 (function () {
@@ -702,34 +725,32 @@ $(function () {
         }
     });
 
-    var filtri = {
-        aperti:     { col: 8, q: '^da_pianificare$',               regex: true  },
-        pianificati:{ col: 8, q: '^(pianificato|in_corso)$',        regex: true  },
-        completati: { col: 8, q: '^completato$',                    regex: true  },
-        annullati:  { col: 8, q: '^annullato$',                     regex: true  },
-        abbonamento:{ col: 9, q: 'abbonamento',                     regex: false },
-        tutti:      { col: 8, q: '',                                regex: false }
-    };
+    document.querySelector('[data-pill-tabella="tbl-interventi"] [data-default]').click();
 
-    function setFiltro(nome) {
-        var f = filtri[nome];
-        table.column(8).search('', false, false);
-        table.column(9).search('', false, false);
-        table.column(f.col).search(f.q, f.regex, false);
-        // "aperti" esclude gli interventi batch da abbonamento (le visite extra restano visibili)
-        if (nome === 'aperti') table.column(9).search('^(?!abbonamento)', true, false);
-        table.draw();
-        document.querySelectorAll('[data-filtro]').forEach(function (b) {
-            b.classList.toggle('active', b.dataset.filtro === nome);
+    // DataTable abbonamenti
+    if (document.getElementById('tbl-abbonamenti')) {
+        $('#tbl-abbonamenti').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [],
+            columnDefs: [
+                { targets: 3, orderable: false },
+                { targets: 6, visible: false },
+                { targets: 7, orderable: false, searchable: false }
+            ],
+            language: {
+                emptyTable:   'Nessun abbonamento registrato.',
+                info:         'Da _START_ a _END_ di _TOTAL_',
+                infoEmpty:    'Nessun risultato',
+                infoFiltered: '(filtrati da _MAX_ totali)',
+                lengthMenu:   'Mostra _MENU_ righe',
+                search:       'Cerca:',
+                paginate:     { first: '«', last: '»', next: '›', previous: '‹' },
+                zeroRecords:  'Nessun abbonamento trovato.'
+            }
         });
+        document.querySelector('[data-pill-tabella="tbl-abbonamenti"] [data-default]').click();
     }
-
-    document.querySelectorAll('[data-filtro]').forEach(function (b) {
-        b.addEventListener('click', function () { setFiltro(this.dataset.filtro); });
-    });
-
-    setFiltro('aperti');
-
 
 });
 

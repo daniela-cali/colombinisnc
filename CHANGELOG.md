@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.4] - 2026-07-08
+
+### Filtri pill e ricerca DataTable per Abbonamenti nella scheda cliente
+
+- [APP] Sezione Abbonamenti della scheda cliente: bottoni filtro (Attivi/Sospesi/Scaduti/Disdetti/Tutti) e ricerca full text, come già presenti per Interventi
+- [DEV] Nuovo file condiviso `public/js/pill-filtri.js`: un unico listener delegato su `document` sostituisce la logica di filtro pill duplicata per tabella — ogni contenitore dichiara la propria configurazione in JSON (`data-pill-filtri`), i bottoni portano solo `data-filtro`
+- [DEV] Migrata anche la sezione Interventi della scheda cliente al nuovo sistema condiviso, rimossa la vecchia logica JS inline duplicata
+
 ## [0.24.3] - 2026-07-07
 
 ### Fix ordinamento iniziale lista clienti

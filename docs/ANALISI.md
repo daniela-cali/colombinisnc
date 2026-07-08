@@ -454,6 +454,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `CalendarioController::index()`/`eventi()` raggruppano i materiali per intervento riusando `InterventiMaterialiModel::daPortarePerInterventi()`, stesso pattern di `ViaggioController`
 - Fix bordo colorato del modal spezzato tra header e body: spostato da `#modal-header` a `#modal-content`
 
+#### ✅ v0.24.4 — Filtri pill e ricerca DataTable per Abbonamenti nella scheda cliente
+- Bottoni filtro (Attivi/Sospesi/Scaduti/Disdetti/Tutti) + ricerca full text DataTables per gli Abbonamenti nella scheda cliente, come già presente per Interventi
+- Nuovo file condiviso `public/js/pill-filtri.js`: listener generico basato su configurazione JSON nel markup (`data-pill-filtri`), sostituisce la logica di filtro duplicata per tabella; anche la sezione Interventi della scheda cliente migrata al nuovo sistema
+- Non ancora estesa alla lista Interventi globale (richiede generalizzare il file da 2 a N colonne per filtro) — rimandato
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
