@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.6] - 2026-07-08
+
+### Fix zoom da rotella sulla mappa nella scheda cliente
+
+- [APP] Scorrendo la pagina con il mouse sopra la mappa della scheda cliente, la pagina ora scorre normalmente invece di zoomare la mappa per errore. Lo zoom da rotella si attiva solo cliccando prima sulla mappa (velo con messaggio "Clicca per attivare lo zoom con la rotella"), e si disattiva di nuovo appena il mouse esce dalla mappa
+- [DEV] `L.map('mappaCliente', { scrollWheelZoom: false })` + overlay assoluto (`.mappa-wrapper`/`.mappa-overlay-zoom` in custom.css) con listener `click`/`mouseleave` per abilitare/disabilitare `map.scrollWheelZoom`
+- [DEV] Fix stacking context: `#mappaCliente` necessitava di uno `z-index` esplicito oltre al `position: relative` (impostato da Leaflet) — senza, i pannelli interni di Leaflet (tile, controlli zoom) competevano direttamente con l'overlay invece di restarne sempre sotto
+
 ## [0.24.5] - 2026-07-08
 
 ### Fix visibilità interventi da cantiere nella scheda cliente

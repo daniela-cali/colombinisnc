@@ -463,6 +463,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Gli interventi collegati a un cantiere ora compaiono anche nella lista "Interventi" della scheda cliente (badge "Cantiere: nome"), invece di sparire non appena uscivano dallo stato "da pianificare"
 - `InterventiModel::perCliente()` non esclude più `cantiere_id IS NULL`; `ClientiController::pdf()` mantiene il filtro solo per sé, per non duplicarli nel PDF (già elencati nel blocco del proprio cantiere)
 
+#### ✅ v0.24.6 — Fix zoom da rotella sulla mappa nella scheda cliente
+- Scorrere la pagina con il mouse sopra la mappa Leaflet non zooma più la mappa per errore: lo zoom da rotella si attiva solo cliccando prima sulla mappa (overlay con messaggio), disattivato di nuovo appena il mouse esce
+- Fix stacking context: `#mappaCliente` necessitava di uno `z-index` esplicito insieme al `position: relative` impostato da Leaflet, altrimenti i pannelli interni (tile, controlli zoom) competevano con l'overlay invece di restarne sempre sotto
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

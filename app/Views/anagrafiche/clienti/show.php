@@ -209,14 +209,19 @@ $statoBadge = [
                     <?php endif ?>
                 </div>
 
-                <div id="mappaCliente"
-                     data-lat="<?= esc($cliente['lat'] ?? '') ?>"
-                     data-lng="<?= esc($cliente['lng'] ?? '') ?>"
-                     data-citta="<?= esc($cliente['citta'] ?? '') ?>"
-                     data-nazione="<?= esc($cliente['nazione'] ?? 'Italia') ?>"
-                     data-sede-lat="<?= esc(setting('Azienda.sede_lat') ?? '') ?>"
-                     data-sede-lng="<?= esc(setting('Azienda.sede_lng') ?? '') ?>"
-                ></div>
+                <div class="mappa-wrapper">
+                    <div id="mappaCliente"
+                         data-lat="<?= esc($cliente['lat'] ?? '') ?>"
+                         data-lng="<?= esc($cliente['lng'] ?? '') ?>"
+                         data-citta="<?= esc($cliente['citta'] ?? '') ?>"
+                         data-nazione="<?= esc($cliente['nazione'] ?? 'Italia') ?>"
+                         data-sede-lat="<?= esc(setting('Azienda.sede_lat') ?? '') ?>"
+                         data-sede-lng="<?= esc(setting('Azienda.sede_lng') ?? '') ?>"
+                    ></div>
+                    <div id="mappa-overlay-zoom" class="mappa-overlay-zoom">
+                        <i class="bi bi-mouse"></i> Clicca per attivare lo zoom
+                    </div>
+                </div>
 
                 <div class="d-flex gap-2 mt-2">
                     <button type="button" id="btn-correggi-posizione" class="btn btn-sm btn-outline-secondary">
@@ -813,11 +818,27 @@ $(function () {
     var latInput      = document.getElementById('posizione-lat-input');
     var lngInput      = document.getElementById('posizione-lng-input');
 
-    var map = L.map('mappaCliente');
+    var map = L.map('mappaCliente', { scrollWheelZoom: false });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap',
     }).addTo(map);
+
+    // Zoom da rotella attivo solo dopo un click sull'overlay, disattivato di
+    // nuovo appena il mouse esce dalla mappa — evita che scrollare la pagina
+    // con il cursore sopra la mappa la zoomi per errore invece di scorrere.
+    var overlayZoom  = document.getElementById('mappa-overlay-zoom');
+    var mappaWrapper = container.parentElement;
+
+    overlayZoom.addEventListener('click', function () {
+        map.scrollWheelZoom.enable();
+        overlayZoom.classList.add('d-none');
+    });
+
+    mappaWrapper.addEventListener('mouseleave', function () {
+        map.scrollWheelZoom.disable();
+        overlayZoom.classList.remove('d-none');
+    });
 
     // Pallino fisso della sede aziendale, sempre visibile e mai modificabile da qui
     // (si distingue volutamente dal pin del cliente, non è un marker trascinabile).

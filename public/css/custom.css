@@ -611,4 +611,31 @@ tr:has(a.js-row-open) {
     height: 320px;
     width: 100%;
     border-radius: .375rem;
+    /* z-index esplicito (con position:relative impostato da Leaflet stesso)
+       crea uno stacking context: senza, i pannelli interni di Leaflet
+       (tile a z-index 200, controlli zoom a 1000) finiscono per competere
+       direttamente con l'overlay sotto, invece di restarne sempre sotto. */
+    z-index: 0;
+}
+
+/* Wrapper con position relative: serve da riferimento per l'overlay
+   assoluto che blocca lo zoom da rotella finché non si clicca sopra
+   (evita che lo scroll della pagina venga rubato dalla mappa). */
+.mappa-wrapper {
+    position: relative;
+}
+.mappa-overlay-zoom {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+    background-color: rgba(0, 0, 0, .35);
+    color: #fff;
+    font-size: .9rem;
+    border-radius: .375rem;
+    cursor: pointer;
 }
