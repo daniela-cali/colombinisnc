@@ -103,7 +103,13 @@ class ClientiController extends BaseController
             return redirect()->to('anagrafiche/clienti')->with('error', 'Cliente non trovato.');
         }
 
-        $interventi = (new InterventiModel())->perCliente($id);
+        // Gli interventi agganciati a un cantiere sono esclusi qui: compaiono già dentro
+        // il rispettivo blocco Cantieri del PDF (ultimi 3 interventi, vedi sotto) — altrimenti
+        // finirebbero duplicati sia nella lista piatta che nel loro cantiere.
+        $interventi = array_values(array_filter(
+            (new InterventiModel())->perCliente($id),
+            fn ($i) => empty($i['cantiere_id'])
+        ));
 
         // Le visite ricorrenti da abbonamento (priorita = abbonamento) ancora da pianificare
         // sono limitate al mese corrente, altrimenti gli abbonamenti settimanali riempiono

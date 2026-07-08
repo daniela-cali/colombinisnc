@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.5] - 2026-07-08
+
+### Fix visibilità interventi da cantiere nella scheda cliente
+
+- [APP] Gli interventi collegati a un cantiere ora compaiono anche nella lista "Interventi" della scheda cliente (con badge "Cantiere: nome" cliccabile) — prima sparivano dalla scheda cliente appena uscivano dallo stato "da pianificare", perché esclusi dalla lista e non contati nel badge Cantieri
+- [DEV] `InterventiModel::perCliente()`: rimosso il filtro `cantiere_id IS NULL`, aggiunto join su `cantieri` per il titolo
+- [DEV] `ClientiController::pdf()`: filtro equivalente reintrodotto solo lì, per evitare che gli interventi da cantiere compaiano due volte nel PDF (lista piatta + blocco del proprio cantiere, che li elenca già)
+
 ## [0.24.4] - 2026-07-08
 
 ### Filtri pill e ricerca DataTable per Abbonamenti nella scheda cliente

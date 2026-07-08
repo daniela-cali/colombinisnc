@@ -459,6 +459,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Nuovo file condiviso `public/js/pill-filtri.js`: listener generico basato su configurazione JSON nel markup (`data-pill-filtri`), sostituisce la logica di filtro duplicata per tabella; anche la sezione Interventi della scheda cliente migrata al nuovo sistema
 - Non ancora estesa alla lista Interventi globale (richiede generalizzare il file da 2 a N colonne per filtro) — rimandato
 
+#### ✅ v0.24.5 — Fix visibilità interventi da cantiere nella scheda cliente
+- Gli interventi collegati a un cantiere ora compaiono anche nella lista "Interventi" della scheda cliente (badge "Cantiere: nome"), invece di sparire non appena uscivano dallo stato "da pianificare"
+- `InterventiModel::perCliente()` non esclude più `cantiere_id IS NULL`; `ClientiController::pdf()` mantiene il filtro solo per sé, per non duplicarli nel PDF (già elencati nel blocco del proprio cantiere)
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

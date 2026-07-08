@@ -177,8 +177,10 @@ class InterventiModel extends Model
 
     /**
      * Lista interventi di un cliente con tipo lavoro e tecnico, ordinata per data decrescente.
-     * Esclude gli interventi agganciati a un cantiere: quelli si vedono solo sotto il loro
-     * cantiere (sezione Cantieri della scheda cliente), per non affollare la lista piatta.
+     * Include anche gli interventi agganciati a un cantiere (con titolo del cantiere per il
+     * badge in vista) — prima erano esclusi per non affollare la lista, ma questo li rendeva
+     * invisibili dalla scheda cliente non appena uscivano dallo stato "da pianificare"
+     * (l'unico contato nel badge della sezione Cantieri).
      */
     public function perCliente(int $clienteId): array
     {
@@ -186,12 +188,13 @@ class InterventiModel extends Model
                 ti.nome AS tipo_intervento_nome,
                 ti.icona AS tipo_intervento_icona,
                 TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome,
+                ct.titolo AS cantiere_titolo,
                 (SELECT COUNT(*) FROM interventi_materiali im
                  WHERE im.intervento_id = interventi.id AND im.stato = 'da_portare') AS num_da_portare")
             ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
             ->join('personale p',        'p.id = interventi.tecnico_id',          'left')
+            ->join('cantieri ct',        'ct.id = interventi.cantiere_id',        'left')
             ->where('interventi.cliente_id', $clienteId)
-            ->where('interventi.cantiere_id', null)
             ->orderBy('interventi.data_pianificata', 'DESC')
             ->findAll();
     }

@@ -1,7 +1,7 @@
 <?php
 /**
  * @var array $cliente            Record clienti con tutti i campi
- * @var array $interventi         Righe da InterventiModel::perCliente()
+ * @var array $interventi         Righe da InterventiModel::perCliente() — include cantiere_titolo se collegato a un cantiere
  * @var array $sospesi            Righe da InterventiMaterialiModel::sospesiPerCliente()
  * @var array $articoliPerCat     Da ArticoliModel::perCategoria()
  * @var array $prioritaLabel      Map priorita → label leggibile
@@ -407,6 +407,12 @@ $statoBadge = [
                                             <span class="badge bg-info text-dark ms-1"><i class="bi bi-box-arrow-up me-1"></i>Apertura</span>
                                         <?php elseif (! empty($iv['chiusura'])): ?>
                                             <span class="badge bg-info text-dark ms-1"><i class="bi bi-box-arrow-in-down me-1"></i>Chiusura</span>
+                                        <?php endif ?>
+                                        <?php if (! empty($iv['cantiere_id'])): ?>
+                                            <a href="<?= base_url('cantieri/' . $iv['cantiere_id']) ?>"
+                                               class="badge bg-warning text-dark ms-1 text-decoration-none" title="Vai al cantiere">
+                                                <i class="bi bi-bricks me-1"></i><?= esc($iv['cantiere_titolo'] ?? 'Cantiere') ?>
+                                            </a>
                                         <?php endif ?>
                                     </td>
                                     <td class="text-muted small"><?= esc($prioritaLabel[$iv['priorita']] ?? $iv['priorita']) ?></td>
