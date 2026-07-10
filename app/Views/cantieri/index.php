@@ -42,13 +42,13 @@ $this->extend('layouts/admin');
         <?php else: ?>
             <div class="mb-3 filtri-scroll">
                 <button class="btn btn-sm btn-outline-success" data-filtro="aperto">
-                    <i class="bi bi-check-circle me-1"></i>Aperti
+                    <i class="bi bi-unlock me-1"></i>Aperti
                 </button>
                 <button class="btn btn-sm btn-outline-warning" data-filtro="sospeso">
                     <i class="bi bi-pause-circle me-1"></i>Sospesi
                 </button>
                 <button class="btn btn-sm btn-outline-secondary" data-filtro="chiuso">
-                    <i class="bi bi-clock-history me-1"></i>Chiusi
+                    <i class="bi bi-lock me-1"></i>Chiusi
                 </button>
                 <button class="btn btn-sm btn-outline-primary" data-filtro="tutti">
                     Tutti (<?= count($cantieri) ?>)

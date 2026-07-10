@@ -640,6 +640,32 @@ tr:has(a.js-row-open) {
     color: #f1c6cb !important;
 }
 
+/* --- Intestazioni .table-light in dark mode -----------------------------
+   Come .table-danger, anche .table-light definisce i colori solo per la
+   modalità chiara: il testo resta nero fisso su sfondo quasi bianco fisso.
+   Restava leggibile, ma stonava come banda bianca in una pagina scura
+   (es. intestazioni tabelle in Cantieri/Viaggio/Abbonamenti). */
+[data-bs-theme="dark"] .table-light {
+    --bs-table-color:      #dee2e6;
+    --bs-table-bg:         #2b3035;
+    --bs-table-border-color: #40474d;
+    --bs-table-striped-bg: #313640;
+    --bs-table-striped-color: #dee2e6;
+    --bs-table-active-bg:  #3a3f44;
+    --bs-table-active-color: #dee2e6;
+    --bs-table-hover-bg:   #343a40;
+    --bs-table-hover-color: #dee2e6;
+}
+
+/* --- .text-muted dentro .bg-light in dark mode -------------------------
+   .bg-light resta uno sfondo chiaro fisso in qualsiasi tema (non ha una
+   variante dark), mentre .text-muted usa var(--bs-secondary-color), che in
+   dark mode diventa chiaro: il risultato è testo chiaro su sfondo chiaro,
+   invisibile (es. badge data nelle "Scadenze aperte" del calendario). */
+[data-bs-theme="dark"] .bg-light .text-muted {
+    color: rgba(33, 37, 41, .75) !important;
+}
+
 /* Wrapper con position relative: serve da riferimento per l'overlay
    assoluto che blocca lo zoom da rotella finché non si clicca sopra
    (evita che lo scroll della pagina venga rubato dalla mappa). */

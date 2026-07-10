@@ -376,7 +376,7 @@ $statoBadge = [
 
                 <div class="table-responsive">
                     <table id="tbl-interventi" class="table table-hover table-sm align-middle">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
                                 <th>Codice</th>
                                 <th>Descrizione</th>
@@ -495,7 +495,7 @@ $statoBadge = [
                 <?php else: ?>
                     <div class="table-responsive">
                         <table id="tbl-abbonamenti" class="table table-sm table-hover align-middle mb-0">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
                                     <th>Rif.</th>
                                     <th>Tipo</th>
@@ -563,10 +563,25 @@ $statoBadge = [
         </div>
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
-                <div class="mb-3 d-flex">
+                <div class="mb-3 filtri-bar">
+                    <div class="filtri-scroll" data-pill-tabella="tbl-cantieri"
+                         data-pill-filtri='{"aperto":{"col":7,"q":"^aperto$","regex":true},"sospeso":{"col":7,"q":"^sospeso$","regex":true},"chiuso":{"col":7,"q":"^chiuso$","regex":true},"tutti":{}}'>
+                        <button class="btn btn-sm btn-outline-success" data-filtro="aperto" data-default>
+                            <i class="bi bi-unlock me-1"></i>Aperti
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" data-filtro="sospeso">
+                            <i class="bi bi-pause-circle me-1"></i>Sospesi
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" data-filtro="chiuso">
+                            <i class="bi bi-lock me-1"></i>Chiusi
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" data-filtro="tutti">
+                            Tutti (<?= count($cantieri) ?>)
+                        </button>
+                    </div>
                     <a href="<?= base_url('cantieri/nuovo?cliente_id=' . $cliente['id']
                         . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-cantieri')) ?>"
-                       class="btn btn-sm btn-outline-warning ms-auto">
+                       class="btn btn-sm btn-outline-warning filtri-nuovo">
                         <i class="bi bi-plus-lg me-1"></i>Nuovo cantiere
                     </a>
                 </div>
@@ -574,8 +589,8 @@ $statoBadge = [
                     <p class="text-muted small mb-0">Nessun cantiere.</p>
                 <?php else: ?>
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover align-middle mb-0">
-                            <thead>
+                        <table id="tbl-cantieri" class="table table-sm table-hover align-middle mb-0">
+                            <thead class="table-light">
                                 <tr>
                                     <th>Rif.</th>
                                     <th>Titolo</th>
@@ -584,6 +599,7 @@ $statoBadge = [
                                     <th class="text-center">Da pianificare</th>
                                     <th>Ultima nota</th>
                                     <th class="text-center">Stato</th>
+                                    <th></th><!-- 7: stato raw — nascosto, usato dal filtro -->
                                     <th style="width:40px"></th>
                                 </tr>
                             </thead>
@@ -625,6 +641,7 @@ $statoBadge = [
                                                 <?= esc($cantieriStatiLabel[$ct['stato']] ?? $ct['stato']) ?>
                                             </span>
                                         </td>
+                                        <td><?= esc($ct['stato']) ?></td>
                                         <td>
                                             <a href="<?= base_url('cantieri/' . $ct['id']) ?>"
                                                class="btn btn-sm btn-outline-secondary" title="Apri cantiere">
@@ -761,6 +778,30 @@ $(function () {
             }
         });
         document.querySelector('[data-pill-tabella="tbl-abbonamenti"] [data-default]').click();
+    }
+
+    // DataTable cantieri
+    if (document.getElementById('tbl-cantieri')) {
+        $('#tbl-cantieri').DataTable({
+            responsive: true,
+            pageLength: 10,
+            order: [],
+            columnDefs: [
+                { targets: 7, visible: false },
+                { targets: 8, orderable: false, searchable: false }
+            ],
+            language: {
+                emptyTable:   'Nessun cantiere registrato.',
+                info:         'Da _START_ a _END_ di _TOTAL_',
+                infoEmpty:    'Nessun risultato',
+                infoFiltered: '(filtrati da _MAX_ totali)',
+                lengthMenu:   'Mostra _MENU_ righe',
+                search:       'Cerca:',
+                paginate:     { first: '«', last: '»', next: '›', previous: '‹' },
+                zeroRecords:  'Nessun cantiere trovato.'
+            }
+        });
+        document.querySelector('[data-pill-tabella="tbl-cantieri"] [data-default]').click();
     }
 
 });

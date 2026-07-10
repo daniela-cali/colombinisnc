@@ -471,6 +471,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Le righe `table-danger` (interventi urgenti) nelle liste Interventi e Viaggio ora restano leggibili in dark mode: prima il testo delle colonne con classi `.text-body`/`.text-muted` risultava chiaro su sfondo rosa chiaro rimasto invariato, perché Bootstrap/AdminLTE definisce `.table-danger` solo per la modalità chiara
 - Nuova regola `[data-bs-theme="dark"] .table-danger` in `custom.css` con variabili Bootstrap ridefinite per sfondo rosso scuro e testo chiaro
 
+#### ✅ v0.24.8 — Dark mode: altri fix di leggibilità + tabella Cantieri con DataTable
+- Stesso problema di v0.24.7 in altri due punti: `.text-muted` dentro `.bg-light` (badge date "Scadenze aperte") e le intestazioni `table-light` (Cantieri/Viaggio/Abbonamenti/Interventi cliente), entrambi fissi in modalità chiara — nuove regole dark-mode dedicate in `custom.css`
+- Scheda cliente: la tabella Cantieri passa a DataTable con filtri pill Aperti/Sospesi/Chiusi/Tutti, stesso pattern già usato per Interventi e Abbonamenti (colonna nascosta con stato raw, `pill-filtri.js`)
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

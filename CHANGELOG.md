@@ -1,5 +1,16 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.8] - 2026-07-10
+
+### Dark mode: altri fix di leggibilità + tabella Cantieri con DataTable
+
+- [APP] Il testo `.text-muted` dentro badge/elementi con sfondo chiaro fisso (`.bg-light`, es. le date nei badge "Scadenze aperte" del calendario) ora resta leggibile in dark mode — prima diventava chiaro su sfondo chiaro
+- [APP] Le intestazioni `table-light` delle tabelle (Cantieri, Viaggio, Abbonamenti, Interventi nella scheda cliente) sono coerenti anche in dark mode, niente più banda bianca in una pagina scura
+- [APP] Scheda cliente: nuova tabella Cantieri con ricerca, paginazione e filtri Aperti (default)/Sospesi/Chiusi/Tutti, come già presente per Interventi e Abbonamenti
+- [DEV] `custom.css`: nuove regole `[data-bs-theme="dark"] .bg-light .text-muted` e `[data-bs-theme="dark"] .table-light`
+- [DEV] `clienti/show.php`: aggiunta `class="table-light"` ai `<thead>` mancanti; nuova tabella `tbl-cantieri` con DataTable + `pill-filtri.js`, stesso pattern di `tbl-interventi`/`tbl-abbonamenti` (colonna nascosta con stato raw, click automatico sul pill di default)
+- [DEV] `cantieri/index.php`: icone Aperti/Chiusi allineate (`bi-unlock`/`bi-lock`) a quelle dei nuovi filtri pill nella scheda cliente
+
 ## [0.24.7] - 2026-07-10
 
 ### Fix leggibilità righe urgenti in dark mode
