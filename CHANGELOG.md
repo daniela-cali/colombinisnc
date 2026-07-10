@@ -1,5 +1,11 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.9] - 2026-07-10
+
+### Riordino voci di menu
+
+- [APP] Voce "Calendario" spostata in cima al menu laterale, sopra "Anagrafiche"
+
 ## [0.24.8] - 2026-07-10
 
 ### Dark mode: altri fix di leggibilità + tabella Cantieri con DataTable

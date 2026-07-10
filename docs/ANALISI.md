@@ -475,6 +475,9 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Stesso problema di v0.24.7 in altri due punti: `.text-muted` dentro `.bg-light` (badge date "Scadenze aperte") e le intestazioni `table-light` (Cantieri/Viaggio/Abbonamenti/Interventi cliente), entrambi fissi in modalità chiara — nuove regole dark-mode dedicate in `custom.css`
 - Scheda cliente: la tabella Cantieri passa a DataTable con filtri pill Aperti/Sospesi/Chiusi/Tutti, stesso pattern già usato per Interventi e Abbonamenti (colonna nascosta con stato raw, `pill-filtri.js`)
 
+#### ✅ v0.24.9 — Riordino voci di menu
+- Voce "Calendario" spostata in cima al menu laterale, sopra "Anagrafiche"
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

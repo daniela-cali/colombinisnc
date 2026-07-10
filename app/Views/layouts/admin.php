@@ -109,30 +109,29 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                             <p>Dashboard</p>
                         </a>
                     </li>
-
-                    <li class="nav-header">Anagrafiche</li>
-                    <?php if (! $_soloTecnico): ?>
-                    <li class="nav-item">
-                        <a href="<?= base_url('anagrafiche/personale') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/personale') ? 'active' : '' ?>">
-                            <i class="nav-icon bi bi-people"></i>
-                            <p>Personale</p>
-                        </a>
-                    </li>
-                    <?php endif ?>
-                    <li class="nav-item">
-                        <a href="<?= base_url('anagrafiche/clienti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/clienti') ? 'active' : '' ?>">
-                            <i class="nav-icon bi bi-person-lines-fill"></i>
-                            <p>Clienti</p>
-                        </a>
-                    </li>
-
-                    <li class="nav-header">Operativo</li>
                     <li class="nav-item">
                         <a href="<?= base_url('operativo/calendario') ?>" class="nav-link <?= str_starts_with(uri_string(), 'operativo/calendario') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-calendar3"></i>
                             <p>Calendario</p>
                         </a>
                     </li>
+                    
+                    <li class="nav-header">Anagrafiche</li>
+                    <li class="nav-item">
+                        <a href="<?= base_url('anagrafiche/clienti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/clienti') ? 'active' : '' ?>">
+                            <i class="nav-icon bi bi-person-lines-fill"></i>
+                            <p>Clienti</p>
+                        </a>
+                    </li>
+                    <?php if (! $_soloTecnico): ?>
+                        <li class="nav-item">
+                            <a href="<?= base_url('anagrafiche/personale') ?>" class="nav-link <?= str_starts_with(uri_string(), 'anagrafiche/personale') ? 'active' : '' ?>">
+                                <i class="nav-icon bi bi-people"></i>
+                                <p>Personale</p>
+                            </a>
+                        </li>
+                        <?php endif ?>
+                    <li class="nav-header">Operativo</li>
                     <?php
                         $interventiAttivo = str_starts_with(uri_string(), 'operativo/interventi');
                         $sezioneCorrente  = service('request')->getGet('sezione') ?: \App\Models\TipiInterventoModel::CATEGORIA_GENERALE;
