@@ -467,6 +467,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Scorrere la pagina con il mouse sopra la mappa Leaflet non zooma più la mappa per errore: lo zoom da rotella si attiva solo cliccando prima sulla mappa (overlay con messaggio), disattivato di nuovo appena il mouse esce
 - Fix stacking context: `#mappaCliente` necessitava di uno `z-index` esplicito insieme al `position: relative` impostato da Leaflet, altrimenti i pannelli interni (tile, controlli zoom) competevano con l'overlay invece di restarne sempre sotto
 
+#### ✅ v0.24.7 — Fix leggibilità righe urgenti in dark mode
+- Le righe `table-danger` (interventi urgenti) nelle liste Interventi e Viaggio ora restano leggibili in dark mode: prima il testo delle colonne con classi `.text-body`/`.text-muted` risultava chiaro su sfondo rosa chiaro rimasto invariato, perché Bootstrap/AdminLTE definisce `.table-danger` solo per la modalità chiara
+- Nuova regola `[data-bs-theme="dark"] .table-danger` in `custom.css` con variabili Bootstrap ridefinite per sfondo rosso scuro e testo chiaro
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

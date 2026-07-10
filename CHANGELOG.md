@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.7] - 2026-07-10
+
+### Fix leggibilità righe urgenti in dark mode
+
+- [APP] Nelle liste Interventi e Viaggio, le righe degli interventi urgenti (`table-danger`) ora restano leggibili anche in dark mode — prima il testo delle colonne Cliente/Tecnico risultava chiaro su sfondo rosa chiaro, quasi invisibile
+- [DEV] `custom.css`: nuova regola `[data-bs-theme="dark"] .table-danger` con variabili Bootstrap ridefinite (sfondo rosso scuro, testo chiaro) — Bootstrap/AdminLTE nel bundle vendorizzato definisce `.table-danger` solo per la modalità chiara, senza variante dark
+
 ## [0.24.6] - 2026-07-08
 
 ### Fix zoom da rotella sulla mappa nella scheda cliente

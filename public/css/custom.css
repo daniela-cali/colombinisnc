@@ -618,6 +618,28 @@ tr:has(a.js-row-open) {
     z-index: 0;
 }
 
+/* --- Righe .table-danger (interventi/viaggi urgenti) in dark mode -----
+   Bootstrap definisce i colori di .table-danger solo per la modalità chiara
+   (testo nero su rosa chiaro) tramite variabili CSS, senza una variante dark.
+   Le celle che usano .text-body/.text-muted (es. colonna Cliente/Tecnico)
+   forzano quindi il colore a var(--bs-body-color), chiaro in dark mode,
+   risultando illeggibile sullo sfondo rosa chiaro rimasto invariato. */
+[data-bs-theme="dark"] .table-danger {
+    --bs-table-color:      #f1c6cb;
+    --bs-table-bg:         #4b2126;
+    --bs-table-border-color: #5f363b;
+    --bs-table-striped-bg: #543035;
+    --bs-table-striped-color: #f1c6cb;
+    --bs-table-active-bg:  #5f363b;
+    --bs-table-active-color: #f1c6cb;
+    --bs-table-hover-bg:   #593338;
+    --bs-table-hover-color: #f1c6cb;
+}
+[data-bs-theme="dark"] .table-danger .text-body,
+[data-bs-theme="dark"] .table-danger .text-muted {
+    color: #f1c6cb !important;
+}
+
 /* Wrapper con position relative: serve da riferimento per l'overlay
    assoluto che blocca lo zoom da rotella finché non si clicca sopra
    (evita che lo scroll della pagina venga rubato dalla mappa). */
