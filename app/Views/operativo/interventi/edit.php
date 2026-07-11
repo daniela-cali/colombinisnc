@@ -123,7 +123,7 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                     <div class="row g-3 mb-4">
                         <div class="col-12">
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
-                            <input type="text" name="descrizione" class="form-control"
+                            <input type="text" name="descrizione" id="descrizione" class="form-control"
                                    maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
                                    value="<?= esc(old('descrizione', $intervento['descrizione'] ?? '')) ?>">
                         </div>
@@ -158,7 +158,7 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Stato <span class="text-danger">*</span></label>
-                            <select name="stato" class="form-select">
+                            <select name="stato" id="stato" class="form-select">
                                 <?php foreach ($statiLabel as $codice => $etichetta):
                                     if ($codice === \App\Models\InterventiModel::STATO_ANNULLATO) continue; ?>
                                     <option value="<?= $codice ?>"
@@ -200,7 +200,7 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label">Data pianificata</label>
-                            <input type="datetime-local" name="data_pianificata" class="form-control"
+                            <input type="datetime-local" name="data_pianificata" id="data_pianificata" class="form-control"
                                    value="<?= esc(old('data_pianificata',
                                        $intervento['data_pianificata']
                                            ? date('Y-m-d\TH:i', strtotime($intervento['data_pianificata']))
@@ -448,6 +448,12 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
         if (! durata.value && durateDefault[this.value]) {
             durata.value = durateDefault[this.value];
         }
+
+        var descrizione = document.getElementById('descrizione');
+        var opt = this.options[this.selectedIndex];
+        if (! descrizione.value && opt && opt.value) {
+            descrizione.value = 'Intervento: ' + opt.text;
+        }
     });
 
     // ── Fase stagionale: visibile solo per i tipi di categoria "piscine" ──────
@@ -468,6 +474,14 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
 
     selTipo.addEventListener('change', aggiornaBloccoFase);
     aggiornaBloccoFase(); // init: mostra il blocco se l'intervento è già di tipo piscina
+
+    // ── Impostando la data pianificata, lo stato passa da "da pianificare" a "pianificato" ──
+    document.getElementById('data_pianificata').addEventListener('change', function () {
+        var stato = document.getElementById('stato');
+        if (this.value && stato.value === 'da_pianificare') {
+            stato.value = 'pianificato';
+        }
+    });
 })();
 </script>
 <?= $this->endSection() ?>

@@ -69,7 +69,7 @@ $assenzeUrl  = base_url('anagrafiche/personale/' . $persona['id']) . '#sec-assen
                                 <dd class="col-sm-8">
                                     <span class="badge p-2 me-1"
                                           style="background-color:<?= esc($persona['colore']) ?>">
-                                        <code class="text-light"><?= esc($persona['colore']) ?></code>
+                                        <code style="color:<?= colore_testo($persona['colore']) ?>"><?= esc($persona['colore']) ?></code>
                                     </span>
                                 </dd>
                             <?php endif ?>

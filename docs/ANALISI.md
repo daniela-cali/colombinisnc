@@ -478,6 +478,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 #### ✅ v0.24.9 — Riordino voci di menu
 - Voce "Calendario" spostata in cima al menu laterale, sopra "Anagrafiche"
 
+#### ✅ v0.24.10 — Ritocchi calendario e form interventi
+- Pool "da pianificare": ordinamento semplificato a urgenza + data di inserimento; nuovo campo "Creato il" nel dettaglio calendario e nella scheda intervento
+- Descrizione intervento precompilata dal tipo scelto (editabile); impostare la data pianificata su un intervento "da pianificare" lo porta automaticamente a "pianificato"
+- Fix contrasto testo sui colori profilo dipendente (calendario e scheda personale): nuovo helper `colore_testo()` (YIQ) sceglie nero o bianco in base allo sfondo
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

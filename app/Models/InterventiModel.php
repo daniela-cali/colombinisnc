@@ -258,7 +258,7 @@ class InterventiModel extends Model
     {
         return $this->select("interventi.id, interventi.tipo_intervento_id, interventi.priorita,
                       interventi.urgenza, interventi.extra, interventi.data_scadenza, interventi.durata_stimata,
-                      interventi.descrizione,
+                      interventi.descrizione, interventi.created_at,
                       CASE WHEN c.tipo = 'persona_fisica'
                            THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                            ELSE c.ragsoc
@@ -479,6 +479,7 @@ class InterventiModel extends Model
     {
         $this->select("interventi.id, interventi.stato, interventi.data_pianificata,
                 interventi.durata_stimata, interventi.descrizione, interventi.data_scadenza,
+                interventi.created_at,
                 CASE WHEN c.tipo = 'persona_fisica'
                      THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                      ELSE c.ragsoc
@@ -492,7 +493,8 @@ class InterventiModel extends Model
             ->where('interventi.data_pianificata >=', $start)
             ->where('interventi.data_pianificata <',  $end)
             ->where('interventi.data_pianificata IS NOT NULL', null, false)
-            ->where('interventi.stato !=', self::STATO_ANNULLATO);
+            ->where('interventi.stato !=', self::STATO_ANNULLATO)
+            ->orderBy('interventi.created_at');
 
         if ($tecnicoId) {
             $this->where('interventi.tecnico_id', $tecnicoId);

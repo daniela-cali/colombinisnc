@@ -18,6 +18,8 @@ class CalendarioController extends BaseController
      */
     public function index(): string
     {
+        helper('colore');
+
         $tecnici = (new PersonaleModel())->elencoPerGruppi(['tecnico']);
 
         $tipiPerId = [];
@@ -32,17 +34,12 @@ class CalendarioController extends BaseController
             $materialiPerIntervento[(int) $m['intervento_id']][] = $m;
         }
 
-        // Ordinamento PHP: urgenza desc, scadenza asc (null in fondo), distanza asc (null in fondo)
+        // Ordinamento PHP: urgenza desc, poi data di inserimento asc (i più vecchi prima)
         usort($pool, function ($a, $b) {
             if ((int) $a['urgenza'] !== (int) $b['urgenza']) {
                 return (int) $b['urgenza'] - (int) $a['urgenza'];
             }
-            $da = $a['data_scadenza'] ?? '9999-12-31';
-            $db = $b['data_scadenza'] ?? '9999-12-31';
-            if ($da !== $db) {
-                return strcmp($da, $db);
-            }
-            return ((float) ($a['distanza_sede'] ?? 99999)) <=> ((float) ($b['distanza_sede'] ?? 99999));
+            return strcmp($a['created_at'], $b['created_at']);
         });
 
         $zoneLabel = ClientiModel::ZONE_LABEL + ['nessuna' => 'Senza zona'];
@@ -98,6 +95,8 @@ class CalendarioController extends BaseController
      */
     public function eventi()
     {
+        helper('colore');
+
         $start     = $this->request->getGet('start') ?? date('Y-m-01');
         $end       = $this->request->getGet('end')   ?? date('Y-m-t');
         $tecnicoId = (int) ($this->request->getGet('tecnico_id') ?? 0);
@@ -127,6 +126,7 @@ class CalendarioController extends BaseController
                 'start' => $i['data_pianificata'],
                 'end'   => date('Y-m-d H:i:s', strtotime($i['data_pianificata']) + $durata * 60),
                 'color' => $colore,
+                'textColor' => colore_testo($colore),
                 'url'   => base_url('operativo/interventi/' . $i['id']),
                 'extendedProps' => [
                     'tecnico'      => $tecnico,
@@ -136,6 +136,7 @@ class CalendarioController extends BaseController
                     'descrizione'  => $i['descrizione'] ?: '',
                     'citta'        => $i['cliente_citta'] ?: '',
                     'data_scadenza'=> $i['data_scadenza'] ?? null,
+                    'creato'       => $i['created_at'] ?? null,
                     'materiali'    => $materialiPerIntervento[(int) $i['id']] ?? [],
                 ],
             ];

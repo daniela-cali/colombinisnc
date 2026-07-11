@@ -109,6 +109,7 @@ $prioritaInfo = [
                              data-tipo-nome="<?= htmlspecialchars($tipoInfo['nome'], ENT_QUOTES) ?>"
                              data-descr="<?= htmlspecialchars($i['descrizione'] ?? '', ENT_QUOTES) ?>"
                              data-scadenza="<?= esc($i['data_scadenza'] ?? '') ?>"
+                             data-creato="<?= esc($i['created_at'] ?? '') ?>"
                              data-urgenza="<?= (int) ($i['urgenza'] ?? 0) ?>"
                              data-materiali="<?= esc($materialiJson, 'attr') ?>">
                             <div class="d-flex justify-content-between align-items-start mb-1">
@@ -167,7 +168,7 @@ $prioritaInfo = [
                 <button type="button" class="btn btn-sm btn-filtro"
                         data-id="<?= $t['id'] ?>"
                         data-colore="<?= esc($t['colore'] ?: '#6c757d') ?>"
-                        style="background:<?= esc($t['colore'] ?: '#6c757d') ?>;border-color:<?= esc($t['colore'] ?: '#6c757d') ?>;color:#fff;">
+                        style="background:<?= esc($t['colore'] ?: '#6c757d') ?>;border-color:<?= esc($t['colore'] ?: '#6c757d') ?>;color:<?= colore_testo($t['colore'] ?: '#6c757d') ?>;">
                     <?= esc(trim($t['cognome'] . ' ' . $t['nome'])) ?>
                 </button>
                 <?php endforeach; ?>
@@ -236,6 +237,8 @@ $prioritaInfo = [
                     <dd class="col-sm-8" id="modal-stato"></dd>
                     <dt class="col-sm-4 text-muted fw-normal small" id="modal-scadenza-label" style="display:none;">Scadenza</dt>
                     <dd class="col-sm-8" id="modal-scadenza" style="display:none;"></dd>
+                    <dt class="col-sm-4 text-muted fw-normal small">Creato il</dt>
+                    <dd class="col-sm-8" id="modal-creato"></dd>
                 </dl>
                 <div id="modal-descrizione-wrap" class="mt-3 pt-3 border-top" style="display:none;">
                     <p class="small text-muted mb-1">Descrizione</p>
@@ -472,6 +475,10 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('modal-stato').innerHTML     = '<span class="badge bg-secondary">Da pianificare</span>';
         document.getElementById('modal-descrizione').textContent = card.dataset.descr || '';
         document.getElementById('modal-descrizione-wrap').style.display = card.dataset.descr ? '' : 'none';
+        if (card.dataset.creato) {
+            var cp = card.dataset.creato.substring(0, 10).split('-');
+            document.getElementById('modal-creato').textContent = cp[2] + '/' + cp[1] + '/' + cp[0];
+        }
         if (scadenzaStr) {
             document.getElementById('modal-scadenza').textContent = scadenzaStr;
             document.getElementById('modal-scadenza').style.display       = '';
@@ -752,6 +759,10 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('modal-stato').innerHTML     = '<span class="badge ' + (badgeClass[p.stato] || 'bg-secondary') + '">' + (statoLabel[p.stato] || p.stato) + '</span>';
             document.getElementById('modal-descrizione').textContent = p.descrizione || '';
             document.getElementById('modal-descrizione-wrap').style.display = p.descrizione ? '' : 'none';
+            if (p.creato) {
+                var cp = p.creato.substring(0, 10).split('-');
+                document.getElementById('modal-creato').textContent = cp[2] + '/' + cp[1] + '/' + cp[0];
+            }
             if (p.data_scadenza) {
                 var ep = p.data_scadenza.split('-');
                 document.getElementById('modal-scadenza').textContent = ep[2] + '/' + ep[1] + '/' + ep[0];

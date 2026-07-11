@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.10] - 2026-07-11
+
+### Ritocchi calendario e form interventi
+
+- [APP] Pool "da pianificare" nel calendario: ordinamento semplificato a due criteri — urgenza, poi data di inserimento (prima includeva anche scadenza e distanza dalla sede)
+- [APP] Nuovo campo "Creato il" nel dettaglio di un intervento aperto dal calendario (eventi pianificati e pool) e nell'header della scheda intervento
+- [APP] Descrizione dell'intervento precompilata automaticamente col nome del tipo scelto ("Intervento: <nome>"), sempre editabile — riduce la digitazione per i casi più semplici
+- [APP] Impostando la data pianificata su un intervento ancora "da pianificare", lo stato passa automaticamente a "pianificato"
+- [APP] Il testo dei pill/eventi colorati per dipendente (filtro calendario, eventi, badge colore nella scheda personale) ora è sempre leggibile: nero o bianco scelto automaticamente in base al colore di sfondo, non più bianco fisso
+- [DEV] `InterventiModel::poolDaPianificare()`/`eventiCalendario()`: selezionato anche `created_at`, usato per il nuovo ordinamento e per il campo "Creato il"
+- [DEV] Nuovo helper `colore_helper.php` con `colore_testo()` (formula YIQ) per calcolare il colore di testo leggibile su uno sfondo dinamico
+- [DEV] `nuovo.php`/`edit.php`: nuovi listener JS sul cambio di `tipo_intervento_id` (precompila descrizione) e `data_pianificata` (aggiorna stato)
+
 ## [0.24.9] - 2026-07-10
 
 ### Riordino voci di menu

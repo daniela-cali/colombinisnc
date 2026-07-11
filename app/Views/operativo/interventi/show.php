@@ -51,6 +51,9 @@ $statoBadge = [
                            data-bs-toggle="tooltip" data-bs-title="Urgente"></i>
                     <?php endif ?>
                 </h3>
+                <div class="card-tools">
+                    <span class="text-muted small">Creato il <?= date('d/m/Y', strtotime($intervento['created_at'])) ?></span>
+                </div>
             </div>
 
             <div class="card-body">

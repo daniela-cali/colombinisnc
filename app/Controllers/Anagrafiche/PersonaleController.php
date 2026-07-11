@@ -42,6 +42,8 @@ class PersonaleController extends BaseController
      */
     public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
     {
+        helper('colore');
+
         $persona = (new PersonaleModel())->find($id);
 
         if (! $persona) {

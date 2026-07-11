@@ -106,7 +106,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <div class="row g-3 mb-4">
                         <div class="col-12">
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
-                            <input type="text" name="descrizione" class="form-control"
+                            <input type="text" name="descrizione" id="descrizione" class="form-control"
                                    maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
                                    value="<?= esc(old('descrizione')) ?>">
                         </div>
@@ -146,7 +146,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Stato <span class="text-danger">*</span></label>
-                            <select name="stato" class="form-select">
+                            <select name="stato" id="stato" class="form-select">
                                 <?php foreach ($statiLabel as $codice => $etichetta): ?>
                                     <option value="<?= $codice ?>"
                                             <?= old('stato', 'da_pianificare') === $codice ? 'selected' : '' ?>>
@@ -198,7 +198,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         <?php if (! $extra): ?>
                         <div class="col-md-4">
                             <label class="form-label">Data pianificata</label>
-                            <input type="datetime-local" name="data_pianificata" class="form-control"
+                            <input type="datetime-local" name="data_pianificata" id="data_pianificata" class="form-control"
                                    value="<?= esc(old('data_pianificata')) ?>">
                         </div>
                         <?php endif ?>
@@ -341,11 +341,17 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
     // Se il cliente è già pre-selezionato (flusso dalla scheda cliente), carica subito i sospesi.
     if (clienteSelect.value) { fetchSospesi(clienteSelect.value); }
 
-    // ── Durata default dal tipo intervento ───────────────────────────────────
+    // ── Durata e descrizione default dal tipo intervento ─────────────────────
     document.getElementById('tipo_intervento_id').addEventListener('change', function () {
         var durata = document.getElementById('durata_stimata');
         if (! durata.value && durateDefault[this.value]) {
             durata.value = durateDefault[this.value];
+        }
+
+        var descrizione = document.getElementById('descrizione');
+        var opt = this.options[this.selectedIndex];
+        if (! descrizione.value && opt && opt.value) {
+            descrizione.value = 'Intervento: ' + opt.text;
         }
     });
 
@@ -367,6 +373,17 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
 
     selTipo.addEventListener('change', aggiornaBloccoFase);
     aggiornaBloccoFase(); // init: copre old() dopo errore di validazione
+
+    // ── Impostando la data pianificata, lo stato passa da "da pianificare" a "pianificato" ──
+    var dataPian = document.getElementById('data_pianificata');
+    if (dataPian) {
+        dataPian.addEventListener('change', function () {
+            var stato = document.getElementById('stato');
+            if (this.value && stato.value === 'da_pianificare') {
+                stato.value = 'pianificato';
+            }
+        });
+    }
 
     document.getElementById('btn-add-mat').addEventListener('click', function () {
         var val  = ts.getValue();
