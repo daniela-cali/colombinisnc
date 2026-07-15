@@ -258,7 +258,7 @@ class InterventiModel extends Model
     {
         return $this->select("interventi.id, interventi.tipo_intervento_id, interventi.priorita,
                       interventi.urgenza, interventi.extra, interventi.data_scadenza, interventi.durata_stimata,
-                      interventi.descrizione, interventi.created_at,
+                      interventi.descrizione, interventi.cantiere_id, interventi.abbonamento_id, interventi.created_at,
                       CASE WHEN c.tipo = 'persona_fisica'
                            THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                            ELSE c.ragsoc
@@ -277,6 +277,8 @@ class InterventiModel extends Model
                     ->where('interventi.data_scadenza <= LAST_DAY(CURDATE())', null, false)
                 ->groupEnd()
             ->groupEnd()
+            ->orderBy('interventi.urgenza', 'DESC')
+            ->orderBy('interventi.created_at', 'ASC')
             ->findAll();
     }
 

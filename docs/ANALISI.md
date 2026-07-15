@@ -483,6 +483,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Descrizione intervento precompilata dal tipo scelto (editabile); impostare la data pianificata su un intervento "da pianificare" lo porta automaticamente a "pianificato"
 - Fix contrasto testo sui colori profilo dipendente (calendario e scheda personale): nuovo helper `colore_testo()` (YIQ) sceglie nero o bianco in base allo sfondo
 
+#### ✅ v0.24.11 — Sottogruppi generico/cantiere/abbonamento nel pool calendario
+- Dentro ogni zona del pool "da pianificare", gli interventi sono ora raggruppati anche per tipo (Generici/Cantieri/Abbonamenti), ciascuno con intestazione pieghevole e conteggio proprio
+- `CalendarioController::index()`: `$poolPerZona` ristrutturato a `zona => blocchi[]` già ordinati e filtrati (skip dei sottogruppi vuoti); `$totaliPerZona` precalcolato per i badge di zona
+- `InterventiModel::poolDaPianificare()`: selezionati anche `cantiere_id`/`abbonamento_id` per la classificazione
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

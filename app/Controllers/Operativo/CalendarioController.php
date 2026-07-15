@@ -28,31 +28,59 @@ class CalendarioController extends BaseController
         }
 
         $pool = (new InterventiModel())->poolDaPianificare();
-
+        //dd($pool);
         $materialiPerIntervento = [];
         foreach ((new InterventiMaterialiModel())->daPortarePerInterventi(array_column($pool, 'id')) as $m) {
             $materialiPerIntervento[(int) $m['intervento_id']][] = $m;
         }
 
-        // Ordinamento PHP: urgenza desc, poi data di inserimento asc (i più vecchi prima)
-        usort($pool, function ($a, $b) {
-            if ((int) $a['urgenza'] !== (int) $b['urgenza']) {
-                return (int) $b['urgenza'] - (int) $a['urgenza'];
-            }
-            return strcmp($a['created_at'], $b['created_at']);
-        });
+        // 14.07.2026 Ordinamento effettuato via SQL nel metodo InterventiModel())->poolDaPianificare()
 
         $zoneLabel = ClientiModel::ZONE_LABEL + ['nessuna' => 'Senza zona'];
 
         $poolPerZona = [];
+
         foreach ($pool as $i) {
             $zona = ($i['cliente_zona'] !== null && $i['cliente_zona'] !== '')
-                ? (int) $i['cliente_zona']
+                ? (int) $i['cliente_zona'] //vardump definisce -1 come int, cast di sicurezza contro eventuali stringhe arrivate da db 
                 : 'nessuna';
-            $poolPerZona[$zona][] = $i;
+            if (! empty($i['cantiere_id'])) {
+                $sottogruppo = 'cantiere';
+            } elseif (! empty($i['abbonamento_id'])) {
+                $sottogruppo = 'abbonamento';
+            } else {
+                $sottogruppo = 'generico';
+            }
+            $poolPerZona[$zona][$sottogruppo][] = $i;
         }
         $zonaOrdini = [-1 => 0, 0 => 1, 1 => 2, 'nessuna' => 3];
         uksort($poolPerZona, fn($a, $b) => ($zonaOrdini[$a] ?? 99) <=> ($zonaOrdini[$b] ?? 99));
+        $sottogruppoInfo = [
+            'generico'    => ['label' => 'Generici',    'icona' => 'bi-tools'],
+            'cantiere'    => ['label' => 'Cantieri',    'icona' => 'bi-bricks'],
+            'abbonamento' => ['label' => 'Abbonamenti', 'icona' => 'bi-arrow-repeat'],
+        ];
+        $totaliPerZona = [];
+        foreach ($poolPerZona as $zona => $sottogruppo) {
+            $totaliPerZona[$zona] = 0;   // <-- inizializza la chiave PRIMA di sommarci sopra
+            foreach ($sottogruppoInfo as $definizione => $info) {
+                $totaliPerZona[$zona] += count($sottogruppo[$definizione] ?? []);
+            }
+        
+            $blocchi = [];
+            foreach ($sottogruppoInfo as $key => $info) {
+                if (empty($sottogruppo[$key])) {
+                    continue;
+                }
+                $blocchi[] = [
+                    'key'        => $key,
+                    'label'      => $info['label'],
+                    'icona'      => $info['icona'],
+                    'interventi' => $sottogruppo[$key],
+                ];
+            }
+            $poolPerZona[$zona] = $blocchi;
+        }
 
         $scadenze = (new InterventiModel())->scadenzeAperte();
 
@@ -76,9 +104,10 @@ class CalendarioController extends BaseController
             'page_title' => 'Calendario Interventi',
             'tecnici'    => $tecnici,
             'tipiPerId'  => $tipiPerId,
-            'pool'       => $pool,
+            'totaliPerZona' => $totaliPerZona,
+            'totaleDaPianificare' => array_sum($totaliPerZona),
             'materialiPerIntervento' => $materialiPerIntervento,
-            'poolPerZona'=> $poolPerZona,
+            'poolPerZona' => $poolPerZona,
             'zoneLabel'  => $zoneLabel,
             'scadenze'   => $scadenze,
             'oraInizio'  => '08:00',
@@ -135,7 +164,7 @@ class CalendarioController extends BaseController
                     'stato'        => $i['stato'],
                     'descrizione'  => $i['descrizione'] ?: '',
                     'citta'        => $i['cliente_citta'] ?: '',
-                    'data_scadenza'=> $i['data_scadenza'] ?? null,
+                    'data_scadenza' => $i['data_scadenza'] ?? null,
                     'creato'       => $i['created_at'] ?? null,
                     'materiali'    => $materialiPerIntervento[(int) $i['id']] ?? [],
                 ],

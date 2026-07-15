@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.11] - 2026-07-15
+
+### Sottogruppi generico/cantiere/abbonamento nel pool calendario
+
+- [APP] Pool "da pianificare" nel calendario: dentro ogni zona, gli interventi sono ora raggruppati anche per tipo — Generici, Cantieri, Abbonamenti — ciascuno con la propria intestazione pieghevole e conteggio
+- [DEV] `InterventiModel::poolDaPianificare()`: selezionati anche `cantiere_id`/`abbonamento_id`, usati per classificare ogni intervento nel sottogruppo giusto
+- [DEV] `CalendarioController::index()`: `$poolPerZona` ora è `zona => blocchi[]` (uno per sottogruppo non vuoto, con label/icona/interventi), ordine fisso Generici→Cantieri→Abbonamenti; `$totaliPerZona` precalcolato per il badge di ogni zona; `$pool` non è più passato alla view (non più usato lì, sostituito da `$totaleDaPianificare`/`$poolPerZona`)
+- [DEV] `operativo/calendario/index.php`: nuovo livello di accordion Bootstrap annidato per i sottogruppi, dentro quello di zona già esistente
+
 ## [0.24.10] - 2026-07-11
 
 ### Ritocchi calendario e form interventi
