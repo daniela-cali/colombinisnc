@@ -488,6 +488,9 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `CalendarioController::index()`: `$poolPerZona` ristrutturato a `zona => blocchi[]` già ordinati e filtrati (skip dei sottogruppi vuoti); `$totaliPerZona` precalcolato per i badge di zona
 - `InterventiModel::poolDaPianificare()`: selezionati anche `cantiere_id`/`abbonamento_id` per la classificazione
 
+#### ✅ v0.24.12 — Fix visibilità changelog: solo developer vede le righe [DEV]
+- Rimosso `admin` dal controllo di `admin.php` che decide la visibilità delle righe `[DEV]` nel modal Novità e nel Changelog — ora solo il ruolo `developer` le vede, coerente con `CLAUDE.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

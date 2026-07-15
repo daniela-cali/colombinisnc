@@ -30,7 +30,7 @@
 <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
 <?php
 helper('acl');
-$_isDevMode      = (bool) array_intersect(['developer', 'admin'], auth()->user()->getGroups());
+$_isDevMode      = (bool) array_intersect(['developer'], auth()->user()->getGroups());
 $_cl             = changelog_data($_isDevMode);
 $_versioneUtente = auth()->user()->ultima_versione_vista ?? '';
 $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl['versioneCorrente'];

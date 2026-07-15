@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.12] - 2026-07-15
+
+### Fix visibilità changelog: solo developer vede le righe [DEV]
+
+- [APP] Solo modifiche tecniche interne in questa versione, nessuna novità per l'utente
+- [DEV] Layout `admin.php`: rimosso `admin` dal controllo che determina la visibilità delle righe `[DEV]` nel modal Novità e nel Changelog — ora solo il ruolo `developer` le vede
+
 ## [0.24.11] - 2026-07-15
 
 ### Sottogruppi generico/cantiere/abbonamento nel pool calendario
