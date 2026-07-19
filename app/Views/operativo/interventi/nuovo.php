@@ -14,6 +14,8 @@
  * @var int        $cantiere_id       Cantiere a cui agganciare l'intervento (0 se non presente)
  * @var array|null $cantiere          Dati del cantiere, se l'intervento arriva dalla scheda cantiere
  * @var string     $from              URL di ritorno dopo il salvataggio (vuoto = lista interventi)
+ * @var string     $descrizioneDefault  Descrizione precompilata per le visite extra ("Cliente: visita extra Tipo")
+ * @var array      $assenzePerDipendente Da AssenzeModel::mappaPerDipendente() [personale_id => [['data_inizio','data_fine','tipo_label'], ...]]
  */
 $this->extend('layouts/admin');
 
@@ -100,6 +102,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                             </select>
                         </div>
                     </div>
+                    <div id="avviso-assenza-tecnico" class="alert alert-danger py-2 mb-4 d-none" role="alert"></div>
 
                     <!-- Descrizione -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-card-text me-1"></i> Descrizione</p>
@@ -108,7 +111,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
                             <input type="text" name="descrizione" id="descrizione" class="form-control"
                                    maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
-                                   value="<?= esc(old('descrizione')) ?>">
+                                   value="<?= esc(old('descrizione', $extra ? $descrizioneDefault : '')) ?>">
                         </div>
                     </div>
 
@@ -195,13 +198,11 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <!-- Date e durata -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-calendar me-1"></i> Pianificazione</p>
                     <div class="row g-3 mb-4">
-                        <?php if (! $extra): ?>
                         <div class="col-md-4">
                             <label class="form-label">Data pianificata</label>
                             <input type="datetime-local" name="data_pianificata" id="data_pianificata" class="form-control"
                                    value="<?= esc(old('data_pianificata')) ?>">
                         </div>
-                        <?php endif ?>
                         <div class="col-md-4">
                             <label class="form-label">Data scadenza</label>
                             <input type="date" name="data_scadenza" class="form-control"
@@ -276,7 +277,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <a href="<?= esc($from ?: base_url('operativo/interventi')) ?>" class="btn btn-secondary btn-sm">
                         <i class="bi bi-arrow-left me-1"></i>Annulla
                     </a>
-                    <button type="submit" class="btn btn-primary btn-sm ms-auto">
+                    <button type="submit" id="btn-salva-modifiche" class="btn btn-primary btn-sm ms-auto">
                         <i class="bi bi-check-lg me-1"></i>Salva
                     </button>
                 </div>
@@ -375,15 +376,51 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
     aggiornaBloccoFase(); // init: copre old() dopo errore di validazione
 
     // ── Impostando la data pianificata, lo stato passa da "da pianificare" a "pianificato" ──
-    var dataPian = document.getElementById('data_pianificata');
-    if (dataPian) {
-        dataPian.addEventListener('change', function () {
-            var stato = document.getElementById('stato');
-            if (this.value && stato.value === 'da_pianificare') {
-                stato.value = 'pianificato';
-            }
-        });
+    var dataPianEl = document.getElementById('data_pianificata');
+    dataPianEl.addEventListener('change', function () {
+        var stato = document.getElementById('stato');
+        if (this.value && stato.value === 'da_pianificare') {
+            stato.value = 'pianificato';
+        }
+    });
+
+    // ── Blocco: il tecnico assegnato ha un'assenza che copre la data pianificata? ──
+    // Qui è sempre un intervento nuovo (nessun valore "iniziale" da confrontare come in edit.php):
+    // se c'è un conflitto si blocca sempre il salvataggio, non solo quando l'utente lo modifica.
+    var assenzePerDipendente = <?= json_encode($assenzePerDipendente) ?>;
+    var selTecnicoAss = document.querySelector('select[name="tecnico_id"]');
+    var avvisoAssEl   = document.getElementById('avviso-assenza-tecnico');
+    var btnSalva      = document.getElementById('btn-salva-modifiche');
+
+    function aggiornaAvvisoAssenzaTecnico() {
+        var tecnicoId = selTecnicoAss.value;
+        var giorno    = dataPianEl.value ? dataPianEl.value.substring(0, 10) : null;
+        var assenze   = tecnicoId ? (assenzePerDipendente[tecnicoId] || []) : [];
+        var trovata   = null;
+
+        if (giorno) {
+            assenze.forEach(function (a) {
+                if (giorno >= a.data_inizio && giorno <= a.data_fine) trovata = a;
+            });
+        }
+
+        if (trovata) {
+            var nome = selTecnicoAss.options[selTecnicoAss.selectedIndex].text;
+            avvisoAssEl.classList.remove('d-none');
+            avvisoAssEl.innerHTML = '<i class="bi bi-calendar-x me-1"></i>'
+                + '<strong>' + nome + '</strong> risulta assente (' + trovata.tipo_label + ') in questa data. '
+                + 'Scegli un altro tecnico o un\'altra data.';
+            btnSalva.disabled = true;
+        } else {
+            avvisoAssEl.classList.add('d-none');
+            avvisoAssEl.innerHTML = '';
+            btnSalva.disabled = false;
+        }
     }
+
+    selTecnicoAss.addEventListener('change', aggiornaAvvisoAssenzaTecnico);
+    dataPianEl.addEventListener('change', aggiornaAvvisoAssenzaTecnico);
+    aggiornaAvvisoAssenzaTecnico(); // init: copre old() dopo errore di validazione
 
     document.getElementById('btn-add-mat').addEventListener('click', function () {
         var val  = ts.getValue();

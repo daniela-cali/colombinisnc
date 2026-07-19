@@ -8,6 +8,7 @@
  * @var array      $urgenti
  * @var array      $abbonamenti
  * @var array      $assentiOggi
+ * @var array      $conflitti
  * @var array      $tipiAssenzaLabel
  * @var array      $mieiOggi
  * @var array      $mieiUrgenti
@@ -24,6 +25,7 @@ $this->extend('layouts/admin');
 $numUrgenti = count($urgenti);
 $numAbb     = count($abbonamenti);
 $numAssenti = count($assentiOggi);
+$numConflitti = count($conflitti);
 
 $promOggi = $promemoria['oggi'];
 $promDopo = $promemoria['prossimi'];
@@ -242,6 +244,43 @@ $mostratiProm = count($capOggi) + count($capDopo);
                     Vedi il personale <i class="bi bi-arrow-right ms-1"></i>
                 </a>
             </div>
+        </div>
+    </div>
+
+    <!-- Card: interventi in conflitto con un'assenza inserita a posteriori -->
+    <div class="col">
+        <div class="card card-outline <?= $numConflitti > 0 ? 'card-danger' : 'card-success' ?> h-100">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi bi-exclamation-octagon<?= $numConflitti > 0 ? '-fill text-danger' : ' text-success' ?> me-1"></i>
+                    Interventi in conflitto
+                </h3>
+                <div class="card-tools">
+                    <span class="badge <?= $numConflitti > 0 ? 'bg-danger' : 'bg-success' ?>"><?= $numConflitti ?></span>
+                </div>
+            </div>
+            <?php if ($conflitti): ?>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <?php foreach ($conflitti as $c): ?>
+                    <li class="list-group-item py-2">
+                        <a href="<?= base_url('operativo/interventi/' . $c['id'] . '/edit') ?>" class="fw-semibold text-decoration-none d-block">
+                            <?= esc($c['cliente_denominazione']) ?>
+                        </a>
+                        <small class="text-muted">
+                            <?= esc($c['tecnico']) ?> · <?= esc($tipiAssenzaLabel[$c['assenza_tipo']] ?? ucfirst($c['assenza_tipo'])) ?>
+                            · <?= date('d/m/Y', strtotime($c['data_pianificata'])) ?>
+                        </small>
+                    </li>
+                    <?php endforeach ?>
+                </ul>
+            </div>
+            <?php else: ?>
+            <div class="card-body text-center text-muted py-3">
+                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                Nessun conflitto
+            </div>
+            <?php endif ?>
         </div>
     </div>
 

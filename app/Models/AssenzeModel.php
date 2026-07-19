@@ -113,6 +113,38 @@ class AssenzeModel extends Model
     }
 
     /**
+     * Assenze future raggruppate per dipendente (personale_id => [['data_inizio','data_fine','tipo_label'], ...]),
+     * usate lato client per avvisare in tempo reale se si assegna un tecnico assente a un intervento.
+     */
+    public function mappaPerDipendente(): array
+    {
+        $mappa = [];
+        foreach ($this->daOggiInPoi() as $a) {
+            $mappa[(int) $a['personale_id']][] = [
+                'data_inizio' => $a['data_inizio'],
+                'data_fine'   => $a['data_fine'],
+                'tipo_label'  => self::TIPI_LABEL[$a['tipo']] ?? ucfirst($a['tipo']),
+            ];
+        }
+
+        return $mappa;
+    }
+
+    /**
+     * Assenza del dipendente che copre la data indicata (solo la parte YYYY-MM-DD), o null se nessuna.
+     * Controllo autoritativo lato server per bloccare l'assegnazione di un tecnico assente.
+     */
+    public function copreData(int $personaleId, string $data): ?array
+    {
+        $giorno = substr($data, 0, 10);
+
+        return $this->where('personale_id', $personaleId)
+            ->where('data_inizio <=', $giorno)
+            ->where('data_fine >=', $giorno)
+            ->first();
+    }
+
+    /**
      * Assenze che coprono la data odierna, con nome/cognome del dipendente — per la dashboard.
      */
     public function oggi(): array

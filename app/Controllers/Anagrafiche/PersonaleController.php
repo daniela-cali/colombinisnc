@@ -4,6 +4,7 @@ namespace App\Controllers\Anagrafiche;
 
 use App\Controllers\BaseController;
 use App\Models\AssenzeModel;
+use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
 use App\Models\UserModel;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -262,8 +263,9 @@ class PersonaleController extends BaseController
 
     /**
      * Aggiunge un'assenza al diario del dipendente, tornando alla pagina di origine.
-     * Se si sovrappone a un'assenza già registrata per lo stesso dipendente, il salvataggio
-     * procede comunque: viene solo segnalato con un avviso (non è un blocco).
+     * Se si sovrappone a un'assenza già registrata, o copre interventi già pianificati
+     * su questo dipendente, il salvataggio procede comunque: viene solo segnalato con
+     * un avviso (non è un blocco) — la riassegnazione resta un passo manuale successivo.
      */
     public function aggiungiAssenza(): RedirectResponse
     {
@@ -293,14 +295,27 @@ class PersonaleController extends BaseController
         $model->insert($this->request->getPost());
 
         $sovrapposte = $model->sovrapposizioni($personaleId, $dataInizio, $dataFine, (int) $model->getInsertID());
+        $inConflitto = model(InterventiModel::class)->agendaTecnicoPeriodo($personaleId, $dataInizio, $dataFine);
 
         $from = $this->request->getPost('from');
         $dest = ($from && str_starts_with($from, base_url()))
             ? $from
             : 'anagrafiche/personale/' . $personaleId . '#sec-assenze';
 
+        $avvisi = [];
         if ($sovrapposte) {
-            return redirect()->to($dest)->with('warning', 'Assenza aggiunta, ma si sovrappone a un\'altra assenza già registrata per questo dipendente.');
+            $avvisi[] = 'si sovrappone a un\'altra assenza già registrata per questo dipendente';
+        }
+        if ($inConflitto) {
+            $elenco = implode(', ', array_map(
+                static fn (array $i) => esc($i['cliente_denominazione']) . ' (' . date('d/m/Y', strtotime($i['data_pianificata'])) . ')',
+                $inConflitto
+            ));
+            $avvisi[] = 'risultano già pianificati interventi su questo dipendente in quel periodo: ' . $elenco;
+        }
+
+        if ($avvisi) {
+            return redirect()->to($dest)->with('warning', 'Assenza aggiunta, ma ' . implode('; inoltre ', $avvisi) . '.');
         }
 
         return redirect()->to($dest)->with('success', 'Assenza aggiunta.');

@@ -50,9 +50,10 @@ class InterventiController extends BaseController
         $extra            = (int) $this->request->getGet('extra');
         $clienteId        = (int) $this->request->getGet('cliente_id');
         $cantiereId       = (int) $this->request->getGet('cantiere_id');
-        $tipoInterventoId = 0;
-        $haPuliziaFondo   = false;
-        $cantiere         = null;
+        $tipoInterventoId    = 0;
+        $haPuliziaFondo      = false;
+        $cantiere            = null;
+        $descrizioneDefault  = '';
 
         if ($extra && $abbonamentoId) {
             $abbonamento = (new \App\Models\AbbonamentiModel())->find($abbonamentoId);
@@ -61,6 +62,12 @@ class InterventiController extends BaseController
                 $tipoInterventoId = (int) $abbonamento['tipo_intervento_id'];
                 $tipo             = (new TipiInterventoModel())->find($tipoInterventoId);
                 $haPuliziaFondo   = ! empty($tipo['ha_pulizia_fondo']);
+
+                // Precompilata qui perché per le visite extra il select tipo_intervento_id è
+                // disabled: l'auto-precompilazione JS legata al suo evento "change" non scatta mai.
+                $cliente            = (new ClientiModel())->find($clienteId);
+                $descrizioneDefault = ($cliente ? ClientiModel::denominazione($cliente) : '')
+                    . ': visita extra ' . ($tipo['nome'] ?? '');
             }
         }
 
@@ -77,20 +84,22 @@ class InterventiController extends BaseController
         }
 
         return view('operativo/interventi/nuovo', [
-            'clienti'           => (new ClientiModel())->elencoCompleto(),
-            'tecnici'           => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
-            'tipi'              => (new TipiInterventoModel())->attivi(),
-            'prioritaLabel'     => InterventiModel::PRIORITA_LABEL,
-            'statiLabel'        => InterventiModel::STATI_LABEL,
-            'articoliPerCat'    => (new ArticoliModel())->perCategoria(),
-            'cliente_id'        => $clienteId,
-            'abbonamento_id'    => $abbonamentoId,
-            'extra'             => $extra,
-            'tipo_intervento_id' => $tipoInterventoId,
-            'ha_pulizia_fondo'  => $haPuliziaFondo,
-            'cantiere_id'       => $cantiereId,
-            'cantiere'          => $cantiere,
-            'from'              => $this->request->getGet('from') ?? '',
+            'clienti'              => (new ClientiModel())->elencoCompleto(),
+            'tecnici'              => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
+            'tipi'                 => (new TipiInterventoModel())->attivi(),
+            'prioritaLabel'        => InterventiModel::PRIORITA_LABEL,
+            'statiLabel'           => InterventiModel::STATI_LABEL,
+            'articoliPerCat'       => (new ArticoliModel())->perCategoria(),
+            'cliente_id'           => $clienteId,
+            'abbonamento_id'       => $abbonamentoId,
+            'extra'                => $extra,
+            'tipo_intervento_id'   => $tipoInterventoId,
+            'ha_pulizia_fondo'     => $haPuliziaFondo,
+            'cantiere_id'          => $cantiereId,
+            'cantiere'             => $cantiere,
+            'descrizioneDefault'   => $descrizioneDefault,
+            'from'                 => $this->request->getGet('from') ?? '',
+            'assenzePerDipendente' => (new \App\Models\AssenzeModel())->mappaPerDipendente(),
         ]);
     }
 
@@ -103,6 +112,14 @@ class InterventiController extends BaseController
 
         if (! $this->validate($this->regolaValidazione())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $erroreAssenza = $this->erroreAssenzaTecnico(
+            (int) $this->request->getPost('tecnico_id'),
+            $this->request->getPost('data_pianificata')
+        );
+        if ($erroreAssenza) {
+            return redirect()->back()->withInput()->with('errors', ['tecnico_id' => $erroreAssenza]);
         }
 
         $fase   = $this->request->getPost('fase');
@@ -256,6 +273,7 @@ class InterventiController extends BaseController
             'note'          => (new InterventiNoteModel())->perIntervento($id),
             'articoliPerCat' => (new ArticoliModel())->perCategoria(),
             'from'          => $this->request->getGet('from') ?? '',
+            'assenzePerDipendente' => (new \App\Models\AssenzeModel())->mappaPerDipendente(),
         ]);
     }
 
@@ -273,6 +291,22 @@ class InterventiController extends BaseController
 
         if (! $this->validate($this->regolaValidazione())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        // Blocca solo se il tecnico o la data cambiano davvero rispetto al record esistente:
+        // un conflitto già presente (es. assenza aggiunta dopo la pianificazione) non deve
+        // impedire di salvare altre modifiche non collegate.
+        $tecnicoIdPost = (int) $this->request->getPost('tecnico_id');
+        $dataPianPost  = $this->request->getPost('data_pianificata');
+        $dataPianPostNorm = $dataPianPost ? date('Y-m-d H:i:s', strtotime($dataPianPost)) : null;
+        $cambiaAssegnazione = $tecnicoIdPost !== (int) $intervento['tecnico_id']
+            || $dataPianPostNorm !== $intervento['data_pianificata'];
+
+        if ($cambiaAssegnazione) {
+            $erroreAssenza = $this->erroreAssenzaTecnico($tecnicoIdPost, $dataPianPost);
+            if ($erroreAssenza) {
+                return redirect()->back()->withInput()->with('errors', ['tecnico_id' => $erroreAssenza]);
+            }
         }
 
         $fase = $this->request->getPost('fase');
@@ -367,11 +401,17 @@ class InterventiController extends BaseController
             return $this->response->setJSON(['ok' => false, 'msg' => 'Data mancante.']);
         }
 
+        $tecnicoId = (int) $this->request->getPost('tecnico_id');
+
+        $erroreAssenza = $this->erroreAssenzaTecnico($tecnicoId, $dataPian);
+        if ($erroreAssenza) {
+            return $this->response->setJSON(['ok' => false, 'msg' => $erroreAssenza]);
+        }
+
         $dati = [
             'data_pianificata' => date('Y-m-d H:i:s', strtotime($dataPian)),
             'stato'            => InterventiModel::STATO_PIANIFICATO,
         ];
-        $tecnicoId = (int) $this->request->getPost('tecnico_id');
         if ($tecnicoId) {
             $dati['tecnico_id'] = $tecnicoId;
         }
@@ -456,6 +496,28 @@ class InterventiController extends BaseController
     }
 
     // -------------------------------------------------------------------------
+
+    /**
+     * Se il tecnico indicato risulta assente nella data di pianificazione indicata, restituisce
+     * il messaggio da mostrare in form; altrimenti null. Nessun controllo se manca il tecnico
+     * o la data (intervento non ancora assegnato/pianificato: nessun conflitto possibile).
+     */
+    private function erroreAssenzaTecnico(int $tecnicoId, ?string $dataPianificata): ?string
+    {
+        if (! $tecnicoId || ! $dataPianificata) {
+            return null;
+        }
+
+        $assenza = (new \App\Models\AssenzeModel())->copreData($tecnicoId, date('Y-m-d H:i:s', strtotime($dataPianificata)));
+        if (! $assenza) {
+            return null;
+        }
+
+        $tecnico = (new PersonaleModel())->find($tecnicoId);
+        $nome    = $tecnico ? trim($tecnico['cognome'] . ' ' . $tecnico['nome']) : 'Il tecnico selezionato';
+
+        return $nome . ' risulta assente (' . (\App\Models\AssenzeModel::TIPI_LABEL[$assenza['tipo']] ?? $assenza['tipo']) . ') in questa data.';
+    }
 
     /**
      * Regole di validazione comuni per insert e update.

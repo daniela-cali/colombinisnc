@@ -11,6 +11,7 @@
  * @var array      $note            Righe da InterventiNoteModel::perIntervento() (diario)
  * @var array      $articoliPerCat  Da ArticoliModel::perCategoria() [cat_id => ['nome'=>..,'articoli'=>[..]]]
  * @var string     $from            URL di ritorno dopo il salvataggio (vuoto = lista interventi)
+ * @var array      $assenzePerDipendente Da AssenzeModel::mappaPerDipendente() [personale_id => [['data_inizio','data_fine','tipo_label'], ...]]
  */
 $this->extend('layouts/admin');
 
@@ -117,6 +118,7 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                             </select>
                         </div>
                     </div>
+                    <div id="avviso-assenza-tecnico" class="alert alert-danger py-2 mb-4 d-none" role="alert"></div>
 
                     <!-- Descrizione -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-card-text me-1"></i> Descrizione</p>
@@ -398,7 +400,7 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                        class="btn btn-outline-secondary btn-sm">
                         <i class="bi bi-x-lg me-1"></i>Annulla
                     </a>
-                    <button type="submit" form="form-update" class="btn btn-primary btn-sm">
+                    <button type="submit" form="form-update" id="btn-salva-modifiche" class="btn btn-primary btn-sm">
                         <i class="bi bi-check-lg me-1"></i>Salva modifiche
                     </button>
                 </div>
@@ -482,6 +484,51 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
             stato.value = 'pianificato';
         }
     });
+
+    // ── Blocco: il tecnico assegnato ha un'assenza che copre la data pianificata? ──
+    // Il salvataggio viene disabilitato solo se tecnico o data vengono CAMBIATI verso una
+    // combinazione in conflitto: un conflitto già presente all'apertura (es. assenza aggiunta
+    // dopo la pianificazione) resta visibile ma non impedisce di salvare altre modifiche,
+    // coerente col controllo lato server in InterventiController::update().
+    var assenzePerDipendente = <?= json_encode($assenzePerDipendente) ?>;
+    var tecnicoIniziale  = '<?= esc($intervento['tecnico_id'] ?? '') ?>';
+    var dataPianIniziale = '<?= $intervento['data_pianificata'] ? date('Y-m-d\TH:i', strtotime($intervento['data_pianificata'])) : '' ?>';
+    var selTecnico  = document.querySelector('select[name="tecnico_id"]');
+    var dataPianEl  = document.getElementById('data_pianificata');
+    var avvisoAssEl = document.getElementById('avviso-assenza-tecnico');
+    var btnSalva    = document.getElementById('btn-salva-modifiche');
+
+    function aggiornaAvvisoAssenzaTecnico() {
+        var tecnicoId = selTecnico.value;
+        var giorno    = dataPianEl.value ? dataPianEl.value.substring(0, 10) : null;
+        var assenze   = tecnicoId ? (assenzePerDipendente[tecnicoId] || []) : [];
+        var trovata   = null;
+
+        if (giorno) {
+            assenze.forEach(function (a) {
+                if (giorno >= a.data_inizio && giorno <= a.data_fine) trovata = a;
+            });
+        }
+
+        var cambiato = (selTecnico.value !== tecnicoIniziale) || (dataPianEl.value !== dataPianIniziale);
+
+        if (trovata) {
+            var nome = selTecnico.options[selTecnico.selectedIndex].text;
+            avvisoAssEl.classList.remove('d-none');
+            avvisoAssEl.innerHTML = '<i class="bi bi-calendar-x me-1"></i>'
+                + '<strong>' + nome + '</strong> risulta assente (' + trovata.tipo_label + ') in questa data.'
+                + (cambiato ? ' Scegli un altro tecnico o un\'altra data.' : '');
+            btnSalva.disabled = cambiato;
+        } else {
+            avvisoAssEl.classList.add('d-none');
+            avvisoAssEl.innerHTML = '';
+            btnSalva.disabled = false;
+        }
+    }
+
+    selTecnico.addEventListener('change', aggiornaAvvisoAssenzaTecnico);
+    dataPianEl.addEventListener('change', aggiornaAvvisoAssenzaTecnico);
+    aggiornaAvvisoAssenzaTecnico(); // init: mostra un eventuale conflitto già presente, senza bloccare
 })();
 </script>
 <?= $this->endSection() ?>

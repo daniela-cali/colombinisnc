@@ -450,6 +450,29 @@ class InterventiModel extends Model
     }
 
     /**
+     * Interventi pianificati/in corso il cui tecnico risulta assente nella data pianificata —
+     * nascono quando un'assenza viene inserita dopo che l'intervento era già stato pianificato.
+     */
+    public function inConflittoConAssenze(): array
+    {
+        return $this->select("interventi.id, interventi.data_pianificata,
+                CASE WHEN clienti.tipo = 'persona_fisica'
+                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
+                     ELSE clienti.ragsoc
+                END AS cliente_denominazione,
+                TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico,
+                assenze.tipo AS assenza_tipo")
+            ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->join('personale', 'personale.id = interventi.tecnico_id')
+            ->join('assenze', "assenze.personale_id = interventi.tecnico_id
+                AND DATE(interventi.data_pianificata) >= assenze.data_inizio
+                AND DATE(interventi.data_pianificata) <= assenze.data_fine")
+            ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])
+            ->orderBy('interventi.data_pianificata', 'ASC')
+            ->findAll();
+    }
+
+    /**
      * Interventi di una giornata (tutti gli stati tranne annullato) per il foglio viaggio,
      * con denominazione, indirizzo e zona del cliente, tecnico e tipo lavoro.
      */
@@ -510,7 +533,7 @@ class InterventiModel extends Model
      */
     public function perAbbonamento(int $abbonamentoId): array
     {
-        return $this->select('id, codice, data_scadenza, data_pianificata, stato')
+        return $this->select('id, codice, data_scadenza, data_pianificata, stato, extra')
             ->where('abbonamento_id', $abbonamentoId)
             ->orderBy('data_scadenza', 'ASC')
             ->findAll();

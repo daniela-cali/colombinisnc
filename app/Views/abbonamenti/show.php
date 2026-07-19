@@ -194,7 +194,12 @@ $stato = $abbonamento['stato_calcolato'];
                             <tbody>
                                 <?php foreach ($interventi as $iv): ?>
                                     <tr>
-                                        <td class="font-monospace small"><?= esc($iv['codice'] ?? '—') ?></td>
+                                        <td class="font-monospace small">
+                                            <?= esc($iv['codice'] ?? '—') ?>
+                                            <?php if ($iv['extra']): ?>
+                                                <span class="badge bg-warning text-dark ms-1">Extra</span>
+                                            <?php endif ?>
+                                        </td>
                                         <td><?= $iv['data_scadenza'] ? date('d/m/Y', strtotime($iv['data_scadenza'])) : '—' ?></td>
                                         <td><?= $iv['data_pianificata'] ? date('d/m/Y', strtotime($iv['data_pianificata'])) : '—' ?></td>
                                         <td class="text-center">

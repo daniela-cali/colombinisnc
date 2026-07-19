@@ -1,5 +1,21 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.13] - 2026-07-19
+
+### Blocco tecnico assente su interventi + notifica conflitti retroattivi
+
+- [APP] Assegnare un tecnico assente a un intervento (creazione, modifica, drag sul calendario) è ora bloccato: un alert nel form segnala il conflitto e disabilita il salvataggio finché non si cambia tecnico o data
+- [APP] Nuova card dashboard "Interventi in conflitto": segnala gli interventi già pianificati che restano scoperti quando un'assenza viene inserita dopo (es. malattia improvvisa), con link diretto alla modifica per riassegnare
+- [APP] Aggiungendo un'assenza che copre interventi già pianificati sul dipendente, l'avviso nella scheda personale lo segnala subito
+- [APP] Visita extra da abbonamento: campo data pianificata ora visibile e facoltativo (prima nascosto per errore rispetto allo spec originale); descrizione precompilata automaticamente con cliente e tipo intervento
+- [APP] Scheda abbonamento: badge "Extra" nella tabella interventi collegati, per distinguere le visite extra dalle occorrenze regolari generate dal piano
+- [DEV] `AssenzeModel::mappaPerDipendente()`/`copreData()`: nuovi metodi per il controllo di conflitto lato client (JS) e lato server
+- [DEV] `InterventiController::erroreAssenzaTecnico()`: helper condiviso da `store()`, `update()` e `pianifica()` — blocca sempre in creazione, solo se tecnico/data cambiano in modifica
+- [DEV] `CalendarioController::sposta()`: blocca lo spostamento di un evento su un tecnico assente nel nuovo giorno
+- [DEV] `InterventiModel::inConflittoConAssenze()`: query live (nessuna tabella nuova) per la card dashboard
+- [DEV] `PersonaleController::aggiungiAssenza()`: dopo l'inserimento, verifica anche gli interventi già pianificati messi in conflitto, oltre alle sovrapposizioni tra assenze già esistenti
+- [DEV] `InterventiModel::perAbbonamento()`: selezionata anche la colonna `extra`
+
 ## [0.24.12] - 2026-07-15
 
 ### Fix visibilità changelog: solo developer vede le righe [DEV]

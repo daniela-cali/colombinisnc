@@ -90,14 +90,7 @@ class CalendarioController extends BaseController
         $dataIniziale = ($data && strtotime($data)) ? date('Y-m-d', strtotime($data)) : null;
 
         // Assenze future raggruppate per dipendente: usate in JS per l'avviso nel modal Pianifica.
-        $assenzePerDipendente = [];
-        foreach ((new AssenzeModel())->daOggiInPoi() as $a) {
-            $assenzePerDipendente[(int) $a['personale_id']][] = [
-                'data_inizio' => $a['data_inizio'],
-                'data_fine'   => $a['data_fine'],
-                'tipo_label'  => AssenzeModel::TIPI_LABEL[$a['tipo']] ?? ucfirst($a['tipo']),
-            ];
-        }
+        $assenzePerDipendente = (new AssenzeModel())->mappaPerDipendente();
 
         return view('operativo/calendario/index', [
             'title'      => 'Calendario',
@@ -230,9 +223,22 @@ class CalendarioController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['ok' => false, 'msg' => 'Dati mancanti']);
         }
 
-        (new InterventiModel())->update($id, [
-            'data_pianificata' => date('Y-m-d H:i:s', strtotime($start)),
-        ]);
+        $model      = new InterventiModel();
+        $intervento = $model->find($id);
+        $nuovaData  = date('Y-m-d H:i:s', strtotime($start));
+
+        if ($intervento && $intervento['tecnico_id']) {
+            $assenza = (new AssenzeModel())->copreData((int) $intervento['tecnico_id'], $nuovaData);
+            if ($assenza) {
+                $tecnico = (new PersonaleModel())->find($intervento['tecnico_id']);
+                $nome    = $tecnico ? trim($tecnico['cognome'] . ' ' . $tecnico['nome']) : 'Il tecnico assegnato';
+                $msg     = $nome . ' risulta assente (' . (AssenzeModel::TIPI_LABEL[$assenza['tipo']] ?? $assenza['tipo']) . ') in questa data.';
+
+                return $this->response->setJSON(['ok' => false, 'msg' => $msg]);
+            }
+        }
+
+        $model->update($id, ['data_pianificata' => $nuovaData]);
 
         return $this->response->setJSON(['ok' => true, 'csrf' => csrf_hash()]);
     }

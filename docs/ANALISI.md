@@ -491,6 +491,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 #### ✅ v0.24.12 — Fix visibilità changelog: solo developer vede le righe [DEV]
 - Rimosso `admin` dal controllo di `admin.php` che decide la visibilità delle righe `[DEV]` nel modal Novità e nel Changelog — ora solo il ruolo `developer` le vede, coerente con `CLAUDE.md`
 
+#### ✅ v0.24.13 — Blocco tecnico assente su interventi + notifica conflitti retroattivi
+- Assegnare un tecnico assente a un intervento è ora bloccato lato server in creazione/modifica/drag calendario, con alert live nei form (`nuovo.php`, `edit.php`, modal Pianifica) che disabilita il salvataggio; `InterventiController::erroreAssenzaTecnico()` centralizza il controllo, riusato da `store()`/`update()`/`pianifica()`/`CalendarioController::sposta()`
+- In modifica il blocco scatta solo se tecnico o data pianificata vengono attivamente cambiati — un conflitto già presente all'apertura (nato da un'assenza inserita dopo) non impedisce di salvare altri campi
+- Caso complementare — assenza inserita *dopo* la pianificazione: nuova card dashboard "Interventi in conflitto" (`InterventiModel::inConflittoConAssenze()`, query live senza tabelle nuove) con link diretto a `edit` per riassegnare; `PersonaleController::aggiungiAssenza()` segnala subito l'eventuale conflitto nello stesso avviso delle sovrapposizioni tra assenze
+- Fix visita extra da abbonamento: il campo data pianificata era nascosto per errore rispetto allo spec originale (`abbonamenti_next_visita_spec.md` §4) — ora visibile e facoltativo come previsto; descrizione precompilata lato controller (il select tipo intervento è disabled in questo flusso, l'auto-precompilazione JS non scattava)
+- Scheda abbonamento: badge "Extra" nella tabella interventi collegati per distinguere le visite extra dalle occorrenze regolari del piano
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

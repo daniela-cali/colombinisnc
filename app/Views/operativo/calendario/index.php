@@ -293,7 +293,7 @@ $prioritaInfo = [
                 <p class="mb-0 fw-bold" id="pian-cliente"></p>
                 <p class="small text-muted mb-2" id="pian-tipo"></p>
                 <div id="pian-avviso-scadenza" class="alert py-2 mb-3 d-none" role="alert"></div>
-                <div id="pian-avviso-assenza" class="alert alert-warning py-2 mb-3 d-none" role="alert"></div>
+                <div id="pian-avviso-assenza" class="alert alert-danger py-2 mb-3 d-none" role="alert"></div>
                 <div class="row g-2">
                     <div class="col-sm-5 mb-2">
                         <label class="small">Orario <span class="text-danger">*</span></label>
@@ -517,9 +517,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var pendingCard    = null;
     var pendingDateStr = null;
 
-    // Avviso: il tecnico scelto nel select ha un'assenza che copre pendingDateStr?
+    // Blocco: il tecnico scelto nel select ha un'assenza che copre pendingDateStr?
     function aggiornaAvvisoAssenza() {
         var avvisoEl   = document.getElementById('pian-avviso-assenza');
+        var btnConf    = document.getElementById('btn-pian-conferma');
         var tecnicoId  = pianTecnicoEl.value;
         var assenze    = tecnicoId ? (assenzePerDipendente[tecnicoId] || []) : [];
         var trovata    = null;
@@ -534,10 +535,12 @@ document.addEventListener('DOMContentLoaded', function () {
             var nome = pianTecnicoEl.options[pianTecnicoEl.selectedIndex].text;
             avvisoEl.classList.remove('d-none');
             avvisoEl.innerHTML = '<i class="bi bi-calendar-x me-1"></i>'
-                + '<strong>' + nome + '</strong> risulta assente (' + trovata.tipo_label + ') in questa data. Puoi comunque procedere.';
+                + '<strong>' + nome + '</strong> risulta assente (' + trovata.tipo_label + ') in questa data. Scegli un altro tecnico o un\'altra data.';
+            btnConf.disabled = true;
         } else {
             avvisoEl.classList.add('d-none');
             avvisoEl.innerHTML = '';
+            btnConf.disabled = false;
         }
     }
     pianTecnicoEl.addEventListener('change', aggiornaAvvisoAssenza);
@@ -702,7 +705,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (res && res.csrf) _csrfHash = res.csrf;
-                if (!res || !res.ok) { info.revert(); alert('Errore nel salvataggio.'); }
+                if (!res || !res.ok) { info.revert(); alert((res && res.msg) || 'Errore nel salvataggio.'); }
             })
             .catch(function () { info.revert(); alert('Errore di rete.'); });
         },
