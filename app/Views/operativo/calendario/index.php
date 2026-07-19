@@ -298,6 +298,7 @@ $prioritaInfo = [
                     <div class="col-sm-5 mb-2">
                         <label class="small">Orario <span class="text-danger">*</span></label>
                         <input type="time" id="pian-ora" class="form-control form-control-sm" step="900">
+                        <small class="text-muted d-none" id="pian-orario-sugg"></small>
                     </div>
                 </div>
                 <div class="mb-0">
@@ -545,6 +546,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     pianTecnicoEl.addEventListener('change', aggiornaAvvisoAssenza);
 
+    // Suggerimento: propone l'orario subito dopo l'ultimo impegno del tecnico in quella data.
+    // Solo un default comodo per il form — applicato solo se più tardi dell'orario già impostato.
+    function aggiornaOrarioSuggerito() {
+        var suggEl = document.getElementById('pian-orario-sugg');
+        suggEl.classList.add('d-none');
+        var tecnicoId = pianTecnicoEl.value;
+        if (!tecnicoId || !pendingDateStr) return;
+
+        fetch('<?= base_url('operativo/calendario/orario-suggerito') ?>'
+            + '?tecnico_id=' + encodeURIComponent(tecnicoId)
+            + '&data='       + encodeURIComponent(pendingDateStr))
+            .then(function (r) { return r.json(); })
+            .then(function (json) {
+                if (!json.ora) return;
+                var toMin     = function (t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); };
+                var suggerito = toMin(json.ora);
+                var attuale   = toMin(pianOraEl.value || oraInizio);
+                if (suggerito > attuale) {
+                    pianOraEl.value = json.ora;
+                    if (json.n_prev > 0) {
+                        suggEl.textContent = 'Dopo ' + json.n_prev + ' interv. precedenti in questa data';
+                        suggEl.classList.remove('d-none');
+                    }
+                }
+            })
+            .catch(function () {});
+    }
+    pianTecnicoEl.addEventListener('change', aggiornaOrarioSuggerito);
+
     function showModalPianifica(cardEl, dateStr, timeStr) {
         pendingCard    = cardEl;
         pendingDateStr = dateStr;
@@ -556,6 +586,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('pian-cliente').textContent = cardEl.dataset.cliente || '—';
         document.getElementById('pian-tipo').textContent    = cardEl.dataset.tipoNome || '';
         pianOraEl.value = timeStr || oraInizio;
+        document.getElementById('pian-orario-sugg').classList.add('d-none');
         buildTecnicoSelect(pianTecnicoEl);
         aggiornaAvvisoAssenza();
 

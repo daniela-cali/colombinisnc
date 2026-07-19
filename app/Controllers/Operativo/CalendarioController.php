@@ -103,7 +103,7 @@ class CalendarioController extends BaseController
             'poolPerZona' => $poolPerZona,
             'zoneLabel'  => $zoneLabel,
             'scadenze'   => $scadenze,
-            'oraInizio'  => '08:00',
+            'oraInizio'  => setting('Azienda.orario_inizio') ?? '08:00',
             'help_sezione' => 'calendario',
             'puoPromemoria' => auth()->user()->inGroup('ufficio', 'admin', 'developer'),
             'dataIniziale'  => $dataIniziale,
@@ -209,6 +209,38 @@ class CalendarioController extends BaseController
         }
 
         return $this->response->setJSON($events);
+    }
+
+    /**
+     * Orario suggerito per pianificare un intervento dal pool: il tecnico lavora gli
+     * interventi del giorno in sequenza, quindi si propone l'orario subito dopo la fine
+     * del suo ultimo impegno già pianificato in quella data (l'inizio giornata configurato
+     * in Impostazioni se non ne ha). Solo un default per il form: l'utente può sempre modificarlo.
+     */
+    public function orarioSuggerito()
+    {
+        $tecnicoId = (int) ($this->request->getGet('tecnico_id') ?? 0);
+        $data      = $this->request->getGet('data') ?? date('Y-m-d');
+
+        $model      = new InterventiModel();
+        $esistenti  = $tecnicoId ? $model->agendaGiornoTecnico($tecnicoId, $data) : [];
+        $tSuggerito = strtotime($data . ' ' . (setting('Azienda.orario_inizio') ?? '08:00') . ':00');
+
+        foreach ($esistenti as $i) {
+            $durata = $model->durataMinuti(
+                $i['durata_stimata'] ? (int) $i['durata_stimata'] : null,
+                $i['tipo_durata'] ? (int) $i['tipo_durata'] : null
+            );
+            $tFine = strtotime($i['data_pianificata']) + $durata * 60;
+            if ($tFine > $tSuggerito) {
+                $tSuggerito = $tFine;
+            }
+        }
+
+        return $this->response->setJSON([
+            'ora'    => date('H:i', $tSuggerito),
+            'n_prev' => count($esistenti),
+        ]);
     }
 
     /**

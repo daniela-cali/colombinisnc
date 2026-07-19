@@ -450,6 +450,33 @@ class InterventiModel extends Model
     }
 
     /**
+     * Durata in minuti di un intervento: quella stimata se presente, altrimenti il default
+     * del tipo di intervento, con un minimo di 60'. Centralizza la formula usata anche da
+     * eventiCalendario() e dal calcolo dell'orario suggerito, per non doverla mantenere in due posti.
+     */
+    public function durataMinuti(?int $durataStimata, ?int $durataDefaultTipo): int
+    {
+        return max(60, $durataStimata ?: $durataDefaultTipo ?: 60);
+    }
+
+    /**
+     * Interventi pianificati/in corso di un tecnico in una singola data, con la durata
+     * (stimata o default del tipo) — usato per calcolare l'orario suggerito nel modal
+     * di pianificazione dal pool del calendario.
+     */
+    public function agendaGiornoTecnico(int $tecnicoId, string $data): array
+    {
+        return $this->select('interventi.data_pianificata, interventi.durata_stimata,
+                ti.durata_default AS tipo_durata')
+            ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
+            ->where('interventi.tecnico_id', $tecnicoId)
+            ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])
+            ->where('DATE(interventi.data_pianificata)', $data)
+            ->orderBy('interventi.data_pianificata', 'ASC')
+            ->findAll();
+    }
+
+    /**
      * Interventi pianificati/in corso il cui tecnico risulta assente nella data pianificata —
      * nascono quando un'assenza viene inserita dopo che l'intervento era già stato pianificato.
      */

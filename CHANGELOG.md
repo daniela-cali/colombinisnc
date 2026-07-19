@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.15] - 2026-07-19
+
+### Orario suggerito nel modal di pianificazione (drag dal pool)
+
+- [APP] Assegnando un tecnico nel modal "Pianifica" (drag di un intervento dal pool sul calendario), l'orario si precompila con un suggerimento: subito dopo la fine dell'ultimo intervento già pianificato di quel tecnico in quella data, o l'inizio giornata configurato in Impostazioni se non ne ha — solo un default comodo, resta liberamente modificabile
+- [DEV] Nuovo endpoint `GET operativo/calendario/orario-suggerito` (`CalendarioController::orarioSuggerito()`)
+- [DEV] `InterventiModel::durataMinuti()`: formula centralizzata (durata stimata, altrimenti default del tipo, minimo 60') già usata da `eventiCalendario()`, ora riusata anche qui invece di restare duplicata
+- [DEV] `InterventiModel::agendaGiornoTecnico()`: nuovo metodo, agenda di un tecnico in una singola data con la durata di ogni intervento
+- [DEV] Fix: il default `oraInizio` del modal Pianifica era fisso a `'08:00'` invece di leggere `Azienda.orario_inizio` dalle Impostazioni
+
 ## [0.24.14] - 2026-07-19
 
 ### Spunta "completato" sul calendario + fix icone tipo intervento

@@ -133,6 +133,7 @@ $routes->group('operativo', function ($routes) {
     $routes->group('calendario', function ($routes) {
         $routes->get('/',               'Operativo\CalendarioController::index');
         $routes->get('eventi',          'Operativo\CalendarioController::eventi');
+        $routes->get('orario-suggerito', 'Operativo\CalendarioController::orarioSuggerito');
         $routes->post('sposta',         'Operativo\CalendarioController::sposta');
         $routes->post('genera-viaggio', 'Operativo\CalendarioController::generaViaggio');
     });

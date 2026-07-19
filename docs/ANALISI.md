@@ -503,6 +503,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Fix: le icone dei tipi di intervento (`tipi_intervento.icona`, classi Font Awesome) venivano renderizzate nel calendario con il prefisso `bi` di Bootstrap Icons invece di `fas` — non comparivano mai, in nessuno dei tre punti che le usano (evento, pool, modal dettaglio); corretto anche il fallback lato server
 - Refactor `eventContent` (JS): da concatenazione di stringhe a template literal, stili spostati in classi CSS dedicate (`calendario.css`)
 
+#### ✅ v0.24.15 — Orario suggerito nel modal di pianificazione
+- Modal "Pianifica" (drag dal pool): scelto un tecnico, l'orario si precompila subito dopo la fine del suo ultimo intervento già pianificato in quella data (default comodo, sempre modificabile)
+- Replica lo stesso algoritmo già usato nel vecchio progetto (`apiOrarioSuggerito`), senza la parte su orari/pause per tecnico che qui non esiste — usa l'inizio giornata configurato in Impostazioni
+- Fix: il default `oraInizio` del modal era fisso a `'08:00'` invece di leggere l'impostazione azienda `Azienda.orario_inizio`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
