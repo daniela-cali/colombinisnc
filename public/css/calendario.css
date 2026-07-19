@@ -176,6 +176,27 @@ body.fc-dragging .fc-event { pointer-events: none; }
     background: rgba(var(--bs-warning-rgb), .12) !important;
 }
 
+/* Titolo cliccabile: apre il datepicker nativo per saltare a una data */
+.fc-toolbar-title {
+    cursor: pointer;
+}
+
+/* Input date invisibile usato solo per aprire il datepicker nativo del
+   browser via JS (vedi calendario/index.php) — mai visibile né tabbabile.
+   Dimensione 1px (non 0): il browser ancora il popup del picker alla posizione
+   di questo elemento, con size zero l'ancoraggio risulta impreciso.
+   position: fixed perché il JS la riposiziona con coordinate da getBoundingClientRect(),
+   relative alla finestra — sopra al titolo, che cambia posto a ogni vista. */
+.cal-date-jump {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* ============================================================
    FullCalendar — dark mode
    FC non legge data-bs-theme; si usano le sue variabili --fc-*

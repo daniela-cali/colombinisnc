@@ -191,7 +191,8 @@ $prioritaInfo = [
 
             <form method="post" action="<?= base_url('operativo/calendario/genera-viaggio') ?>"
                   class="d-flex align-items-center gap-2"
-                  target="<?= strpos($_SERVER['HTTP_USER_AGENT'] ?? '', 'Mobile') === false ? '_blank' : '_self' ?>">
+                  target="<?= //Se da mobile, carica su self, altrimenti nuova pagina blank
+                  strpos($_SERVER['HTTP_USER_AGENT'] ?? '', 'Mobile') === false ? '_blank' : '_self' ?>">
                 <?= csrf_field() ?>
                 <input type="hidden" name="tecnico_id" id="form-tecnico-giornata" value="">
                 <input type="hidden" name="data"       id="form-data-giornata"    value="">
@@ -222,6 +223,11 @@ $prioritaInfo = [
 
         <div class="card">
             <div class="card-body p-2 p-md-3">
+                <!-- Input nativo invisibile: aperto via JS al click sul titolo del calendario,
+                     per saltare a una data scelta dal datepicker del sistema/browser. Va prima
+                     di #calendario nel DOM così il popup si ancora vicino al titolo (in alto),
+                     non in fondo dopo tutta la griglia del calendario. -->
+                <input type="date" id="calendario-vai-a-data" class="cal-date-jump" tabindex="-1" aria-hidden="true">
                 <div id="calendario"></div>
             </div>
         </div>
@@ -874,6 +880,32 @@ document.addEventListener('DOMContentLoaded', function () {
         },
     });
     calendar.render();
+
+    // ---- Vai a data: click sul titolo apre il datepicker nativo del browser ----
+    document.getElementById('calendario').addEventListener('click', function (e) {
+        var titolo = e.target.closest('.fc-toolbar-title');
+        if (!titolo) return;
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        var d = calendar.getDate();
+        var inputVaiAData = document.getElementById('calendario-vai-a-data');
+        // Il popup del picker si ancora alla posizione dell'input: lo spostiamo
+        // esattamente sopra al titolo (che cambia posto/larghezza a ogni vista)
+        // prima di aprirlo, invece di tenerlo fermo in un punto fisso della pagina.
+        var rect = titolo.getBoundingClientRect();
+        inputVaiAData.style.left = rect.left + 'px';
+        inputVaiAData.style.top  = rect.top + 'px';
+        inputVaiAData.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        // .click() non apre il calendarietto su un input date (a differenza di un input file):
+        // serve showPicker(), col fallback per i browser che non lo supportano ancora.
+        if (inputVaiAData.showPicker) {
+            inputVaiAData.showPicker();
+        } else {
+            inputVaiAData.click();
+        }
+    });
+    document.getElementById('calendario-vai-a-data').addEventListener('change', function () {
+        if (this.value) calendar.gotoDate(this.value);
+    });
 
 <?php if ($puoPromemoria): ?>
     // ---- Promemoria (modal create/edit/delete dal calendario) ----

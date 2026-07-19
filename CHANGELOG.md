@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.18] - 2026-07-19
+
+### Vai a data: click sul titolo del calendario apre il datepicker nativo
+
+- [APP] Cliccando il titolo del calendario (es. "16 – 22 luglio 2026") si apre il datepicker nativo del browser/dispositivo per saltare direttamente a una data, su mobile e su desktop
+- [DEV] Input `type="date"` invisibile in `calendario/index.php`, aperto con `showPicker()` (fallback `click()` sui browser che non lo supportano) e riposizionato dinamicamente sopra al titolo con `getBoundingClientRect()` a ogni click; nuove regole in `calendario.css` (`.cal-date-jump`, cursore sul titolo)
+
 ## [0.24.17] - 2026-07-19
 
 ### Fix: modal Novità/Changelog vuoto sulle versioni solo [DEV]

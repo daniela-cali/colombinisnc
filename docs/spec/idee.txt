@@ -20,7 +20,7 @@ Riunione 10.07.2026
 
 7.R verificare scadenze aperte.. così crea troppo casino: elenco collassabile? fare brainstorming assieme
 
-8.R Click sulla data da mobile: datepicker
+8.R CHIUSO v0.24.18 — Click sulla data da mobile: datepicker: click sul titolo del calendario apre il datepicker nativo del browser (mobile e desktop)
 
 9.R Rivedere pagina foglio di viaggio, non coerente con lo stile!
 
