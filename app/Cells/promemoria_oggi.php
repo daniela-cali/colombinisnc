@@ -40,8 +40,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var hash = '<?= csrf_hash() ?>';
     var url  = '<?= base_url('promemoria/') ?>';
 
-    var modal = new bootstrap.Modal(document.getElementById('modalPromemoriaOggi'));
-    modal.show();
+    // Dichiarata qui ma valorizzata dentro enqueueModal() perché dismissNext()
+    // (definita più sotto) deve poterla usare una volta che il modal è stato mostrato.
+    var modal;
 
     // Chiamate in sequenza (non in parallelo): il token CSRF si rigenera
     // ad ogni richiesta, quindi va aggiornato prima della successiva.
@@ -64,6 +65,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.getElementById('btn-promemoria-oggi-ok').addEventListener('click', function () {
         dismissNext(0);
+    });
+
+    // Non si apre subito: enqueueModal (definito in layouts/admin.php) lo mette in
+    // coda con gli altri modal auto-aperti (es. novità di versione) e lo mostra
+    // solo quando i precedenti sono stati chiusi, evitando che si sovrappongano.
+    enqueueModal('modalPromemoriaOggi', function () {
+        modal = new bootstrap.Modal(document.getElementById('modalPromemoriaOggi'));
+        modal.show();
     });
 });
 </script>

@@ -37,6 +37,27 @@ $_mostraNovita   = $_cl['versioneCorrente'] !== '' && $_versioneUtente !== $_cl[
 $_soloTecnico    = is_solo_tecnico();
 $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $help_sezione . '.php')) ? $help_sezione : null;
 ?>
+<script>
+    // Coda per i modal auto-aperti all'accesso (novità, promemoria, ecc.):
+    // li mostra uno alla volta invece che tutti insieme, evitando sovrapposizioni.
+    (function () {
+        var queue   = [];
+        var running = false;
+
+        function runNext() {
+            if (queue.length === 0) { running = false; return; }
+            running = true;
+            var next = queue.shift();
+            next.show();
+            document.getElementById(next.id).addEventListener('hidden.bs.modal', runNext, { once: true });
+        }
+
+        window.enqueueModal = function (id, show) {
+            queue.push({ id: id, show: show });
+            if (!running) runNext();
+        };
+    })();
+</script>
 <div class="app-wrapper">
 
     <!-- Navbar -->
@@ -334,7 +355,9 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
     })();
 
     <?php if ($_mostraNovita): ?>
-    (function () {
+    // In coda tramite enqueueModal (vedi script in cima al <body>): se ci sono anche
+    // promemoria di oggi da mostrare, questo modal parte per primo e l'altro attende.
+    enqueueModal('modalNovita', function () {
         var modal = new bootstrap.Modal(document.getElementById('modalNovita'));
         modal.show();
         document.getElementById('btn-novita-ok').addEventListener('click', function () {
@@ -352,7 +375,7 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                 }
             });
         });
-    })();
+    });
     <?php endif ?>
 
     document.querySelectorAll('input[type="password"]').forEach(function (input) {

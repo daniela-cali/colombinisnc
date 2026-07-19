@@ -1,0 +1,29 @@
+1. CHIUSO v0.24.4 — l'abbonamento deve riportare l'anno.. ad esempio quelli stagionali non avranno mai inizio e fine anno.. sarebbe un bel marker di ricerca anche quello
+CHIUSO v0.24.4 — nella scheda cliente mettere i pill anche per gli abbonamenti con ricerca full text datatable (per anni ad esempio), ma con la ricerca full text di fatto si ottiene la stessa cosa
+
+Riunione 10.07.2026
+11.07.2026
+1.R CHIUSO v0.24.10 — Ordinare pool da pianificare con data inserimento: aggiunta anche la data di creazione abbonamento sia in visualizzazione intervento che sul popup calendario, eventi e pool
+
+2.R CHIUSO v0.24.14 — spunta anche su calendario
+
+11.07.2026
+3.R CHIUSO v0.24.10 — rivedere descrizione obbligatoria negli interventi: alla compilazione del tipo intervento viene automaticamente inserita una descrizione di default modificabile
+
+4.R CHIUSO v0.24.10 — se presente data automaticamente pianificati
+
+5.R CHIUSO v0.24.13 — non segna che il dipendente è non disponibile
+
+5.R CHIUSO v0.24.13 — e verificare anche il contrario: se programmati in data ma assenza.. avvisare di cambiare tecnico
+
+6.R materiale da portare prossima visita! fare brainstorming, secondo me tocca anche la parte della dashboard tecnico in chiusura intervento
+
+7.R verificare scadenze aperte.. così crea troppo casino: elenco collassabile? fare brainstorming assieme
+
+8.R Click sulla data da mobile: datepicker
+
+9.R Rivedere pagina foglio di viaggio, non coerente con lo stile!
+
+10.R I tecnici dal loro profilo non si possono assegnare altri diritti e non possono creare un nuovo dipendente rotte protette? 
+
+11.R CHIUSO v0.24.16 — i modal promemoria e changelog si sovrappongono: ora si mostrano in sequenza (novità prima, poi promemoria) tramite una coda JS condivisa

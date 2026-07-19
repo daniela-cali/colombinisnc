@@ -1,5 +1,11 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.16] - 2026-07-19
+
+### Fix: modal Novità e Promemoria di oggi sovrapposti all'accesso
+
+- [DEV] I modal auto-aperti all'accesso (Novità di versione, Promemoria di oggi) ora si mostrano in sequenza invece che sovrapposti: nuova coda JS `enqueueModal` in `layouts/admin.php`, usata anche da `Cells/promemoria_oggi.php`
+
 ## [0.24.15] - 2026-07-19
 
 ### Orario suggerito nel modal di pianificazione (drag dal pool)
