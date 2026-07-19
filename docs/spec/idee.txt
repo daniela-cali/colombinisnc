@@ -22,7 +22,7 @@ Riunione 10.07.2026
 
 8.R CHIUSO v0.24.18 — Click sulla data da mobile: datepicker: click sul titolo del calendario apre il datepicker nativo del browser (mobile e desktop)
 
-9.R Rivedere pagina foglio di viaggio, non coerente con lo stile!
+9.R CHIUSO v0.24.19 — Rivedere pagina foglio di viaggio, non coerente con lo stile!
 
 10.R I tecnici dal loro profilo non si possono assegnare altri diritti e non possono creare un nuovo dipendente rotte protette? 
 

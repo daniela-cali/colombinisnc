@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\ClientiModel;
 use App\Models\InterventiModel;
 use App\Models\InterventiMaterialiModel;
+use App\Models\PersonaleModel;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
@@ -16,6 +17,8 @@ class ViaggioController extends BaseController
      */
     public function index(): string
     {
+        helper('colore');
+
         $data = $this->dataValida();
         ['perZona' => $perZona, 'zoneLabel' => $zoneLabel, 'totale' => $totale, 'materialiPerIntervento' => $materialiPerIntervento] = $this->fetchGiornata($data);
 
@@ -28,22 +31,32 @@ class ViaggioController extends BaseController
             'zoneLabel'              => $zoneLabel,
             'totale'                 => $totale,
             'materialiPerIntervento' => $materialiPerIntervento,
+            'tecnici'                => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
             'help_sezione'           => 'viaggio',
         ]);
     }
 
     /**
      * Genera il PDF del foglio viaggio per la data indicata.
+     * Il parametro GET tecnico_id, se presente, limita il PDF al singolo tecnico
+     * (foglio viaggio individuale, richiamato dal pill tecnico attivo in index()).
      */
     public function pdf(): void
     {
-        $data = $this->dataValida();
-        ['perZona' => $perZona, 'zoneLabel' => $zoneLabel, 'totale' => $totale, 'materialiPerIntervento' => $materialiPerIntervento] = $this->fetchGiornata($data);
+        $data      = $this->dataValida();
+        $tecnicoId = $this->tecnicoIdValido();
+        ['perZona' => $perZona, 'zoneLabel' => $zoneLabel, 'totale' => $totale, 'materialiPerIntervento' => $materialiPerIntervento] = $this->fetchGiornata($data, $tecnicoId);
 
         $giorni  = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
         $mesi    = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
         $ts      = strtotime($data);
         $dataLabel = $giorni[date('w', $ts)] . ' ' . date('j', $ts) . ' ' . $mesi[(int) date('n', $ts)] . ' ' . date('Y', $ts);
+
+        $tecnicoNome = null;
+        if ($tecnicoId !== null) {
+            $tecnico = (new PersonaleModel())->find($tecnicoId);
+            $tecnicoNome = $tecnico ? trim($tecnico['cognome'] . ' ' . $tecnico['nome']) : null;
+        }
 
         $html = view('operativo/viaggio/pdf', [
             'data'                   => $data,
@@ -52,6 +65,7 @@ class ViaggioController extends BaseController
             'zoneLabel'              => $zoneLabel,
             'totale'                 => $totale,
             'materialiPerIntervento' => $materialiPerIntervento,
+            'tecnicoNome'            => $tecnicoNome,
         ]);
 
         $options = new Options();
@@ -62,7 +76,9 @@ class ViaggioController extends BaseController
         $dompdf->loadHtml($html, 'UTF-8');
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
-        $dompdf->stream('viaggio-' . $data . '.pdf', ['Attachment' => false]);
+        $slugTecnico = $tecnicoNome ? '-' . trim(preg_replace('/[^a-z0-9]+/', '-', strtolower($tecnicoNome)), '-') : '';
+        $nomeFile    = 'viaggio-' . $data . $slugTecnico . '.pdf';
+        $dompdf->stream($nomeFile, ['Attachment' => false]);
         exit;
     }
 
@@ -74,12 +90,18 @@ class ViaggioController extends BaseController
         return preg_match('/^\d{4}-\d{2}-\d{2}$/', $data) ? $data : date('Y-m-d');
     }
 
-    /**
-     * Carica gli interventi pianificati per la data e li raggruppa per zona.
-     */
-    private function fetchGiornata(string $data): array
+    private function tecnicoIdValido(): ?int
     {
-        $interventi = (new InterventiModel())->perGiornata($data);
+        $tecnicoId = $this->request->getGet('tecnico_id');
+        return ($tecnicoId !== null && $tecnicoId !== '') ? (int) $tecnicoId : null;
+    }
+
+    /**
+     * Carica gli interventi pianificati per la data (ed eventualmente il singolo tecnico) e li raggruppa per zona.
+     */
+    private function fetchGiornata(string $data, ?int $tecnicoId = null): array
+    {
+        $interventi = (new InterventiModel())->perGiornata($data, $tecnicoId);
 
         $materialiPerIntervento = [];
         foreach ((new InterventiMaterialiModel())->daPortarePerInterventi(array_column($interventi, 'id')) as $m) {

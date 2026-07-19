@@ -508,6 +508,23 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Replica lo stesso algoritmo già usato nel vecchio progetto (`apiOrarioSuggerito`), senza la parte su orari/pause per tecnico che qui non esiste — usa l'inizio giornata configurato in Impostazioni
 - Fix: il default `oraInizio` del modal era fisso a `'08:00'` invece di leggere l'impostazione azienda `Azienda.orario_inizio`
 
+#### ✅ v0.24.16 — Fix modal Novità e Promemoria di oggi sovrapposti
+- I modal auto-aperti all'accesso (Novità di versione, Promemoria di oggi) ora si mostrano in sequenza invece che sovrapposti: nuova coda JS `enqueueModal` in `layouts/admin.php`, usata anche da `Cells/promemoria_oggi.php`
+
+#### ✅ v0.24.17 — Fix: modal Novità/Changelog vuoto sulle versioni solo [DEV]
+- Quando l'ultima versione ha solo righe `[DEV]` (nessuna `[APP]`), il modal Novità e il Changelog mostrano un avviso invece di restare vuoti — bug mai risolto davvero nonostante un tentativo precedente (v0.24.12) che ne aveva solo mascherato il sintomo
+- `changelog_helper.php::changelog_to_html()`: aggiunto il ramo `else` mancante per `$appItems` vuoto
+
+#### ✅ v0.24.18 — Vai a data: click sul titolo del calendario apre il datepicker nativo
+- Cliccando il titolo del calendario si apre il datepicker nativo del browser/dispositivo per saltare direttamente a una data, su mobile e desktop
+- Input `type="date"` invisibile, aperto con `showPicker()` (fallback `click()`), riposizionato dinamicamente sopra al titolo a ogni click
+
+#### ✅ v0.24.19 — Foglio di viaggio: layout a card, filtro tecnico e PDF ristilizzato
+- Pagina Foglio di viaggio (chiude il punto 9.R degli appunti riunione) racchiusa in un'unica card coerente con lo stile del resto del gestionale, al posto dei blocchi "nudi" fuori pattern
+- Nuovo filtro a pill per tecnico (stesso pattern del Calendario): nasconde righe e zone senza interventi del tecnico selezionato; il bottone PDF segue il filtro attivo generando il foglio solo per quel tecnico
+- PDF ristilizzato riprendendo il pattern grafico già usato per le stampe Cliente/Cantiere (a sua volta ripreso dal vecchio progetto): header con logo, badge priorità colorati, righe urgenti evidenziate
+- `InterventiModel::perGiornata()` accetta un `$tecnicoId` opzionale; `ViaggioController` carica l'elenco tecnici e propaga il filtro al PDF
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

@@ -502,11 +502,12 @@ class InterventiModel extends Model
     /**
      * Interventi di una giornata (tutti gli stati tranne annullato) per il foglio viaggio,
      * con denominazione, indirizzo e zona del cliente, tecnico e tipo lavoro.
+     * $tecnicoId, se valorizzato, limita il risultato al singolo tecnico (foglio viaggio individuale).
      */
-    public function perGiornata(string $data): array
+    public function perGiornata(string $data, ?int $tecnicoId = null): array
     {
-        return $this->select("interventi.id, interventi.data_pianificata, interventi.durata_stimata,
-                interventi.descrizione, interventi.urgenza, interventi.priorita,
+        $query = $this->select("interventi.id, interventi.data_pianificata, interventi.durata_stimata,
+                interventi.descrizione, interventi.urgenza, interventi.priorita, interventi.tecnico_id,
                 CASE WHEN c.tipo = 'persona_fisica'
                      THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                      ELSE c.ragsoc
@@ -518,9 +519,13 @@ class InterventiModel extends Model
             ->join('personale p',        'p.id  = interventi.tecnico_id',         'left')
             ->join('tipi_intervento ti', 'ti.id = interventi.tipo_intervento_id', 'left')
             ->where('DATE(interventi.data_pianificata)', $data)
-            ->where('interventi.stato !=', self::STATO_ANNULLATO)
-            ->orderBy('interventi.data_pianificata', 'ASC')
-            ->findAll();
+            ->where('interventi.stato !=', self::STATO_ANNULLATO);
+
+        if ($tecnicoId !== null) {
+            $query->where('interventi.tecnico_id', $tecnicoId);
+        }
+
+        return $query->orderBy('interventi.data_pianificata', 'ASC')->findAll();
     }
 
     /**

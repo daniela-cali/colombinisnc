@@ -1,5 +1,16 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.19] - 2026-07-19
+
+### Foglio di viaggio: layout a card, filtro tecnico e PDF ristilizzato
+
+- [APP] Pagina Foglio di viaggio (9.R): contenuto racchiuso in un'unica card coerente con lo stile del resto del gestionale (Calendario, Clienti, ecc.), invece di blocchi "nudi" fuori pattern
+- [APP] Nuova riga di pill per filtrare gli interventi per tecnico (stesso stile del filtro in Calendario): selezionando un tecnico spariscono le righe e le zone senza suoi interventi
+- [APP] Il bottone PDF segue il filtro tecnico attivo: genera il foglio solo per il tecnico selezionato (indicato nel sottotitolo e nel nome del file)
+- [APP] PDF ristilizzato con lo stesso pattern grafico delle stampe Cliente/Cantiere: header con logo aziendale, badge colorati per priorità (Urgente/Normale/Abbonamento), righe urgenti evidenziate
+- [DEV] `InterventiModel::perGiornata()`: nuovo parametro opzionale `$tecnicoId` per filtrare a livello query; selezionato anche `tecnico_id`
+- [DEV] `ViaggioController`: `index()` carica l'elenco tecnici (`PersonaleModel::elencoPerGruppi()`); `pdf()` legge il parametro GET `tecnico_id` e propaga il filtro
+
 ## [0.24.18] - 2026-07-19
 
 ### Vai a data: click sul titolo del calendario apre il datepicker nativo
