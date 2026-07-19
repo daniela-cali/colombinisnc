@@ -45,6 +45,8 @@ if (! function_exists('changelog_to_html')) {
                     $html .= '<li>' . changelog_inline($i) . '</li>';
                 }
                 $html .= '</ul>';
+            } else {
+                $html .= '<ul class="mb-2"><li>Solo modifiche tecniche interne in questa versione, nessuna novità per l\'utente</li></ul>';
             }
             if ($isDevMode && $devItems) {
                 $html .= '<p class="small fw-semibold text-muted mb-1">Sviluppo</p><ul class="mb-2">';

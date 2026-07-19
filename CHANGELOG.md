@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.17] - 2026-07-19
+
+### Fix: modal Novità/Changelog vuoto sulle versioni solo [DEV]
+
+- [APP] Quando una versione contiene solo modifiche tecniche interne (nessuna riga `[APP]`), il modal Novità e il Changelog ora mostrano un avviso ("Solo modifiche tecniche interne in questa versione, nessuna novità per l'utente") invece di restare vuoti
+- [DEV] `changelog_helper.php::changelog_to_html()`: aggiunto il ramo `else` mancante per `$appItems` vuoto
+
 ## [0.24.16] - 2026-07-19
 
 ### Fix: modal Novità e Promemoria di oggi sovrapposti all'accesso
