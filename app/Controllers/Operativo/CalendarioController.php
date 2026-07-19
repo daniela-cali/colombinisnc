@@ -153,7 +153,7 @@ class CalendarioController extends BaseController
                 'extendedProps' => [
                     'tecnico'      => $tecnico,
                     'tipo'         => $i['tipo_nome'] ?: '—',
-                    'icona'        => $i['tipo_icona'] ?: 'bi-tools',
+                    'icona'        => $i['tipo_icona'] ?: 'fa-wrench',
                     'stato'        => $i['stato'],
                     'descrizione'  => $i['descrizione'] ?: '',
                     'citta'        => $i['cliente_citta'] ?: '',

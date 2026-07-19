@@ -117,6 +117,60 @@
 /* Impedisce che FullCalendar assegni stili di evento al clone del drag */
 body.fc-dragging .fc-event { pointer-events: none; }
 
+/* Contenuto evento intervento nel calendario (eventContent) */
+.evt-body {
+    position: relative;
+    padding: 2px 4px;
+    overflow: hidden;
+    line-height: 1.25;
+}
+.evt-badge-completato {
+    position: absolute;
+    top: 1px;
+    left: 4px;
+    color: var(--bs-success);
+    font-size: .85rem;
+    line-height: 1;
+    text-shadow: 0 0 2px rgba(255, 255, 255, .9);
+}
+.evt-title {
+    font-size: .78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 14px;
+}
+.evt-body.completato .evt-title {
+    padding-left: 14px;
+}
+.evt-title i {
+    margin-right: 3px;
+    opacity: .8;
+}
+.evt-sub {
+    font-size: .72rem;
+    opacity: .8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.evt-sub .bi-clock {
+    font-size: .65rem;
+}
+.evt-btn-rimuovi {
+    position: absolute;
+    top: 1px;
+    right: 2px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, .8);
+    font-size: .95rem;
+    padding: 0 2px;
+    line-height: 1;
+    cursor: pointer;
+}
+
 /* Evidenzia la colonna giorno selezionata (Genera viaggio) */
 .fc-day-selected {
     background: rgba(var(--bs-warning-rgb), .12) !important;

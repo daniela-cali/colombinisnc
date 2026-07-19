@@ -99,7 +99,7 @@ $prioritaInfo = [
                             <div class="collapse show" id="<?= $subCollapseId ?>">
                             <?php foreach ($blocco['interventi'] as $i):
                                 $tipoInfo = $tipiPerId[(int) ($i['tipo_intervento_id'] ?? 0)]
-                                         ?? ['nome' => 'Senza tipo', 'icona' => 'bi-tools', 'durata_default' => 60];
+                                         ?? ['nome' => 'Senza tipo', 'icona' => 'fa-wrench', 'durata_default' => 60];
                                 if ($i['urgenza']) {
                                     $badge = 'bg-danger'; $badgeLabel = 'Urgente';
                                 } else {
@@ -115,7 +115,7 @@ $prioritaInfo = [
                             <div class="pool-card <?= esc($i['urgenza'] ? 'urgente' : ($i['priorita'] ?? 'normale')) ?>"
                                  data-id="<?= $i['id'] ?>"
                                  data-tipo-id="<?= (int) ($i['tipo_intervento_id'] ?? 0) ?>"
-                                 data-icona="<?= htmlspecialchars($tipoInfo['icona'], ENT_QUOTES) ?>"
+                                 data-icona="<?= htmlspecialchars($tipoInfo['icona'] ?: 'fa-wrench', ENT_QUOTES) ?>"
                                  data-cliente="<?= htmlspecialchars($i['cliente_denominazione'] ?? '', ENT_QUOTES) ?>"
                                  data-durata="<?= (int) ($i['durata_stimata'] ?: $tipoInfo['durata_default']) ?>"
                                  data-tipo-nome="<?= htmlspecialchars($tipoInfo['nome'], ENT_QUOTES) ?>"
@@ -235,7 +235,7 @@ $prioritaInfo = [
         <div class="modal-content" id="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="bi bi-tools me-2" id="modal-icona"></i>
+                    <i class="fas fa-wrench me-2" id="modal-icona"></i>
                     <span id="modal-cliente"></span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var materiali = [];
         try { materiali = JSON.parse(card.dataset.materiali || '[]'); } catch (err) {}
 
-        document.getElementById('modal-icona').className = 'bi ' + (card.dataset.icona || 'bi-tools') + ' me-2';
+        document.getElementById('modal-icona').className = 'fas ' + (card.dataset.icona || 'fa-wrench') + ' me-2';
         document.getElementById('modal-cliente').textContent = card.dataset.cliente || ('#' + id);
         document.getElementById('modal-content').style.borderLeft = '4px solid #6c757d';
         document.getElementById('modal-tipo').textContent    = card.dataset.tipoNome || '—';
@@ -767,8 +767,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 + ' alle ' + start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
                 : '—';
 
-            var iconaClass = p.icona || 'bi-tools';
-            document.getElementById('modal-icona').className = 'bi ' + iconaClass + ' me-2';
+            var iconaClass = p.icona || 'fa-wrench';
+            document.getElementById('modal-icona').className = 'fas ' + iconaClass + ' me-2';
             document.getElementById('modal-cliente').textContent = info.event.title;
             document.getElementById('modal-content').style.borderLeft = '4px solid ' + (info.event.backgroundColor || '#6c757d');
             document.getElementById('modal-tipo').textContent    = p.tipo || '—';
@@ -820,23 +820,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             var time     = info.timeText;
-            var iconaCls = (p.icona || 'bi-tools');
+            var iconaCls = (p.icona || 'fa-wrench');
+            var completato = p.stato === 'completato';
+            var spuntaHtml = completato
+                ? '<i class="bi bi-check-circle-fill evt-badge-completato" title="Completato"></i>'
+                : '';
             function fmtDd(s) { var pp = s.split('-'); return pp[2] + '/' + pp[1]; }
-            var html = '<div style="position:relative;padding:2px 4px;overflow:hidden;line-height:1.25;">'
-                     + '<div style="font-size:.78rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:14px;">'
-                     +   '<i class="bi ' + iconaCls + '" style="margin-right:3px;opacity:.8;"></i>'
-                     +   time + ' &nbsp;' + info.event.title
-                     + '</div>'
-                     + '<div style="font-size:.72rem;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'
-                     +   (p.tecnico || '')
-                     +   (p.citta ? ' · ' + p.citta : '')
-                     +   (p.data_scadenza ? ' · <i class="bi bi-clock" style="font-size:.65rem;"></i> ' + fmtDd(p.data_scadenza) : '')
-                     + '</div>'
-                     + '<button class="btn-rimuovi-pian" data-id="' + info.event.id + '"'
-                     + ' style="position:absolute;top:1px;right:2px;background:none;border:none;'
-                     + 'color:rgba(255,255,255,.8);font-size:.95rem;padding:0 2px;line-height:1;cursor:pointer;"'
-                     + ' title="Rimuovi pianificazione">&times;</button>'
-                     + '</div>';
+
+            var sottotitolo = (p.tecnico || '')
+                + (p.citta ? ' · ' + p.citta : '')
+                + (p.data_scadenza ? ' · <i class="bi bi-clock"></i> ' + fmtDd(p.data_scadenza) : '');
+
+            var html = `
+                <div class="evt-body${completato ? ' completato' : ''}">
+                    <div class="evt-title"><i class="fas ${iconaCls}"></i>${time} &nbsp;${info.event.title}</div>
+                    <div class="evt-sub">${sottotitolo}</div>
+                    <button class="btn-rimuovi-pian evt-btn-rimuovi" data-id="${info.event.id}" title="Rimuovi pianificazione">&times;</button>
+                    ${spuntaHtml}
+                </div>
+            `;
             return { html: html };
         },
     });

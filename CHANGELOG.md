@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.14] - 2026-07-19
+
+### Spunta "completato" sul calendario + fix icone tipo intervento
+
+- [APP] Calendario: gli interventi completati mostrano ora una spunta verde nell'angolo in alto a sinistra dell'evento
+- [DEV] Fix: le icone dei tipi di intervento nel calendario (evento, pool, modal dettaglio) usavano il prefisso CSS sbagliato (Bootstrap Icons `bi` invece di Font Awesome `fas`, libreria corretta per `tipi_intervento.icona`) e non venivano mai renderizzate — corretto nei tre punti coinvolti e nel fallback lato server (`CalendarioController::eventi()`)
+- [DEV] Refactor `eventContent` (JS calendario): HTML dell'evento costruito con template literal invece di concatenazione di stringhe; stili spostati da inline a classi dedicate in `calendario.css` (`.evt-body`, `.evt-title`, `.evt-sub`, `.evt-btn-rimuovi`, `.evt-badge-completato`)
+- [DEV] `InterventiModel::poolDaPianificare()`: selezionata anche la colonna `stato`
+
 ## [0.24.13] - 2026-07-19
 
 ### Blocco tecnico assente su interventi + notifica conflitti retroattivi

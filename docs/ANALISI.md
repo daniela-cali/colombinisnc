@@ -498,6 +498,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Fix visita extra da abbonamento: il campo data pianificata era nascosto per errore rispetto allo spec originale (`abbonamenti_next_visita_spec.md` §4) — ora visibile e facoltativo come previsto; descrizione precompilata lato controller (il select tipo intervento è disabled in questo flusso, l'auto-precompilazione JS non scattava)
 - Scheda abbonamento: badge "Extra" nella tabella interventi collegati per distinguere le visite extra dalle occorrenze regolari del piano
 
+#### ✅ v0.24.14 — Spunta "completato" sul calendario + fix icone tipo intervento
+- Calendario: gli interventi completati mostrano una spunta verde (`bi-check-circle-fill`) in alto a sinistra sull'evento
+- Fix: le icone dei tipi di intervento (`tipi_intervento.icona`, classi Font Awesome) venivano renderizzate nel calendario con il prefisso `bi` di Bootstrap Icons invece di `fas` — non comparivano mai, in nessuno dei tre punti che le usano (evento, pool, modal dettaglio); corretto anche il fallback lato server
+- Refactor `eventContent` (JS): da concatenazione di stringhe a template literal, stili spostati in classi CSS dedicate (`calendario.css`)
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

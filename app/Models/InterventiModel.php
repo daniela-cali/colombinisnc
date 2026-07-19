@@ -257,7 +257,7 @@ class InterventiModel extends Model
     public function poolDaPianificare(): array
     {
         return $this->select("interventi.id, interventi.tipo_intervento_id, interventi.priorita,
-                      interventi.urgenza, interventi.extra, interventi.data_scadenza, interventi.durata_stimata,
+                      interventi.urgenza, interventi.extra, interventi.stato, interventi.data_scadenza, interventi.durata_stimata,
                       interventi.descrizione, interventi.cantiere_id, interventi.abbonamento_id, interventi.created_at,
                       CASE WHEN c.tipo = 'persona_fisica'
                            THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
