@@ -176,25 +176,38 @@ body.fc-dragging .fc-event { pointer-events: none; }
     background: rgba(var(--bs-warning-rgb), .12) !important;
 }
 
-/* Titolo cliccabile: apre il datepicker nativo per saltare a una data */
+/* Titolo cliccabile: sotto c'è l'input reale (.cal-date-jump) che apre il
+   datepicker nativo per saltare a una data — vedi commento lì sopra.
+   position: relative rende questo contenitore l'ancora per l'input assoluto. */
+.fc-toolbar-chunk:has(.fc-toolbar-title) {
+    position: relative;
+}
 .fc-toolbar-title {
     cursor: pointer;
 }
 
-/* Input date invisibile usato solo per aprire il datepicker nativo del
-   browser via JS (vedi calendario/index.php) — mai visibile né tabbabile.
-   Dimensione 1px (non 0): il browser ancora il popup del picker alla posizione
-   di questo elemento, con size zero l'ancoraggio risulta impreciso.
-   position: fixed perché il JS la riposiziona con coordinate da getBoundingClientRect(),
-   relative alla finestra — sopra al titolo, che cambia posto a ogni vista. */
+/* Input date invisibile ma tabbabile via tap: incollato al contenitore del
+   titolo del calendario (JS montaInputVaiAData() in calendario/index.php lo
+   inserisce lì) e riempito con position:absolute/inset:0 — resta allineato
+   ad ogni riflusso del layout gestito dal browser, niente coordinate
+   calcolate a mano. Necessario perché showPicker() invocato via JS su un
+   elemento diverso dall'input non è riconosciuto come gesto utente diretto
+   da alcuni browser iOS non-Safari (Chrome/Firefox), che rifiutano
+   l'apertura del picker con NotAllowedError — qui invece è il tap reale
+   dell'utente a cadere sull'input, il picker si apre da solo. */
 .cal-date-jump {
-    position: fixed;
-    width: 1px;
-    height: 1px;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     padding: 0;
+    margin: 0;
     border: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
     opacity: 0;
-    pointer-events: none;
+    z-index: 10;
 }
 
 /* ============================================================

@@ -525,6 +525,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - PDF ristilizzato riprendendo il pattern grafico già usato per le stampe Cliente/Cantiere (a sua volta ripreso dal vecchio progetto): header con logo, badge priorità colorati, righe urgenti evidenziate
 - `InterventiModel::perGiornata()` accetta un `$tecnicoId` opzionale; `ViaggioController` carica l'elenco tecnici e propaga il filtro al PDF
 
+#### ✅ v0.24.20 — Fix: "Vai a data" del calendario non funzionava su mobile (iOS Safari/Chrome)
+- Il tap sul titolo del calendario ora apre correttamente il datepicker nativo su desktop, Safari iOS e Chrome iOS — su mobile prima non succedeva nulla (Chrome) o compariva anche un pill grigio indesiderato (Safari)
+- L'input `type="date"` invisibile non viene più riposizionato via `getBoundingClientRect()` al click: è incollato nel DOM dentro il contenitore del titolo e dimensionato con CSS puro (`position:absolute; inset:0`), sempre allineato ad ogni riflusso del layout
+- `showPicker()` chiamata da un listener attaccato direttamente sull'input (non delegato da un ancestor): i browser iOS non-Safari (Chrome/Firefox) rifiutavano la chiamata delegata con `NotAllowedError`, non riconoscendola come gesto utente diretto
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

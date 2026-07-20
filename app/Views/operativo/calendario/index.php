@@ -223,11 +223,12 @@ $prioritaInfo = [
 
         <div class="card">
             <div class="card-body p-2 p-md-3">
-                <!-- Input nativo invisibile: aperto via JS al click sul titolo del calendario,
-                     per saltare a una data scelta dal datepicker del sistema/browser. Va prima
-                     di #calendario nel DOM così il popup si ancora vicino al titolo (in alto),
-                     non in fondo dopo tutta la griglia del calendario. -->
-                <input type="date" id="calendario-vai-a-data" class="cal-date-jump" tabindex="-1" aria-hidden="true">
+                <!-- Input nativo invisibile, tenuto sempre sovrapposto al titolo del calendario
+                     (vedi posizionaInputVaiAData() più sotto): il tap dell'utente cade sul vero
+                     <input>, che apre da solo il datepicker nativo del browser per saltare a una
+                     data. Va prima di #calendario nel DOM così il popup si ancora vicino al
+                     titolo (in alto), non in fondo dopo tutta la griglia del calendario. -->
+                <input type="date" id="calendario-vai-a-data" class="cal-date-jump" tabindex="-1">
                 <div id="calendario"></div>
             </div>
         </div>
@@ -878,30 +879,39 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             return { html: html };
         },
+        datesSet: function () { montaInputVaiAData(); },
     });
     calendar.render();
 
-    // ---- Vai a data: click sul titolo apre il datepicker nativo del browser ----
-    document.getElementById('calendario').addEventListener('click', function (e) {
-        var titolo = e.target.closest('.fc-toolbar-title');
-        if (!titolo) return;
-        var pad = function (n) { return String(n).padStart(2, '0'); };
-        var d = calendar.getDate();
-        var inputVaiAData = document.getElementById('calendario-vai-a-data');
-        // Il popup del picker si ancora alla posizione dell'input: lo spostiamo
-        // esattamente sopra al titolo (che cambia posto/larghezza a ogni vista)
-        // prima di aprirlo, invece di tenerlo fermo in un punto fisso della pagina.
-        var rect = titolo.getBoundingClientRect();
-        inputVaiAData.style.left = rect.left + 'px';
-        inputVaiAData.style.top  = rect.top + 'px';
-        inputVaiAData.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-        // .click() non apre il calendarietto su un input date (a differenza di un input file):
-        // serve showPicker(), col fallback per i browser che non lo supportano ancora.
-        if (inputVaiAData.showPicker) {
-            inputVaiAData.showPicker();
-        } else {
-            inputVaiAData.click();
+    // ---- Vai a data: input reale incollato al titolo (invisibile) ----
+    // Il tap/click dell'utente cade sempre sul vero <input type="date">, non
+    // su un elemento intermedio: il focus arriva davvero all'input (verificato
+    // in console), ma cliccare sul campo data di Chrome/Edge apre il picker
+    // solo se si colpisce l'iconcina interna del calendario, non il testo —
+    // serve comunque showPicker() per aprirlo cliccando ovunque nel titolo.
+    // Chiamarla da un listener attaccato DIRETTAMENTE sull'input (non delegato
+    // da un elemento ancestor) è ciò che la rende un gesto utente valido anche
+    // su Chrome/Firefox iOS, che prima rifiutavano con NotAllowedError.
+    // Posizionamento con CSS puro (position:absolute dentro il contenitore del
+    // titolo, vedi calendario.css), non con getBoundingClientRect(): il motore
+    // di layout del browser tiene l'input allineato ad ogni riflusso (resize,
+    // scrollbar che compare, font che finisce di caricare...) senza bisogno di
+    // ricalcolare le coordinate a mano su ogni possibile evento.
+    function montaInputVaiAData() {
+        var titolo = document.querySelector('#calendario .fc-toolbar-title');
+        var input  = document.getElementById('calendario-vai-a-data');
+        if (!titolo || !input) return;
+        var contenitore = titolo.closest('.fc-toolbar-chunk') || titolo.parentElement;
+        if (input.parentElement !== contenitore) {
+            contenitore.appendChild(input);
         }
+        var d = calendar.getDate();
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        input.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+    montaInputVaiAData();
+    document.getElementById('calendario-vai-a-data').addEventListener('click', function () {
+        if (this.showPicker) this.showPicker();
     });
     document.getElementById('calendario-vai-a-data').addEventListener('change', function () {
         if (this.value) calendar.gotoDate(this.value);

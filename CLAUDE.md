@@ -65,6 +65,16 @@ Shield salva i dati dell'utente in sessione sotto la chiave `'user'` (array con 
 **`dd()` funziona regolarmente**
 CodeIgniter 4 include una copia vendorizzata di Kint dentro il framework (`vendor/codeigniter4/framework/system/ThirdParty/Kint/`), attivata automaticamente quando `CI_DEBUG` è `true` (ambiente `development`) — non serve installare `kint-php/kint` separatamente. Verificato con `dd()` diretto: dump completo e corretto. Se in una sessione di debug sembra non fare nulla, sospettare prima il contesto (output engoiato da un ob_start() esterno, contenuto che appare ma passa inosservato più in alto/basso nella pagina) prima di concludere che Kint sia assente.
 
+**Accesso da smartphone in LAN (dev server)**
+Per testare l'app dal telefono sulla stessa rete Wi-Fi del PC di sviluppo:
+1. `cd d:\Programmazione\Progetti\colombinisnc`
+2. `php -S 0.0.0.0:8081 -t public` (in ascolto su tutte le interfacce, non solo `localhost`)
+3. Dal telefono: `http://<IP-LAN-PC>:8081`
+
+`app.baseURL` in `.env` è attualmente impostato su `http://192.168.1.133:8081` (IP LAN del PC di sviluppo, non `localhost:8081`) — necessario perché `base_url()` genera i link assoluti in base a quel valore fisso, non in base all'host da cui arriva la richiesta. Funziona identico anche da desktop (basta aprire lo stesso IP invece di `localhost`), quindi si può lasciare così come configurazione permanente di sviluppo.
+
+Se l'IP del PC cambia (riconnessione Wi-Fi, rinnovo DHCP): controllare il nuovo indirizzo con `ipconfig` (voce "Indirizzo IPv4" della scheda Wi-Fi) e aggiornare `app.baseURL` di conseguenza. Per fermare il server: `Ctrl+C` nel terminale in cui gira.
+
 ## Sistema di ritorno "from"
 Quando un form (edit o nuovo) può essere aperto da contesti diversi (lista, scheda cliente, ecc.), si usa il parametro `from` per tornare alla pagina di origine dopo salvataggio o eliminazione.
 

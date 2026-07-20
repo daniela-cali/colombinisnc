@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.20] - 2026-07-20
+
+### Fix: "Vai a data" del calendario non funzionava su mobile (iOS Safari/Chrome)
+
+- [APP] Cliccando/toccando il titolo del calendario il datepicker nativo si apre correttamente su tutti i browser testati (desktop, Safari iOS, Chrome iOS) — prima su mobile non succedeva nulla, e su Safari iOS compariva anche un pill grigio indesiderato con la data
+- [DEV] L'input `type="date"` invisibile non viene più tenuto a parte e riposizionato via `getBoundingClientRect()` al click: è ora incollato nel DOM dentro il contenitore del titolo (`.fc-toolbar-chunk`) e dimensionato con CSS puro (`position:absolute; inset:0`), così resta sempre allineato ad ogni riflusso del layout senza ricalcoli manuali
+- [DEV] `showPicker()` chiamata da un listener attaccato direttamente sull'input (non più delegato da un elemento ancestor): necessario perché Chrome/Firefox per iOS rifiutavano la chiamata con `NotAllowedError`, non riconoscendo un click delegato come gesto utente diretto
+- [DEV] Rimosso `aria-hidden="true"` dall'input: in conflitto con la sua natura ora realmente interattiva (focus reale al click), Chrome lo segnalava in console
+
 ## [0.24.19] - 2026-07-19
 
 ### Foglio di viaggio: layout a card, filtro tecnico e PDF ristilizzato
