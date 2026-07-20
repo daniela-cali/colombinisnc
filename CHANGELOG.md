@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.21] - 2026-07-20
+
+### Calendario: pool collassato di default, JS in file esterno, fix crash sul drag
+
+- [APP] Il pannello "Da pianificare" si apre ora con il secondo livello (tipi di intervento) già chiuso, mostrando solo le zone — meno scroll da subito, si espande con un click
+- [DEV] Fix: trascinare un evento sul calendario generava un `TypeError` in console (bug del Tooltip di Bootstrap in conflitto con l'elemento "mirror" che FullCalendar crea durante il drag) — i tooltip ora vengono saltati sull'elemento mirror (`info.isMirror`)
+- [DEV] Tutto il JavaScript della pagina Calendario (~650 righe inline) spostato in `public/js/calendario.js`; i dati passati da PHP (URL, CSRF, tecnici, assenze, flag) sono ora raccolti in un unico oggetto `window.CalendarioConfig` invece di interpolazioni PHP sparse nello script
+
 ## [0.24.20] - 2026-07-20
 
 ### Fix: "Vai a data" del calendario non funzionava su mobile (iOS Safari/Chrome)

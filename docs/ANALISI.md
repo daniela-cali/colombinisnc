@@ -530,6 +530,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - L'input `type="date"` invisibile non viene più riposizionato via `getBoundingClientRect()` al click: è incollato nel DOM dentro il contenitore del titolo e dimensionato con CSS puro (`position:absolute; inset:0`), sempre allineato ad ogni riflusso del layout
 - `showPicker()` chiamata da un listener attaccato direttamente sull'input (non delegato da un ancestor): i browser iOS non-Safari (Chrome/Firefox) rifiutavano la chiamata delegata con `NotAllowedError`, non riconoscendola come gesto utente diretto
 
+#### ✅ v0.24.21 — Calendario: pool collassato di default, JS in file esterno, fix crash sul drag
+- Pannello "Da pianificare": il secondo livello (tipi di intervento) si apre già chiuso, restano visibili solo le zone
+- Fix: `TypeError` in console trascinando un evento sul calendario, causato dal Tooltip di Bootstrap in conflitto con l'elemento "mirror" creato da FullCalendar durante il drag — tooltip ora saltato su `info.isMirror`
+- Refactor: le ~650 righe di JS inline della view spostate in `public/js/calendario.js`, dati da PHP raccolti in un unico oggetto `window.CalendarioConfig`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
