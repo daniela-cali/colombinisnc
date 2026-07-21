@@ -12,6 +12,11 @@
         var from           = encodeURIComponent(cfg.urls.calendario);
         var urlInterventi  = cfg.urls.interventi;
 
+        // Id dell'evento da evidenziare non appena viene montato (barra "In ritardo":
+        // dopo un gotoDate() verso una data fuori dalla vista corrente, il fetch degli
+        // eventi è asincrono, quindi il flash non può scattare subito dopo la chiamata).
+        var pendingFlashId = null;
+
         function escHtml(s) {
             return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
@@ -427,6 +432,7 @@
                 // passa anche lui da qui, ma essendo creato/distrutto in continuazione un
                 // tooltip su di lui scatenerebbe la stessa race condition del drag stesso.
                 if (info.isMirror) return;
+                info.el.dataset.eventoId = info.event.id;
                 var p   = info.event.extendedProps;
                 var tip = [info.event.title, p.citta, p.tecnico, p.tipo].filter(Boolean).join(' · ');
                 new bootstrap.Tooltip(info.el, { title: tip, placement: 'top', trigger: 'hover', container: 'body' });
@@ -434,6 +440,11 @@
                     var tooltip = bootstrap.Tooltip.getInstance(info.el);
                     if (tooltip) tooltip.hide();
                 });
+                // Evento appena montato dopo un gotoDate innescato dalla barra "In ritardo".
+                if (pendingFlashId && String(info.event.id) === String(pendingFlashId)) {
+                    pendingFlashId = null;
+                    flashElement(info.el);
+                }
             },
             eventWillUnmount: function (info) {
                 if (info.isMirror) return;
@@ -657,6 +668,87 @@
                     poolPanel.style.width = w ? w + 'px' : '';
                 }
                 calendar.updateSize();
+            });
+        }
+
+        // ---- Barra "In ritardo": click = evidenzia in pagina, doppio click = apri scheda ----
+        // Su mobile la sidebar pool non esiste: il tap naviga direttamente alla scheda
+        // intervento (comportamento nativo del link, nessun listener da aggiungere qui).
+        function flashElement(el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('cal-flash');
+            setTimeout(function () { el.classList.remove('cal-flash'); }, 1800);
+        }
+
+        // Apre (se chiuse) le collapse Bootstrap di zona/sottogruppo che contengono la
+        // card e, se il pool è compresso a icona, lo riespande prima di fare scroll.
+        function evidenziaScadenzaPool(id) {
+            var card = document.querySelector('.pool-card[data-id="' + id + '"]');
+            if (!card) return;
+            if (poolPanel.classList.contains('pool-mini')) {
+                poolPanel.classList.remove('pool-mini');
+                localStorage.setItem('pool-mini', '0');
+                var w = localStorage.getItem('pool-sidebar-width');
+                poolPanel.style.width = w ? w + 'px' : '';
+                calendar.updateSize();
+            }
+            var el = card;
+            while ((el = el.parentElement) && el.id !== 'pool-container') {
+                if (el.classList.contains('collapse') && !el.classList.contains('show')) {
+                    bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).show();
+                }
+            }
+            flashElement(card);
+        }
+
+        // Porta in vista la data pianificata dell'evento e lo evidenzia. Se la data è
+        // già nella vista corrente l'evento è già montato: flash immediato. Altrimenti
+        // il gotoDate() forza un nuovo fetch asincrono e il flash scatta da eventDidMount
+        // (vedi pendingFlashId più sopra) appena l'evento compare nel DOM.
+        function evidenziaScadenzaEvento(badge) {
+            var id          = badge.dataset.id;
+            var pianificata = badge.dataset.pianificata;
+            if (pianificata) calendar.gotoDate(pianificata.substring(0, 10));
+            var el = document.querySelector('.fc-event[data-evento-id="' + id + '"]');
+            if (el) flashElement(el);
+            else    pendingFlashId = id;
+        }
+
+        // Le pill usano data-bs-toggle="collapse" (per l'espansione), quindi il loop
+        // globale di inizializzazione tooltip in admin.php (che cerca data-bs-toggle
+        // "tooltip") non le intercetta: le inizializziamo qui esplicitamente.
+        document.querySelectorAll('.scadenza-pill').forEach(function (el) {
+            new bootstrap.Tooltip(el, { placement: 'top', trigger: 'hover' });
+        });
+
+        var barraScadenze = document.getElementById('barra-scadenze');
+        if (barraScadenze) {
+            var timerClickScadenza = null;
+            barraScadenze.addEventListener('click', function (e) {
+                var badge = e.target.closest('.scadenza-badge');
+                if (!badge || isMobile) return; // mobile: lascia navigare il link nativo
+                e.preventDefault();
+                if (timerClickScadenza) {
+                    // Secondo click di un doppio click: annulla l'evidenziazione singola,
+                    // la navigazione la fa il listener dblclick qui sotto.
+                    clearTimeout(timerClickScadenza);
+                    timerClickScadenza = null;
+                    return;
+                }
+                timerClickScadenza = setTimeout(function () {
+                    timerClickScadenza = null;
+                    if (badge.dataset.stato === 'da_pianificare') {
+                        evidenziaScadenzaPool(badge.dataset.id);
+                    } else {
+                        evidenziaScadenzaEvento(badge);
+                    }
+                }, 250);
+            });
+            barraScadenze.addEventListener('dblclick', function (e) {
+                var badge = e.target.closest('.scadenza-badge');
+                if (!badge || isMobile) return;
+                e.preventDefault();
+                window.location.href = badge.href;
             });
         }
     });

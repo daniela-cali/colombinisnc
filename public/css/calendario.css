@@ -176,6 +176,35 @@ body.fc-dragging .fc-event { pointer-events: none; }
     background: rgba(var(--bs-warning-rgb), .12) !important;
 }
 
+/* Barra "In ritardo" — tre varianti badge in ordine di gravità */
+.scadenza-badge {
+    cursor: pointer;
+}
+.badge-scadenza-mancato {
+    background: #7a1f2b;
+    color: #fff;
+}
+.badge-scadenza-ritardo {
+    background: var(--bs-danger);
+    color: #fff;
+}
+.badge-scadenza-fermo {
+    background: var(--bs-warning);
+    color: #000;
+}
+
+/* Evidenziazione temporanea di una pool-card o di un evento FullCalendar,
+   dopo un click su un badge della barra "In ritardo" (calendario.js). */
+@keyframes cal-flash-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--bs-warning-rgb), 0); }
+    50%      { box-shadow: 0 0 0 5px rgba(var(--bs-warning-rgb), .6); }
+}
+.cal-flash {
+    animation: cal-flash-pulse .6s ease-in-out 3;
+    outline: 2px solid var(--bs-warning);
+    outline-offset: 1px;
+}
+
 /* Titolo cliccabile: sotto c'è l'input reale (.cal-date-jump) che apre il
    datepicker nativo per saltare a una data — vedi commento lì sopra.
    position: relative rende questo contenitore l'ancora per l'input assoluto. */

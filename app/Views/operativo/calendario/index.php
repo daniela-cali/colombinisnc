@@ -7,7 +7,9 @@
  * @var array $totaliPerZona Map zona => totale interventi
  * @var array $poolPerZona Map zona => blocchi[] (ciascuno: key, label, icona, interventi[])
  * @var array   $zoneLabel
- * @var array[] $scadenze
+ * @var array $scadenzePerMotivo Map motivo (mancato/ritardo/fermo) => righe[] da
+ *      InterventiModel::scadenzeInRitardo() (id, data_scadenza, stato, data_pianificata,
+ *      created_at, cliente_denominazione, motivo, giorni)
  * @var string      $oraInizio
  * @var bool        $puoPromemoria
  * @var string|null $dataIniziale
@@ -203,20 +205,62 @@ $prioritaInfo = [
             </form>
         </div>
 
-        <?php if (!empty($scadenze)): ?>
-        <div class="alert alert-warning py-2 mb-2 d-flex align-items-center flex-wrap gap-2">
-            <small class="fw-bold text-nowrap" style="cursor:help;"
-                   data-bs-toggle="tooltip" data-bs-placement="top"
-                   data-bs-title="Interventi con una data di scadenza ancora da completare: tutti quelli singoli e, dagli abbonamenti, solo quelli in scadenza entro questo mese. Clicca un badge per aprire l'intervento.">
-                <i class="bi bi-clock me-1"></i>Scadenze aperte:
-                <i class="bi bi-info-circle ms-1"></i>
-            </small>
-            <?php foreach ($scadenze as $s): ?>
-            <a href="<?= base_url('operativo/interventi/' . $s['id']) ?>"
-               class="badge bg-light border fw-normal text-dark text-decoration-none">
-                <?= esc($s['cliente_denominazione'] ?: '—') ?>
-                <span class="text-muted">· <?= date('d/m', strtotime($s['data_scadenza'])) ?></span>
-            </a>
+        <?php if (array_sum(array_map('count', $scadenzePerMotivo))):
+            $motivoInfo = [
+                'mancato' => ['label' => 'Non completato', 'badge' => 'badge-scadenza-mancato', 'icona' => 'bi-calendar-x',
+                              'tooltip' => 'Interventi pianificati con data ormai passata, mai completati né annullati.'],
+                'ritardo' => ['label' => 'In ritardo',     'badge' => 'badge-scadenza-ritardo', 'icona' => 'bi-clock',
+                              'tooltip' => 'Interventi con la data di scadenza superata, qualunque sia lo stato.'],
+                'fermo'   => ['label' => 'Fermo',          'badge' => 'badge-scadenza-fermo',   'icona' => 'bi-hourglass-split',
+                              'tooltip' => 'Interventi da pianificare, inseriti da più di 7 giorni e senza una scadenza già superata.'],
+            ];
+        ?>
+        <div class="alert alert-warning py-2 mb-2" id="barra-scadenze">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <small class="fw-bold text-nowrap">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Attenzione
+                </small>
+                <?php foreach ($motivoInfo as $motivo => $info):
+                    if (empty($scadenzePerMotivo[$motivo])) continue;
+                ?>
+                <a class="badge scadenza-pill <?= $info['badge'] ?> fw-normal text-decoration-none"
+                   data-bs-toggle="collapse" href="#scadenze-<?= $motivo ?>"
+                   data-bs-placement="top" data-bs-title="<?= esc($info['tooltip']) ?>">
+                    <i class="bi <?= $info['icona'] ?> me-1"></i><?= $info['label'] ?>
+                    <span class="badge bg-black bg-opacity-25 ms-1"><?= count($scadenzePerMotivo[$motivo]) ?></span>
+                </a>
+                <?php endforeach; ?>
+            </div>
+            <?php foreach ($motivoInfo as $motivo => $info):
+                if (empty($scadenzePerMotivo[$motivo])) continue;
+            ?>
+            <div class="collapse mt-2" id="scadenze-<?= $motivo ?>">
+                <div class="d-flex flex-wrap gap-2">
+                    <?php foreach ($scadenzePerMotivo[$motivo] as $s):
+                        $giorniLabel = $s['giorni'] . ' giorn' . ($s['giorni'] == 1 ? 'o' : 'i');
+                        if ($motivo === 'mancato') {
+                            $tooltip      = 'Appuntamento del ' . date('d/m', strtotime($s['data_pianificata'])) . ' risulta non completato';
+                            $dataMostrata = date('d/m', strtotime($s['data_pianificata']));
+                        } elseif ($motivo === 'ritardo') {
+                            $tooltip      = 'In ritardo di ' . $giorniLabel;
+                            $dataMostrata = date('d/m', strtotime($s['data_scadenza']));
+                        } else {
+                            $tooltip      = 'Fermo da ' . $giorniLabel;
+                            $dataMostrata = null;
+                        }
+                    ?>
+                    <a href="<?= base_url('operativo/interventi/' . $s['id']) ?>"
+                       class="badge scadenza-badge <?= $info['badge'] ?> fw-normal text-decoration-none"
+                       data-id="<?= $s['id'] ?>"
+                       data-stato="<?= esc($s['stato']) ?>"
+                       data-pianificata="<?= esc($s['data_pianificata'] ?? '') ?>"
+                       data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="<?= esc($tooltip) ?>">
+                        <?= esc($s['cliente_denominazione'] ?: '—') ?>
+                        <?php if ($dataMostrata): ?><span class="opacity-75">· <?= $dataMostrata ?></span><?php endif; ?>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>

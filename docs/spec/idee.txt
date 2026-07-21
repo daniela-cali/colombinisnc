@@ -18,7 +18,8 @@ Riunione 10.07.2026
 
 6.R materiale da portare prossima visita! fare brainstorming, secondo me tocca anche la parte della dashboard tecnico in chiusura intervento
 
-7.R verificare scadenze aperte.. così crea troppo casino: elenco collassabile? fare brainstorming assieme
+7.R CHIUSO v0.24.22 — verificare scadenze aperte.. così crea troppo casino: elenco collassabile? fare brainstorming assieme
+(diviso in due: barra "Attenzione" nel calendario con tre pill collassabili, qui chiusa; concetto generico "entro la settimana" rimandato a una futura card dashboard, non ancora specificato)
 
 8.R CHIUSO v0.24.18 — Click sulla data da mobile: datepicker: click sul titolo del calendario apre il datepicker nativo del browser (mobile e desktop)
 

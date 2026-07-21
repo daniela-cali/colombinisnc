@@ -1,5 +1,16 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.22] - 2026-07-21
+
+### Calendario: barra "Attenzione" con scadenze in ritardo, appuntamenti mancati e interventi fermi
+
+- [APP] La barra "Scadenze aperte" del calendario diventa "Attenzione": tre pill collassabili — **Non completato** (appuntamento passato mai chiuso), **In ritardo** (scadenza superata), **Fermo** (da pianificare, inserito da più di 7 giorni) — ciascuna con conteggio e tooltip che spiega il criterio
+- [APP] Click su un intervento nella pill: se è da pianificare, apre il pool e lo evidenzia con uno scroll+flash; se è già pianificato, porta il calendario alla sua data e lo evidenzia allo stesso modo — nessuna navigazione fuori pagina
+- [APP] Doppio click su un intervento (tap su mobile) apre direttamente la sua scheda
+- [DEV] `InterventiModel::scadenzeAperte()` sostituito da `scadenzeInRitardo()`: nuova query con motivo/giorni calcolati in PHP; gli interventi da abbonamento generati in blocco a inizio anno sono esclusi dal criterio "fermo" finché la loro scadenza non rientra nel mese corrente (altrimenti risulterebbero sempre fermi per costruzione)
+- [DEV] `CalendarioController` raggruppa le scadenze per motivo (`scadenzePerMotivo`) prima di passarle alla view
+- [DEV] `calendario.js`: nuovo click-handler con distinzione singolo/doppio click (desktop) e tap diretto (mobile); nuova classe `.cal-flash` (animazione pulse) riusata su pool-card ed eventi FullCalendar; tooltip delle pill inizializzati esplicitamente (usano `data-bs-toggle="collapse"`, non intercettati dal loop globale)
+
 ## [0.24.21] - 2026-07-20
 
 ### Calendario: pool collassato di default, JS in file esterno, fix crash sul drag

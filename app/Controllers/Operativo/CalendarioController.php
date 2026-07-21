@@ -82,7 +82,12 @@ class CalendarioController extends BaseController
             $poolPerZona[$zona] = $blocchi;
         }
 
-        $scadenze = (new InterventiModel())->scadenzeAperte();
+        // Raggruppate per motivo (mancato/ritardo/fermo) per la barra a pill collassabili:
+        // il foreach smista senza riordinare, l'ordine (già corretto) viene dal model.
+        $scadenzePerMotivo = ['mancato' => [], 'ritardo' => [], 'fermo' => []];
+        foreach ((new InterventiModel())->scadenzeInRitardo() as $s) {
+            $scadenzePerMotivo[$s['motivo']][] = $s;
+        }
 
         // Data su cui aprire il calendario (es. click su un avviso in campanella):
         // riformattata per passare al JS solo una data pulita, mai input grezzo.
@@ -102,7 +107,7 @@ class CalendarioController extends BaseController
             'materialiPerIntervento' => $materialiPerIntervento,
             'poolPerZona' => $poolPerZona,
             'zoneLabel'  => $zoneLabel,
-            'scadenze'   => $scadenze,
+            'scadenzePerMotivo' => $scadenzePerMotivo,
             'oraInizio'  => setting('Azienda.orario_inizio') ?? '08:00',
             'help_sezione' => 'calendario',
             'puoPromemoria' => auth()->user()->inGroup('ufficio', 'admin', 'developer'),

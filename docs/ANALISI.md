@@ -535,6 +535,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Fix: `TypeError` in console trascinando un evento sul calendario, causato dal Tooltip di Bootstrap in conflitto con l'elemento "mirror" creato da FullCalendar durante il drag — tooltip ora saltato su `info.isMirror`
 - Refactor: le ~650 righe di JS inline della view spostate in `public/js/calendario.js`, dati da PHP raccolti in un unico oggetto `window.CalendarioConfig`
 
+#### ✅ v0.24.22 — Calendario: barra "Attenzione" con scadenze in ritardo, appuntamenti mancati e interventi fermi
+- Sostituisce la barra "Scadenze aperte" (chiude il punto 7.R degli appunti riunione): tre pill collassabili — Non completato, In ritardo, Fermo — con conteggio e tooltip per motivo
+- Click su un intervento evidenzia (scroll+flash) la card/evento in pagina senza uscire dal calendario; doppio click (tap su mobile) apre la scheda
+- `InterventiModel::scadenzeInRitardo()` sostituisce `scadenzeAperte()`: motivo e giorni calcolati in PHP, gli abbonamenti generati in blocco sono esclusi dal criterio "fermo" finché la scadenza non rientra nel mese corrente
+- Concetto generico "scadenze entro un orizzonte futuro" (non urgenti) rimandato a una futura card dashboard, non ancora specificata
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

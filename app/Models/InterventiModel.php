@@ -283,29 +283,65 @@ class InterventiModel extends Model
     }
 
     /**
-     * Scadenze aperte per la barra promemoria del calendario.
-     * Stessa logica del pool: gli interventi da abbonamento appaiono solo nel mese di scadenza.
+     * Scadenze in ritardo per la barra avviso del calendario: appuntamenti mancati
+     * (pianificati con data ormai passata e mai completati), scadenze superate e
+     * interventi da pianificare fermi da più di 7 giorni. Aggiunge a ogni riga
+     * 'motivo' (mancato/ritardo/fermo, in ordine di gravità) e 'giorni', calcolati
+     * in PHP dopo il fetch e usati per ordinare (mancati/ritardo prima, dal più
+     * vecchio) e per i tooltip lato view.
      */
-    public function scadenzeAperte(): array
+    public function scadenzeInRitardo(): array
     {
-        return $this->select("interventi.id, interventi.data_scadenza,
+        $righe = $this->select("interventi.id, interventi.data_scadenza, interventi.stato,
+                      interventi.data_pianificata, interventi.created_at,
                       CASE WHEN c.tipo = 'persona_fisica'
                            THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                            ELSE c.ragsoc
                       END AS cliente_denominazione")
             ->join('clienti c', 'c.id = interventi.cliente_id', 'left')
-            ->where('interventi.data_scadenza IS NOT NULL', null, false)
             ->where('interventi.stato !=', self::STATO_COMPLETATO)
             ->where('interventi.stato !=', self::STATO_ANNULLATO)
             ->groupStart()
-                ->where('interventi.abbonamento_id IS NULL', null, false)
+                ->groupStart()
+                    ->where('interventi.stato', self::STATO_DA_PIANIFICARE)
+                    // Il criterio "fermo" (created_at) esclude gli abbonamenti generati in
+                    // blocco con scadenza oltre il mese corrente: created_at è sempre vecchio
+                    // per costruzione, ma non sono davvero fermi finché non è il loro mese.
+                    ->where('(interventi.data_scadenza < CURDATE()
+                              OR (interventi.created_at <= CURDATE() - INTERVAL 7 DAY
+                                  AND (interventi.abbonamento_id IS NULL OR interventi.data_scadenza <= LAST_DAY(CURDATE()))))', null, false)
+                ->groupEnd()
                 ->orGroupStart()
-                    ->where('interventi.abbonamento_id IS NOT NULL', null, false)
-                    ->where('interventi.data_scadenza <= LAST_DAY(CURDATE())', null, false)
+                    ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])
+                    ->where('(interventi.data_scadenza < CURDATE() OR interventi.data_pianificata < CURDATE())', null, false)
                 ->groupEnd()
             ->groupEnd()
-            ->orderBy('interventi.data_scadenza', 'ASC')
             ->findAll();
+
+        $oggi = new \DateTime('today');
+        foreach ($righe as &$r) {
+            if (in_array($r['stato'], [self::STATO_PIANIFICATO, self::STATO_IN_CORSO], true)
+                && $r['data_pianificata'] && substr($r['data_pianificata'], 0, 10) < $oggi->format('Y-m-d')) {
+                $r['motivo'] = 'mancato';
+                $r['giorni'] = $oggi->diff(new \DateTime($r['data_pianificata']))->days;
+            } elseif ($r['data_scadenza'] && $r['data_scadenza'] < $oggi->format('Y-m-d')) {
+                $r['motivo'] = 'ritardo';
+                $r['giorni'] = $oggi->diff(new \DateTime($r['data_scadenza']))->days;
+            } else {
+                $r['motivo'] = 'fermo';
+                $r['giorni'] = $oggi->diff(new \DateTime($r['created_at']))->days;
+            }
+        }
+        unset($r);
+
+        usort($righe, function (array $a, array $b): int {
+            $peso = ['mancato' => 0, 'ritardo' => 0, 'fermo' => 1];
+            $pa   = $peso[$a['motivo']];
+            $pb   = $peso[$b['motivo']];
+            return $pa !== $pb ? $pa <=> $pb : $b['giorni'] <=> $a['giorni'];
+        });
+
+        return $righe;
     }
 
     /**
