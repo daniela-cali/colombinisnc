@@ -20,7 +20,7 @@ class PersonaleController extends BaseController
     ];
 
     // Palette colore profilo: tinte distinte per identificare il dipendente nel calendario
-    private const PASTELLI = [
+    public const PASTELLI = [
         '#e5645a', '#ef8b5a', '#f2b04a', '#e8ce4d', '#b5d24f',
         '#78c15c', '#4fb389', '#4cb6c4', '#4f9fe0', '#5b7ce0',
         '#7d6fd6', '#a469d3', '#c96ec4', '#e46a9b', '#8b98a8',

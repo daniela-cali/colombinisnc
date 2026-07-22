@@ -25,6 +25,7 @@ Riunione 10.07.2026
 
 9.R CHIUSO v0.24.19 — Rivedere pagina foglio di viaggio, non coerente con lo stile!
 
-10.R I tecnici dal loro profilo non si possono assegnare altri diritti e non possono creare un nuovo dipendente rotte protette? 
+10.R CHIUSO v0.24.23 — I tecnici dal loro profilo non si possono assegnare altri diritti e non possono creare un nuovo dipendente rotte protette?
+(rotte anagrafiche/personale e impostazioni protette da permessi Shield lato server; profilo personale separato dal form admin, niente più gruppi/eliminazione)
 
 11.R CHIUSO v0.24.16 — i modal promemoria e changelog si sovrappongono: ora si mostrano in sequenza (novità prima, poi promemoria) tramite una coda JS condivisa

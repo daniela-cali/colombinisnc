@@ -541,6 +541,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `InterventiModel::scadenzeInRitardo()` sostituisce `scadenzeAperte()`: motivo e giorni calcolati in PHP, gli abbonamenti generati in blocco sono esclusi dal criterio "fermo" finché la scadenza non rientra nel mese corrente
 - Concetto generico "scadenze entro un orizzonte futuro" (non urgenti) rimandato a una futura card dashboard, non ancora specificata
 
+#### ✅ v0.24.23 — Rotte protette per personale/impostazioni: chiusa possibile auto-assegnazione di diritti (10.R)
+- "Il mio profilo" diventa una pagina dedicata (view/controller separati da `PersonaleController`): solo dati anagrafici e credenziali proprie, niente gruppi né eliminazione
+- Nuovi permessi Shield `personale.manage`/`impostazioni.manage` (admin/developer/ufficio) al posto dei permessi scaffoldati mai usati; rotte `anagrafiche/personale` e `impostazioni` protette dal filtro `permission:...` — prima raggiungibili da qualsiasi utente autenticato via URL diretto, anche se nascoste dal menu per i tecnici
+- `ProfiloController::update()` risolve sempre il proprio dipendente da `user_id()` lato server, eliminando anche l'IDOR sulla propria scheda
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

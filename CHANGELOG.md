@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.23] - 2026-07-22
+
+### Rotte protette per personale/impostazioni: chiusa possibile auto-assegnazione di diritti (10.R)
+
+- [APP] "Il mio profilo" è ora una pagina dedicata, separata dalla scheda dipendente gestita dall'amministrazione: mostra solo i propri dati anagrafici e le credenziali di accesso, senza le opzioni riservate allo staff
+- [DEV] Introdotti i permessi Shield `personale.manage` e `impostazioni.manage` (assegnati a admin/developer/ufficio in `AuthGroups.php`), al posto dei permessi scaffoldati da Shield e mai utilizzati (`admin.access`, `admin.settings`, `users.manage-admins`, `users.create/edit/delete`, `beta.access`)
+- [DEV] Le rotte `anagrafiche/personale` e `impostazioni` sono ora protette lato server dal filtro `permission:...`: prima erano raggiungibili da qualunque utente autenticato tramite URL diretto (erano solo nascoste dal menu per chi è "solo tecnico")
+- [DEV] `ProfiloController` non reindirizza più al form condiviso con l'amministrazione (`anagrafiche/personale/{id}/edit`): nuovo metodo `update()` che risolve sempre il proprio dipendente da `user_id()` lato server, mai da un id ricevuto in POST/URL
+
 ## [0.24.22] - 2026-07-21
 
 ### Calendario: barra "Attenzione" con scadenze in ritardo, appuntamenti mancati e interventi fermi

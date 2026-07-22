@@ -72,12 +72,8 @@ class AuthGroups extends ShieldAuthGroups
      * If a permission is not listed here it cannot be used.
      */
     public array $permissions = [
-        'admin.access'        => 'Can access the sites admin area',
-        'admin.settings'      => 'Can access the main site settings',
-        'users.manage-admins' => 'Can manage other admins',
-        'users.create'        => 'Can create new non-admin users',
-        'users.edit'          => 'Can edit existing non-admin users',
-        'users.delete'        => 'Can delete existing non-admin users',
+        'personale.manage'    => 'Può gestire anagrafica personale e account',
+        'impostazioni.manage' => 'Può accedere alle impostazioni applicative',
     ];
 
     /**
@@ -90,23 +86,18 @@ class AuthGroups extends ShieldAuthGroups
      */
     public array $matrix = [
         'admin' => [
-            'admin.access',
-            'users.create',
-            'users.edit',
-            'users.delete',
-            'beta.access',
+            'personale.manage',
+            'impostazioni.manage',
         ],
         'developer' => [
-            'admin.access',
-            'admin.settings',
-            'users.create',
-            'users.edit',
-            'beta.access',
+            'personale.manage',
+            'impostazioni.manage',
         ],
-        'ufficio' => [],
+        'ufficio' => [
+            'personale.manage',
+            'impostazioni.manage',
+        ],
         'tecnico' => [],
         'cliente' => [],
-
-
     ];
 }

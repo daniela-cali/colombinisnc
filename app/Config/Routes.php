@@ -7,13 +7,14 @@ $routes->get('/', 'DashboardController::index');
 
 $routes->group('profilo', function ($routes) {
     $routes->get('/',              'ProfiloController::index');
+    $routes->post('aggiorna',      'ProfiloController::update');
     $routes->post('versione-vista', 'ProfiloController::versioneVista');
 });
 
 $routes->get('login', '\CodeIgniter\Shield\Controllers\LoginController::loginView', ['filter' => 'noauth']);
 
 // Impostazioni
-$routes->group('impostazioni', function ($routes) {
+$routes->group('impostazioni', ['filter' => 'permission:impostazioni.manage'], function ($routes) {
     $routes->get('/',    'Impostazioni\GeneraleController::index');
 
     $routes->get('parametri',        'Impostazioni\GeneraleController::parametri');
@@ -46,7 +47,7 @@ $routes->group('impostazioni', function ($routes) {
 
 // Anagrafiche
 $routes->group('anagrafiche', function ($routes) {
-    $routes->group('personale', function ($routes) {
+    $routes->group('personale', ['filter' => 'permission:personale.manage'], function ($routes) {
         $routes->get('/',              'Anagrafiche\PersonaleController::index');
         $routes->get('nuovo',          'Anagrafiche\PersonaleController::nuovo');
         $routes->post('store',         'Anagrafiche\PersonaleController::store');
