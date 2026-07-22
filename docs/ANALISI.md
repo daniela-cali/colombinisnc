@@ -546,6 +546,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Nuovi permessi Shield `personale.manage`/`impostazioni.manage` (admin/developer/ufficio) al posto dei permessi scaffoldati mai usati; rotte `anagrafiche/personale` e `impostazioni` protette dal filtro `permission:...` — prima raggiungibili da qualsiasi utente autenticato via URL diretto, anche se nascoste dal menu per i tecnici
 - `ProfiloController::update()` risolve sempre il proprio dipendente da `user_id()` lato server, eliminando anche l'IDOR sulla propria scheda
 
+#### ✅ v0.24.24 — Abbonamenti: fix scadenze duplicate e copertura periodi garantita nel form
+- `AbbonamentiModel::generaInterventi()` scarta le scadenze duplicate/sovrapposte al confine tra periodi consecutivi che condividono lo stesso giorno
+- Form periodi: prima riga eredita la Data inizio abbonamento, bottone "Aggiungi periodo" propone il giorno successivo alla fine dell'ultimo periodo, salvataggio bloccato (browser + server) se manca copertura completa dell'arco abbonamento
+- Vedi `docs/spec/abbonamenti_scadenze_duplicate_spec.md` e `docs/spec/abbonamenti_periodi_copertura_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

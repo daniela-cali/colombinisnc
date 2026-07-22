@@ -204,6 +204,7 @@ class AbbonamentiModel extends Model
 
         $interventiModel = new InterventiModel();
         $count = 0;
+        $ultimaScadenza = null; // garantisce sequenza strettamente crescente tra periodi diversi
 
         foreach ($periodi as $periodo) {
             $scadenze = $this->calcolaScadenzePeriodi(
@@ -213,6 +214,10 @@ class AbbonamentiModel extends Model
             );
 
             foreach ($scadenze as $scadenza) {
+                if ($ultimaScadenza !== null && $scadenza <= $ultimaScadenza) {
+                    continue; // duplicato/sovrapposizione al confine tra periodi: scartato
+                }
+
                 $interventiModel->insert([
                     'cliente_id'         => $abbonamento['cliente_id'],
                     'abbonamento_id'     => $abbonamentoId,
@@ -225,6 +230,7 @@ class AbbonamentiModel extends Model
                     'descrizione'        => 'Visita in abbonamento [#' . $abbonamentoId ."]",
                 ]);
                 $count++;
+                $ultimaScadenza = $scadenza;
             }
         }
 

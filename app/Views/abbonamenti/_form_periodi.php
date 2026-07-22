@@ -8,11 +8,7 @@
  * @var array|null $periodi    Periodi precaricati (edit/rinnova); null = nuovo
  */
 
-$y = date('Y');
 $initialPeriodi = old('periodi') ?: ($periodi ?? []);
-if (empty($initialPeriodi)) {
-    $initialPeriodi = [['data_inizio' => "$y-01-01", 'data_fine' => "$y-12-31", 'frequenza' => '', 'con_pulizia_fondo' => '0']];
-}
 ?>
 
 <p class="text-muted section-header mb-2"><i class="bi bi-calendar3 me-1"></i> Periodi di frequenza</p>
@@ -26,8 +22,10 @@ if (empty($initialPeriodi)) {
 
 <script>
 (function () {
-    const container = document.getElementById('periodi-container');
-    const freqOpts  = <?= json_encode($frequenze, JSON_UNESCAPED_UNICODE) ?>;
+    const container  = document.getElementById('periodi-container');
+    const freqOpts   = <?= json_encode($frequenze, JSON_UNESCAPED_UNICODE) ?>;
+    const abbInizio  = document.querySelector('input[name="data_inizio"]');
+    const abbFine    = document.querySelector('input[name="data_fine"]');
     let counter = 0;
 
     function buildFreqOptions(selected) {
@@ -39,9 +37,8 @@ if (empty($initialPeriodi)) {
     }
 
     function addPeriodo(dataInizio, dataFine, frequenza, conPuliziaFondo) {
-        const y = new Date().getFullYear();
-        dataInizio      = dataInizio      || (y + '-01-01');
-        dataFine        = dataFine        || (y + '-12-31');
+        dataInizio      = dataInizio      || '';
+        dataFine        = dataFine        || '';
         frequenza       = frequenza       || '';
         conPuliziaFondo = conPuliziaFondo != null ? String(conPuliziaFondo) : '0';
 
@@ -100,9 +97,63 @@ if (empty($initialPeriodi)) {
 
     container.dataset.showPulizia = 'false';
 
-    const initial = <?= json_encode(array_values($initialPeriodi), JSON_UNESCAPED_UNICODE) ?>;
-    initial.forEach(p => addPeriodo(p.data_inizio, p.data_fine, p.frequenza, p.con_pulizia_fondo));
+    // La prima riga eredita sempre la Data inizio dell'abbonamento: con un solo periodo
+    // non è una scelta, deve necessariamente coincidere (altrimenti resterebbe calendario scoperto).
+    function sincronizzaPrimoPeriodo() {
+        const prima = container.querySelector('.periodo-row');
+        const inputInizio = prima ? prima.querySelector('input[name$="[data_inizio]"]') : null;
+        if (inputInizio && abbInizio) inputInizio.value = abbInizio.value;
+    }
+    if (abbInizio) abbInizio.addEventListener('input', sincronizzaPrimoPeriodo);
 
-    document.getElementById('btn-add-periodo').addEventListener('click', () => addPeriodo());
+    const initial = <?= json_encode(array_values($initialPeriodi), JSON_UNESCAPED_UNICODE) ?>;
+    if (initial.length > 0) {
+        initial.forEach(p => addPeriodo(p.data_inizio, p.data_fine, p.frequenza, p.con_pulizia_fondo));
+    } else {
+        addPeriodo(abbInizio ? abbInizio.value : '', '', '', '0');
+    }
+
+    // Data fine non si propone mai in automatico (nemmeno per la prima riga): l'utente la sceglie
+    // sempre di persona, il "required" sul campo forza la scelta prima del salvataggio.
+    document.getElementById('btn-add-periodo').addEventListener('click', () => {
+        const righe      = container.querySelectorAll('.periodo-row');
+        const ultima     = righe[righe.length - 1];
+        const fineUltima = ultima ? ultima.querySelector('input[name$="[data_fine]"]') : null;
+        let nuovaInizio  = '';
+        if (fineUltima && fineUltima.value) {
+            const giorno = new Date(fineUltima.value + 'T00:00:00');
+            giorno.setDate(giorno.getDate() + 1);
+            const pad = (n) => String(n).padStart(2, '0');
+            nuovaInizio = giorno.getFullYear() + '-' + pad(giorno.getMonth() + 1) + '-' + pad(giorno.getDate());
+        }
+        addPeriodo(nuovaInizio, '', '', '0');
+    });
+
+    // Blocca il salvataggio se i periodi non coprono l'intero arco dell'abbonamento:
+    // altrimenti resterebbero date senza nessun periodo a definirne la frequenza.
+    const form = container.closest('form');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            const righe = container.querySelectorAll('.periodo-row');
+            if (righe.length === 0) return;
+
+            const inizioPrima = righe[0].querySelector('input[name$="[data_inizio]"]');
+            const fineUltima  = righe[righe.length - 1].querySelector('input[name$="[data_fine]"]');
+
+            const problemi = [];
+            if (abbInizio && inizioPrima && inizioPrima.value && inizioPrima.value !== abbInizio.value) {
+                problemi.push('il primo periodo non inizia il ' + abbInizio.value + ' (Data inizio abbonamento)');
+            }
+            if (abbFine && fineUltima && fineUltima.value && fineUltima.value !== abbFine.value) {
+                problemi.push('l\'ultimo periodo non finisce il ' + abbFine.value + ' (Data fine abbonamento)');
+            }
+
+            if (problemi.length > 0) {
+                e.preventDefault();
+                alert('I periodi non coprono l\'intero arco dell\'abbonamento:\n- ' + problemi.join('\n- ')
+                    + '\n\nCorreggi le date dei periodi oppure il periodo di validità dell\'abbonamento.');
+            }
+        });
+    }
 })();
 </script>

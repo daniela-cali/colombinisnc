@@ -63,6 +63,10 @@ class AbbonamentiController extends BaseController
             return redirect()->back()->withInput()
                 ->with('errors', ['periodi' => 'Aggiungere almeno un periodo di frequenza.']);
         }
+        if (! $this->periodiCoprono($periodi, $this->request->getPost('data_inizio'), $this->request->getPost('data_fine'))) {
+            return redirect()->back()->withInput()
+                ->with('errors', ['periodi' => 'I periodi devono coprire l\'intero arco dell\'abbonamento: il primo deve iniziare e l\'ultimo deve finire alle date del periodo di validità.']);
+        }
 
         $db = db_connect();
         $db->transStart();
@@ -155,6 +159,10 @@ class AbbonamentiController extends BaseController
         if (empty($periodi)) {
             return redirect()->back()->withInput()
                 ->with('errors', ['periodi' => 'Aggiungere almeno un periodo di frequenza.']);
+        }
+        if (! $this->periodiCoprono($periodi, $this->request->getPost('data_inizio'), $this->request->getPost('data_fine'))) {
+            return redirect()->back()->withInput()
+                ->with('errors', ['periodi' => 'I periodi devono coprire l\'intero arco dell\'abbonamento: il primo deve iniziare e l\'ultimo deve finire alle date del periodo di validità.']);
         }
 
         $model->update($id, $this->request->getPost());
@@ -292,6 +300,23 @@ class AbbonamentiController extends BaseController
                 'ordine'            => $ordine++,
             ]);
         }
+    }
+
+    /**
+     * Verifica che i periodi coprano l'intero arco dell'abbonamento: il primo periodo deve
+     * iniziare quando inizia l'abbonamento, l'ultimo deve finire quando l'abbonamento finisce.
+     * Evita date scoperte per cui nessun periodo definirebbe la frequenza delle visite.
+     */
+    private function periodiCoprono(array $periodi, string $dataInizioAbbonamento, string $dataFineAbbonamento): bool
+    {
+        $inizi = array_filter(array_column($periodi, 'data_inizio'));
+        $fini  = array_filter(array_column($periodi, 'data_fine'));
+
+        if (empty($inizi) || empty($fini)) {
+            return false;
+        }
+
+        return min($inizi) === $dataInizioAbbonamento && max($fini) === $dataFineAbbonamento;
     }
 
     private function regolaValidazione(): array

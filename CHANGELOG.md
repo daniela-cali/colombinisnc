@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.24] - 2026-07-22
+
+### Abbonamenti: fix scadenze duplicate e copertura periodi garantita nel form
+
+- [APP] Form periodi di frequenza: la prima riga eredita in automatico la Data inizio dell'abbonamento; il bottone "Aggiungi periodo" propone il giorno successivo alla fine dell'ultimo periodo esistente; il salvataggio viene bloccato con un avviso se i periodi non coprono l'intero arco dell'abbonamento (buco all'inizio o alla fine)
+- [DEV] `AbbonamentiModel::generaInterventi()`: la generazione batch ora scarta le scadenze duplicate/sovrapposte al confine tra due periodi consecutivi (bug verificato: un periodo che continua il precedente sullo stesso giorno poteva rigenerare la stessa data come prima scadenza propria)
+- [DEV] Nuovo metodo `AbbonamentiController::periodiCoprono()`, richiamato da `store()` e `update()`: verifica server-side che il primo/ultimo periodo combacino con la Data inizio/fine dell'abbonamento, a garanzia della stessa regola imposta lato form
+
 ## [0.24.23] - 2026-07-22
 
 ### Rotte protette per personale/impostazioni: chiusa possibile auto-assegnazione di diritti (10.R)
