@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.25] - 2026-07-23
+
+### Calendario: pool "da pianificare" agganciato al periodo visibile, non più al mese fisso
+
+- [APP] Il pool mostra le occorrenze da abbonamento solo entro la fine della settimana (o giorno, su mobile) attualmente visibile sul calendario, non più tutto il mese in blocco — navigando con prev/next il pool si aggiorna di conseguenza. Interventi normali, visite extra e arretrati restano sempre visibili come oggi
+- [DEV] `InterventiModel::poolDaPianificare()` accetta `$finePeriodo` come parametro invece del `LAST_DAY(CURDATE())` raw fisso
+- [DEV] `CalendarioController`: raggruppamento pool per zona/sottogruppo estratto nel metodo condiviso `datiPool()`; nuovo endpoint `poolPeriodo()` (rotta `pool-periodo`) richiamato da `calendario.js` sul callback `datesSet` di FullCalendar
+- [DEV] Markup delle card del pool estratto nella view parziale `_pool.php`, condivisa tra il caricamento iniziale e il refresh AJAX — nessuna duplicazione della logica di rendering tra PHP e JS
+
 ## [0.24.24] - 2026-07-22
 
 ### Abbonamenti: fix scadenze duplicate e copertura periodi garantita nel form

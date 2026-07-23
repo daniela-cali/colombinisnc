@@ -22,65 +22,18 @@ class CalendarioController extends BaseController
 
         $tecnici = (new PersonaleModel())->elencoPerGruppi(['tecnico']);
 
-        $tipiPerId = [];
-        foreach ((new TipiInterventoModel())->attivi() as $t) {
-            $tipiPerId[(int) $t['id']] = $t;
-        }
+        // Fine del periodo iniziale mostrato dal pool: fine della settimana ISO corrente.
+        // La vista Giorno (mobile) è comunque contenuta nella settimana, quindi vale per entrambe.
+        $oggi        = new \DateTime();
+        $isoDay      = (int) $oggi->format('N'); // 1 (lun) … 7 (dom)
+        $finePeriodo = (clone $oggi)->modify('+' . (7 - $isoDay) . ' days')->format('Y-m-d');
 
-        $pool = (new InterventiModel())->poolDaPianificare();
-        //dd($pool);
-        $materialiPerIntervento = [];
-        foreach ((new InterventiMaterialiModel())->daPortarePerInterventi(array_column($pool, 'id')) as $m) {
-            $materialiPerIntervento[(int) $m['intervento_id']][] = $m;
-        }
-
-        // 14.07.2026 Ordinamento effettuato via SQL nel metodo InterventiModel())->poolDaPianificare()
-
-        $zoneLabel = ClientiModel::ZONE_LABEL + ['nessuna' => 'Senza zona'];
-
-        $poolPerZona = [];
-
-        foreach ($pool as $i) {
-            $zona = ($i['cliente_zona'] !== null && $i['cliente_zona'] !== '')
-                ? (int) $i['cliente_zona'] //vardump definisce -1 come int, cast di sicurezza contro eventuali stringhe arrivate da db 
-                : 'nessuna';
-            if (! empty($i['cantiere_id'])) {
-                $sottogruppo = 'cantiere';
-            } elseif (! empty($i['abbonamento_id'])) {
-                $sottogruppo = 'abbonamento';
-            } else {
-                $sottogruppo = 'generico';
-            }
-            $poolPerZona[$zona][$sottogruppo][] = $i;
-        }
-        $zonaOrdini = [-1 => 0, 0 => 1, 1 => 2, 'nessuna' => 3];
-        uksort($poolPerZona, fn($a, $b) => ($zonaOrdini[$a] ?? 99) <=> ($zonaOrdini[$b] ?? 99));
-        $sottogruppoInfo = [
-            'generico'    => ['label' => 'Generici',    'icona' => 'bi-tools'],
-            'cantiere'    => ['label' => 'Cantieri',    'icona' => 'bi-bricks'],
-            'abbonamento' => ['label' => 'Abbonamenti', 'icona' => 'bi-arrow-repeat'],
-        ];
-        $totaliPerZona = [];
-        foreach ($poolPerZona as $zona => $sottogruppo) {
-            $totaliPerZona[$zona] = 0;   // <-- inizializza la chiave PRIMA di sommarci sopra
-            foreach ($sottogruppoInfo as $definizione => $info) {
-                $totaliPerZona[$zona] += count($sottogruppo[$definizione] ?? []);
-            }
-        
-            $blocchi = [];
-            foreach ($sottogruppoInfo as $key => $info) {
-                if (empty($sottogruppo[$key])) {
-                    continue;
-                }
-                $blocchi[] = [
-                    'key'        => $key,
-                    'label'      => $info['label'],
-                    'icona'      => $info['icona'],
-                    'interventi' => $sottogruppo[$key],
-                ];
-            }
-            $poolPerZona[$zona] = $blocchi;
-        }
+        $datiPool = $this->datiPool($finePeriodo);
+        $tipiPerId              = $datiPool['tipiPerId'];
+        $materialiPerIntervento = $datiPool['materialiPerIntervento'];
+        $zoneLabel              = $datiPool['zoneLabel'];
+        $poolPerZona            = $datiPool['poolPerZona'];
+        $totaliPerZona          = $datiPool['totaliPerZona'];
 
         // Raggruppate per motivo (mancato/ritardo/fermo) per la barra a pill collassabili:
         // il foreach smista senza riordinare, l'ordine (già corretto) viene dal model.
@@ -114,6 +67,95 @@ class CalendarioController extends BaseController
             'dataIniziale'  => $dataIniziale,
             'assenzePerDipendente' => $assenzePerDipendente,
         ]);
+    }
+
+    /**
+     * Dati per il pool "da pianificare" filtrati su un periodo: interventi raggruppati per
+     * zona/sottogruppo (generico/cantiere/abbonamento) con totali, tipi e materiali per card.
+     * Condiviso tra il caricamento iniziale (index()) e il refresh AJAX (poolPeriodo()), così
+     * la logica di raggruppamento resta scritta in un solo posto.
+     */
+    private function datiPool(string $finePeriodo): array
+    {
+        $tipiPerId = [];
+        foreach ((new TipiInterventoModel())->attivi() as $t) {
+            $tipiPerId[(int) $t['id']] = $t;
+        }
+
+        $pool = (new InterventiModel())->poolDaPianificare($finePeriodo);
+
+        $materialiPerIntervento = [];
+        foreach ((new InterventiMaterialiModel())->daPortarePerInterventi(array_column($pool, 'id')) as $m) {
+            $materialiPerIntervento[(int) $m['intervento_id']][] = $m;
+        }
+
+        $zoneLabel = ClientiModel::ZONE_LABEL + ['nessuna' => 'Senza zona'];
+
+        $poolPerZona = [];
+        foreach ($pool as $i) {
+            $zona = ($i['cliente_zona'] !== null && $i['cliente_zona'] !== '')
+                ? (int) $i['cliente_zona'] //vardump definisce -1 come int, cast di sicurezza contro eventuali stringhe arrivate da db
+                : 'nessuna';
+            if (! empty($i['cantiere_id'])) {
+                $sottogruppo = 'cantiere';
+            } elseif (! empty($i['abbonamento_id'])) {
+                $sottogruppo = 'abbonamento';
+            } else {
+                $sottogruppo = 'generico';
+            }
+            $poolPerZona[$zona][$sottogruppo][] = $i;
+        }
+        $zonaOrdini = [-1 => 0, 0 => 1, 1 => 2, 'nessuna' => 3];
+        uksort($poolPerZona, fn($a, $b) => ($zonaOrdini[$a] ?? 99) <=> ($zonaOrdini[$b] ?? 99));
+        $sottogruppoInfo = [
+            'generico'    => ['label' => 'Generici',    'icona' => 'bi-tools'],
+            'cantiere'    => ['label' => 'Cantieri',    'icona' => 'bi-bricks'],
+            'abbonamento' => ['label' => 'Abbonamenti', 'icona' => 'bi-arrow-repeat'],
+        ];
+        $totaliPerZona = [];
+        foreach ($poolPerZona as $zona => $sottogruppo) {
+            $totaliPerZona[$zona] = 0;   // <-- inizializza la chiave PRIMA di sommarci sopra
+            foreach ($sottogruppoInfo as $definizione => $info) {
+                $totaliPerZona[$zona] += count($sottogruppo[$definizione] ?? []);
+            }
+
+            $blocchi = [];
+            foreach ($sottogruppoInfo as $key => $info) {
+                if (empty($sottogruppo[$key])) {
+                    continue;
+                }
+                $blocchi[] = [
+                    'key'        => $key,
+                    'label'      => $info['label'],
+                    'icona'      => $info['icona'],
+                    'interventi' => $sottogruppo[$key],
+                ];
+            }
+            $poolPerZona[$zona] = $blocchi;
+        }
+
+        return [
+            'tipiPerId'              => $tipiPerId,
+            'materialiPerIntervento' => $materialiPerIntervento,
+            'zoneLabel'              => $zoneLabel,
+            'poolPerZona'            => $poolPerZona,
+            'totaliPerZona'          => $totaliPerZona,
+        ];
+    }
+
+    /**
+     * Endpoint AJAX: rigenera il pool per il periodo attualmente visibile sul calendario.
+     * Riceve `fine` (data ISO, upper bound di data_scadenza) via query string — richiamato
+     * dal callback `datesSet` di FullCalendar ogni volta che l'utente cambia periodo/vista.
+     */
+    public function poolPeriodo(): string
+    {
+        $finePeriodo = $this->request->getGet('fine') ?? date('Y-m-d');
+        $datiPool    = $this->datiPool($finePeriodo);
+
+        return view('operativo/calendario/_pool', array_merge($datiPool, [
+            'totaleDaPianificare' => array_sum($datiPool['totaliPerZona']),
+        ]));
     }
 
     /**

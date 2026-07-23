@@ -551,6 +551,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Form periodi: prima riga eredita la Data inizio abbonamento, bottone "Aggiungi periodo" propone il giorno successivo alla fine dell'ultimo periodo, salvataggio bloccato (browser + server) se manca copertura completa dell'arco abbonamento
 - Vedi `docs/spec/abbonamenti_scadenze_duplicate_spec.md` e `docs/spec/abbonamenti_periodi_copertura_spec.md`
 
+#### ✅ v0.24.25 — Calendario: pool "da pianificare" agganciato al periodo visibile
+- Le occorrenze da abbonamento nel pool seguono ora la settimana/giorno visibile sul calendario (FullCalendar `datesSet`), non più il mese fisso — arretrati, interventi normali ed extra restano sempre visibili
+- `InterventiModel::poolDaPianificare()` parametrizzato; raggruppamento zone/sottogruppi condiviso tra caricamento iniziale e nuovo endpoint AJAX `poolPeriodo()`; markup card estratto in view parziale `_pool.php` riutilizzata da entrambi
+- Vedi `docs/spec/calendario_pool_per_periodo_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

@@ -249,12 +249,12 @@ class InterventiModel extends Model
 
     /**
      * Interventi da pianificare per il pool del calendario.
-     * Interventi normali: sempre inclusi se da_pianificare.
-     * Interventi da abbonamento: solo quelli la cui data_scadenza cade nel mese corrente o passato,
-     * così ogni frequenza (settimanale, mensile, trimestrale…) appare nel pool solo quando è il
-     * momento di pianificarla — senza configurazioni arbitrarie né JOIN extra.
+     * Interventi normali e visite extra: sempre inclusi se da_pianificare, indipendentemente da $finePeriodo.
+     * Interventi da abbonamento: solo quelli la cui data_scadenza cade entro $finePeriodo (limite superiore,
+     * nessun limite inferiore) — così ogni frequenza appare nel pool solo quando si avvicina al periodo
+     * che il chiamante considera "visibile" (settimana/giorno sul calendario), senza nascondere gli arretrati.
      */
-    public function poolDaPianificare(): array
+    public function poolDaPianificare(string $finePeriodo): array
     {
         return $this->select("interventi.id, interventi.tipo_intervento_id, interventi.priorita,
                       interventi.urgenza, interventi.extra, interventi.stato, interventi.data_scadenza, interventi.durata_stimata,
@@ -274,7 +274,7 @@ class InterventiModel extends Model
                 ->orGroupStart()
                     ->where('interventi.abbonamento_id IS NOT NULL', null, false)
                     ->where('interventi.extra', 0)
-                    ->where('interventi.data_scadenza <= LAST_DAY(CURDATE())', null, false)
+                    ->where('interventi.data_scadenza <=', $finePeriodo)
                 ->groupEnd()
             ->groupEnd()
             ->orderBy('interventi.urgenza', 'DESC')

@@ -551,7 +551,10 @@
                 `;
                 return { html: html };
             },
-            datesSet: function () { montaInputVaiAData(); },
+            datesSet: function (info) {
+                montaInputVaiAData();
+                aggiornaPoolPeriodo(info.endStr);
+            },
         };
 
         if (cfg.dataIniziale) calendarOptions.initialDate = cfg.dataIniziale;
@@ -581,6 +584,25 @@
         // di layout del browser tiene l'input allineato ad ogni riflusso (resize,
         // scrollbar che compare, font che finisce di caricare...) senza bisogno di
         // ricalcolare le coordinate a mano su ogni possibile evento.
+        // Rigenera il pool "da pianificare" per il periodo visibile: le occorrenze da abbonamento
+        // compaiono solo entro la fine di quanto FullCalendar sta mostrando, non più fino a fine
+        // mese fisso. `info.endStr` è esclusivo (il giorno DOPO l'ultimo visibile), quindi si
+        // toglie un giorno per ottenere l'ultimo giorno realmente in vista.
+        function aggiornaPoolPeriodo(fineEsclusivaStr) {
+            var fine = new Date(fineEsclusivaStr.substring(0, 10) + 'T00:00:00');
+            fine.setDate(fine.getDate() - 1);
+            var pad = function (n) { return String(n).padStart(2, '0'); };
+            var fineStr = fine.getFullYear() + '-' + pad(fine.getMonth() + 1) + '-' + pad(fine.getDate());
+
+            fetch(cfg.urls.poolPeriodo + '?fine=' + fineStr)
+                .then(function (r) { return r.text(); })
+                .then(function (html) {
+                    var container = document.getElementById('pool-container');
+                    container.innerHTML = html;
+                    document.getElementById('pool-count').textContent = container.querySelectorAll('.pool-card').length;
+                });
+        }
+
         function montaInputVaiAData() {
             var titolo = document.querySelector('#calendario .fc-toolbar-title');
             var input  = document.getElementById('calendario-vai-a-data');

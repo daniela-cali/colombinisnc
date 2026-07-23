@@ -18,6 +18,13 @@
     (clic sull'intestazione) per dare più spazio al calendario, e <strong>ridimensionare</strong>
     trascinando il bordo destro. Su smartphone è nascosto: lì si pianifica aprendo l'intervento.
 </p>
+<p>
+    Le visite ricorrenti da <strong>abbonamento</strong> compaiono nel pool solo quando si
+    avvicina la loro scadenza: restano nascoste finché non rientrano nella settimana (o giorno,
+    su mobile) che stai guardando sul calendario, e si aggiornano da sole navigando con le
+    frecce avanti/indietro. Interventi normali, visite extra e occorrenze già in ritardo restano
+    invece sempre visibili, qualunque periodo tu stia guardando.
+</p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-arrows-move me-1"></i>Pianificare con il trascinamento</h6>
 <p>
@@ -28,11 +35,24 @@
     dell'intervento. Per rimetterlo in coda, rimuovilo dalla pianificazione.
 </p>
 
-<h6 class="border-bottom pb-1 mt-4"><i class="bi bi-clock-history me-1"></i>Scadenze aperte</h6>
+<h6 class="border-bottom pb-1 mt-4"><i class="bi bi-exclamation-triangle-fill me-1"></i>Barra "Attenzione"</h6>
 <p>
-    La fascia <strong>Scadenze aperte</strong> evidenzia gli interventi con una scadenza da
-    rispettare ancora non pianificati: serve a non perdere di vista le consegne. Il tooltip
-    sull'intestazione spiega esattamente cosa mostra.
+    Sopra il calendario, quando c'è qualcosa da segnalare, compare la barra
+    <strong>Attenzione</strong> con fino a tre pill (ciascuna con contatore e tooltip che ne
+    spiega il criterio):
+</p>
+<ul>
+    <li><span class="badge badge-scadenza-mancato fw-normal"><i class="bi bi-calendar-x me-1"></i>Non completato</span>
+        — appuntamenti con data ormai passata, mai chiusi né annullati;</li>
+    <li><span class="badge badge-scadenza-ritardo fw-normal"><i class="bi bi-clock me-1"></i>In ritardo</span>
+        — interventi con la scadenza superata, qualunque sia il loro stato;</li>
+    <li><span class="badge badge-scadenza-fermo fw-normal"><i class="bi bi-hourglass-split me-1"></i>Fermo</span>
+        — da pianificare da più di 7 giorni, senza ancora una scadenza superata.</li>
+</ul>
+<p>
+    Cliccando una pill si apre l'elenco; cliccando un nome in elenco, se l'intervento è da
+    pianificare si apre il pool con la card evidenziata, se è già pianificato il calendario
+    salta alla sua data — nessuna navigazione fuori pagina.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-exclamation-triangle me-1"></i>Avviso di scadenza superata</h6>
