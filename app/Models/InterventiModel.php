@@ -467,7 +467,10 @@ class InterventiModel extends Model
 
     /**
      * Interventi attivi (pianificati o in corso) di un tecnico in una finestra di date,
-     * con coordinate del cliente per la mappa dell'agenda mobile.
+     * con coordinate per la mappa dell'agenda mobile. Se l'intervento è legato a un
+     * cantiere con luogo/posizione propri (vedi docs/spec/cantieri_luogo_referente_spec.md),
+     * questi hanno priorità su quelli del cliente — altrimenti il tecnico verrebbe mandato
+     * all'indirizzo del cliente anche quando il cantiere è altrove.
      */
     public function agendaTecnicoPeriodo(int $tecnicoId, string $dataInizio, string $dataFine): array
     {
@@ -476,9 +479,14 @@ class InterventiModel extends Model
                      THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
                      ELSE clienti.ragsoc
                 END AS cliente_denominazione,
-                clienti.indirizzo, clienti.citta, clienti.cap, clienti.lat, clienti.lng,
+                COALESCE(cantieri.indirizzo, clienti.indirizzo) AS indirizzo,
+                COALESCE(cantieri.citta, clienti.citta) AS citta,
+                clienti.cap,
+                COALESCE(cantieri.lat, clienti.lat) AS lat,
+                COALESCE(cantieri.lng, clienti.lng) AS lng,
                 tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->join('cantieri', 'cantieri.id = interventi.cantiere_id', 'left')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
             ->where('interventi.tecnico_id', $tecnicoId)
             ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])

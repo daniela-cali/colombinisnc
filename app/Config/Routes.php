@@ -97,6 +97,7 @@ $routes->group('cantieri', function ($routes) {
     $routes->post('(:num)/update',  'CantieriController::update/$1');
     $routes->post('(:num)/stato',   'CantieriController::cambiaStato/$1');
     $routes->post('(:num)/delete',  'CantieriController::delete/$1');
+    $routes->post('(:num)/posizione', 'CantieriController::aggiornaPosizione/$1');
     $routes->post('note/aggiungi',       'CantieriController::aggiungiNota');
     $routes->post('note/(:num)/elimina', 'CantieriController::eliminaNota/$1');
 });

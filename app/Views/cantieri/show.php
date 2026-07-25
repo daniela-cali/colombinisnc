@@ -1,7 +1,9 @@
 <?php
 /**
  * @var string $title
- * @var array  $cantiere             Da CantieriModel::conCliente() — include cliente_denominazione
+ * @var array  $cantiere             Da CantieriModel::conCliente() — include cliente_denominazione e
+ *                                    cliente_indirizzo/cliente_citta/cliente_lat/cliente_lng/cliente_nazione
+ *                                    (fallback quando il cantiere non ha luogo/posizione propri)
  * @var array  $note                 Da CantieriNoteModel::perCantiere() — include autore
  * @var array  $interventi           Da InterventiModel::perCantiere()
  * @var array  $tipiLabel            CantieriModel::TIPI_LABEL
@@ -18,6 +20,15 @@ $diarioUrl = $schedaUrl . '#sec-diario';
 $nuovoInterventoUrl = base_url('operativo/interventi/nuovo?cantiere_id=' . $cantiere['id']
     . '&cliente_id=' . $cantiere['cliente_id']
     . '&from=' . urlencode($schedaUrl . '#sec-interventi'));
+
+// Luogo e posizione "effettivi": il cantiere ha priorità, il cliente è il fallback
+// quando il cantiere non ha un luogo/posizione propri — vedi docs/spec/cantieri_luogo_referente_spec.md.
+$luogoIndirizzo = $cantiere['indirizzo'] ?: $cantiere['cliente_indirizzo'];
+$luogoCitta     = $cantiere['citta']     ?: $cantiere['cliente_citta'];
+$luogoDaCliente = ! $cantiere['indirizzo'] && ! $cantiere['citta'];
+
+$posLat = $cantiere['lat'] ?? $cantiere['cliente_lat'];
+$posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
 ?>
 <?= $this->section('title') ?><?= esc($title) ?><?= $this->endSection() ?>
 
@@ -27,6 +38,10 @@ $nuovoInterventoUrl = base_url('operativo/interventi/nuovo?cantiere_id=' . $cant
     <li class="breadcrumb-item"><a href="<?= base_url('cantieri') ?>">Cantieri</a></li>
     <li class="breadcrumb-item active"><?= esc($cantiere['titolo']) ?></li>
 </ol>
+<?= $this->endSection() ?>
+
+<?= $this->section('styles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/vendor/leaflet/leaflet.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -64,6 +79,22 @@ $nuovoInterventoUrl = base_url('operativo/interventi/nuovo?cantiere_id=' . $cant
                             <?= esc($cantiere['cliente_denominazione']) ?>
                         </a>
                     </dd>
+
+                    <?php if ($luogoIndirizzo || $luogoCitta): ?>
+                        <dt class="col-5 text-muted">Luogo</dt>
+                        <dd class="col-7">
+                            <?= esc($luogoIndirizzo ?? '') ?>
+                            <?php if ($luogoCitta): ?><br><small><?= esc($luogoCitta) ?></small><?php endif ?>
+                            <?php if ($luogoDaCliente): ?>
+                                <br><small class="text-muted">(indirizzo del cliente)</small>
+                            <?php endif ?>
+                        </dd>
+                    <?php endif ?>
+
+                    <?php if ($cantiere['referente']): ?>
+                        <dt class="col-5 text-muted">Referente</dt>
+                        <dd class="col-7"><?= esc($cantiere['referente']) ?></dd>
+                    <?php endif ?>
 
                     <dt class="col-5 text-muted">Tipo</dt>
                     <dd class="col-7"><?= esc($tipiLabel[$cantiere['tipo']] ?? $cantiere['tipo']) ?></dd>
@@ -125,6 +156,80 @@ $nuovoInterventoUrl = base_url('operativo/interventi/nuovo?cantiere_id=' . $cant
                         <i class="bi bi-trash me-1"></i>Elimina cantiere
                     </button>
                 </form>
+            </div>
+        </div>
+
+        <!-- Posizione -->
+        <div class="card card-outline card-primary" id="sec-posizione">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="bi bi-geo-alt me-2"></i>Posizione
+                </h3>
+            </div>
+            <div class="card-body">
+
+                <div id="posizione-stato" class="small mb-2">
+                    <?php if ($cantiere['geocoded_at']): ?>
+                        <span class="text-success">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Geocodificato il <?= esc(date('d/m/Y H:i', strtotime($cantiere['geocoded_at']))) ?>
+                        </span>
+                    <?php elseif ($cantiere['geocodifica_fallita']): ?>
+                        <span class="text-danger">
+                            <i class="bi bi-x-circle me-1"></i>Geocodifica automatica fallita — posiziona il pin manualmente.
+                        </span>
+                    <?php elseif ($cantiere['cliente_lat'] !== null): ?>
+                        <span class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>Nessuna posizione propria — mostrata quella del cliente.
+                        </span>
+                    <?php else: ?>
+                        <span class="text-muted">
+                            <i class="bi bi-question-circle me-1"></i>Posizione non ancora impostata.
+                        </span>
+                    <?php endif ?>
+                </div>
+
+                <div class="mappa-wrapper">
+                    <div id="mappa-posizione"
+                         data-lat="<?= esc($posLat ?? '') ?>"
+                         data-lng="<?= esc($posLng ?? '') ?>"
+                         data-citta="<?= esc($luogoCitta ?? '') ?>"
+                         data-nazione="<?= esc($cantiere['cliente_nazione'] ?? 'Italia') ?>"
+                         data-sede-lat="<?= esc(setting('Azienda.sede_lat') ?? '') ?>"
+                         data-sede-lng="<?= esc(setting('Azienda.sede_lng') ?? '') ?>"
+                         data-icon-base="<?= base_url('assets/vendor/leaflet/images/') ?>"
+                    ></div>
+                    <div id="mappa-overlay-zoom" class="mappa-overlay-zoom">
+                        <i class="bi bi-mouse"></i> Clicca per attivare lo zoom
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-2">
+                    <button type="button" id="btn-correggi-posizione" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil me-1"></i>Correggi posizione
+                    </button>
+                    <a href="#" id="btn-google-maps" target="_blank" rel="noopener"
+                       class="btn btn-sm btn-outline-primary <?= $posLat === null ? 'disabled' : '' ?>">
+                        <i class="bi bi-sign-turn-right-fill me-1"></i>Apri in Google Maps
+                    </a>
+                </div>
+
+                <form id="form-posizione" class="d-none mt-2"
+                      action="<?= base_url('cantieri/' . $cantiere['id'] . '/posizione') ?>" method="post">
+                    <?= csrf_field() ?>
+                    <input type="hidden" name="lat" id="posizione-lat-input">
+                    <input type="hidden" name="lng" id="posizione-lng-input">
+                    <p class="small text-muted mb-2">Clicca sulla mappa o trascina il pin per posizionarlo, poi salva.</p>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="bi bi-check-lg me-1"></i>Salva posizione
+                        </button>
+                        <button type="button" id="btn-annulla-posizione" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Annulla
+                        </button>
+                    </div>
+                </form>
+
             </div>
         </div>
     </div>
@@ -253,4 +358,9 @@ $nuovoInterventoUrl = base_url('operativo/interventi/nuovo?cantiere_id=' . $cant
     </div>
 
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="<?= base_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
+<script src="<?= base_url('js/mappa-posizione.js') ?>"></script>
 <?= $this->endSection() ?>

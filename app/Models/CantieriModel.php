@@ -13,6 +13,8 @@ class CantieriModel extends Model
 
     protected $allowedFields = [
         'cliente_id', 'titolo', 'tipo', 'tipo_intervento_id', 'stato',
+        'indirizzo', 'citta', 'referente',
+        'lat', 'lng', 'geocoded_at', 'geocodifica_fallita',
         'data_inizio', 'data_fine_prevista', 'note',
         'created_by', 'updated_by',
     ];
@@ -20,13 +22,15 @@ class CantieriModel extends Model
     protected $beforeInsert = ['normalizza'];
     protected $beforeUpdate = ['normalizza'];
 
-    // valori: nuova_costruzione, ristrutturazione
-    const TIPO_NUOVA_COSTRUZIONE = 'nuova_costruzione';
-    const TIPO_RISTRUTTURAZIONE  = 'ristrutturazione';
+    // valori: nuova_costruzione, ristrutturazione, manutenzione_straordinaria
+    const TIPO_NUOVA_COSTRUZIONE           = 'nuova_costruzione';
+    const TIPO_RISTRUTTURAZIONE            = 'ristrutturazione';
+    const TIPO_MANUTENZIONE_STRAORDINARIA  = 'manutenzione_straordinaria';
 
     const TIPI_LABEL = [
-        'nuova_costruzione' => 'Nuova costruzione',
-        'ristrutturazione'  => 'Ristrutturazione',
+        'nuova_costruzione'          => 'Nuova costruzione',
+        'ristrutturazione'           => 'Ristrutturazione',
+        'manutenzione_straordinaria' => 'Manutenzione straordinaria',
     ];
 
     // valori: aperto, sospeso, chiuso
@@ -59,7 +63,11 @@ class CantieriModel extends Model
         }
         $data['data']['updated_by'] = $userId;
 
-        foreach (['data_inizio', 'data_fine_prevista', 'tipo_intervento_id'] as $campo) {
+        if (isset($data['data']['citta']) && $data['data']['citta'] !== '') {
+            $data['data']['citta'] = mb_strtoupper($data['data']['citta'], 'UTF-8');
+        }
+
+        foreach (['data_inizio', 'data_fine_prevista', 'tipo_intervento_id', 'lat', 'lng', 'geocoded_at'] as $campo) {
             if (isset($data['data'][$campo]) && $data['data'][$campo] === '') {
                 $data['data'][$campo] = null;
             }
@@ -99,7 +107,9 @@ class CantieriModel extends Model
                 CASE WHEN c.tipo = 'persona_fisica'
                      THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                      ELSE c.ragsoc
-                END AS cliente_denominazione")
+                END AS cliente_denominazione,
+                c.indirizzo AS cliente_indirizzo, c.citta AS cliente_citta,
+                c.lat AS cliente_lat, c.lng AS cliente_lng, c.nazione AS cliente_nazione")
             ->join('clienti c', 'c.id = cantieri.cliente_id', 'left')
             ->where('cantieri.id', $id)
             ->first();
