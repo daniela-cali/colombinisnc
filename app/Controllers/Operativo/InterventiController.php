@@ -170,6 +170,14 @@ class InterventiController extends BaseController
         $tipo     = $intervento['tipo_intervento_id'] ? (new TipiInterventoModel())->find($intervento['tipo_intervento_id']) : null;
         $cantiere = $intervento['cantiere_id'] ? (new \App\Models\CantieriModel())->find($intervento['cantiere_id']) : null;
 
+        // Esclude i materiali appena tornati sospesi da questa stessa chiusura (tag "[Da <codice>]"):
+        // altrimenti il tecnico se li ritroverebbe subito nel modal "prossima visita" appena dopo averli smarcati.
+        $tagQuestoIntervento = '[Da ' . $intervento['codice'] . ']';
+        $materialiSospesi = array_values(array_filter(
+            (new InterventiMaterialiModel())->sospesiPerCliente($intervento['cliente_id']),
+            fn ($m) => ! str_starts_with((string) $m['note'], $tagQuestoIntervento)
+        ));
+
         return view('operativo/interventi/show', [
             'intervento'   => $intervento,
             'cliente'      => $cliente,
@@ -180,12 +188,17 @@ class InterventiController extends BaseController
             'statiLabel'   => InterventiModel::STATI_LABEL,
             'materiali'    => (new InterventiMaterialiModel())->perIntervento($id),
             'note'         => (new InterventiNoteModel())->perIntervento($id),
+            'articoliPerCat' => (new ArticoliModel())->perCategoria(),
+            'materialiSospesi' => $materialiSospesi,
+            'mostraStepMateriali' => (bool) session()->getFlashdata('mostra_step_materiali'),
         ]);
     }
 
     /**
      * Chiude l'intervento (stato → completato).
-     * Se il POST contiene materiali_consegnati=1, segna tutti i materiali come consegnati.
+     * `consegnato[]` contiene gli ID dei materiali da_portare marcati come consegnati nella
+     * checklist; la differenza con l'insieme completo torna sospesa sul cliente. Imposta sempre
+     * la flashdata mostra_step_materiali, che fa aprire in automatico il modal "prossima visita".
      */
     public function chiudi(int $id)
     {
@@ -208,38 +221,40 @@ class InterventiController extends BaseController
             'pulizia_fondo' => (int) (bool) $this->request->getPost('pulizia_fondo'),
         ]);
 
-        $materialiConsegnati = $this->request->getPost('materiali_consegnati');
-        $matModel = new InterventiMaterialiModel();
+        $matModel     = new InterventiMaterialiModel();
+        $idsDaPortare = $matModel->idsDaPortarePerIntervento($id);
 
-        if ($materialiConsegnati === '1') {
-            // Tecnico ha consegnato tutto: segna ogni riga come consegnata.
-            $matModel->consegnaPerIntervento($id);
-        } elseif ($materialiConsegnati === '0') {
-            // Salvo gli ID prima di liberare: dopo liberaPerIntervento() intervento_id è null e non saprei più quali erano.
-            $idsDaPortare = $matModel->idsDaPortarePerIntervento($id);
+        if (! empty($idsDaPortare)) {
+            $consegnatiPost = array_map('intval', $this->request->getPost('consegnato') ?? []);
+            $consegnati     = array_intersect($idsDaPortare, $consegnatiPost);
+            $nonConsegnati  = array_diff($idsDaPortare, $consegnatiPost);
 
-            // Materiali non portati: tornano tra i sospesi del cliente
-            // con una nota che ricorda da quale intervento provenivano.
-            $matModel->liberaPerIntervento($id, $intervento['codice']);
+            $matModel->consegnaSelezionati($consegnati, $id);
 
-            // Solo per interventi da abbonamento: provo a riassegnare i materiali al prossimo intervento.
-            if (! empty($intervento['abbonamento_id']) && ! empty($idsDaPortare)) {
-                // max 2 per rilevare ambiguità: se ne tornano 2 con stessa scadenza, fallback manuale
-                $prossimi = $model->prossimiPerAbbonamento(
-                    (int) $intervento['abbonamento_id'],
-                    $intervento['data_scadenza']
-                );
+            if (! empty($nonConsegnati)) {
+                // Materiali non portati: tornano tra i sospesi del cliente
+                // con una nota che ricorda da quale intervento provenivano.
+                $matModel->liberaSelezionati($nonConsegnati, $id, $intervento['codice']);
 
-                if (count($prossimi) === 1) {
-                    $matModel->assegnaAdIntervento($idsDaPortare, $prossimi[0]['id']);
+                // Solo per interventi da abbonamento: provo a riassegnare i materiali al prossimo intervento.
+                if (! empty($intervento['abbonamento_id'])) {
+                    // max 2 per rilevare ambiguità: se ne tornano 2 con stessa scadenza, fallback manuale
+                    $prossimi = $model->prossimiPerAbbonamento(
+                        (int) $intervento['abbonamento_id'],
+                        $intervento['data_scadenza']
+                    );
+
+                    if (count($prossimi) === 1) {
+                        $matModel->assegnaAdIntervento($nonConsegnati, $prossimi[0]['id']);
+                    }
+                    // Se 0 risultati o 2+ (ambiguità): materiali già sospesi sul cliente, gestione manuale.
                 }
-                // Se 0 risultati o 2+ (ambiguità): materiali già sospesi sul cliente, gestione manuale.
             }
         }
-        // Se materialiConsegnati è null l'intervento non aveva materiali: nessuna azione.
 
         return redirect()->to('operativo/interventi/' . $id)
-            ->with('success', 'Intervento ' . esc($intervento['codice']) . ' chiuso.');
+            ->with('success', 'Intervento ' . esc($intervento['codice']) . ' chiuso.')
+            ->with('mostra_step_materiali', true);
     }
 
     /**

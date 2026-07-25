@@ -556,6 +556,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `InterventiModel::poolDaPianificare()` parametrizzato; raggruppamento zone/sottogruppi condiviso tra caricamento iniziale e nuovo endpoint AJAX `poolPeriodo()`; markup card estratto in view parziale `_pool.php` riutilizzata da entrambi
 - Vedi `docs/spec/calendario_pool_per_periodo_spec.md`
 
+#### ✅ v0.24.26 — Chiusura intervento: checklist materiali itemizzata e materiali per la prossima visita (6.R)
+- Modal "Chiudi intervento": checklist per materiale (checkbox pre-selezionato = consegnato, "Seleziona/deseleziona tutto") al posto del sì/no in blocco; solo i materiali smarcati tornano sospesi, con la riassegnazione automatica già esistente per gli abbonamenti
+- Secondo modal automatico "Materiali per la prossima visita" dopo ogni chiusura: aggiunta materiali sospesi (anche fuori catalogo) senza uscire dalla scheda intervento, con elenco dei sospesi già presenti per il cliente
+- Fix bug mobile: dropdown di ricerca articolo (TomSelect) non scrollava su WebKit iOS — su schermi piccoli il campo torna a un `<select>` nativo con opzione "Descrizione libera…"
+- `InterventiMaterialiModel::consegnaSelezionati()`/`liberaSelezionati()` (logica itemizzata); mini-form materiali estratto in partial condivisi `_form_materiale.php`/`_form_materiale_scripts.php` (`edit.php` + nuovo modal)
+- Vedi `docs/spec/chiusura_intervento_materiali_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

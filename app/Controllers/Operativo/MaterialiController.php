@@ -31,12 +31,22 @@ class MaterialiController extends BaseController
         $model->insert($this->request->getPost());
 
         if ($interventoId) {
+            // Resta sull'edit dell'intervento (che a sua volta porta già "from" in query string).
             $dest = 'operativo/interventi/' . $interventoId . '/edit' . ($from ? '?from=' . urlencode($from) : '');
+        } elseif ($from && str_starts_with($from, base_url())) {
+            // Materiale sospeso aggiunto dal modal "prossima visita": torna alla pagina di provenienza.
+            $dest = $from;
         } else {
             $dest = 'anagrafiche/clienti/' . $clienteId . '#sec-materiali';
         }
 
-        return redirect()->to($dest)->with('success', 'Materiale aggiunto.');
+        $redirect = redirect()->to($dest)->with('success', 'Materiale aggiunto.');
+
+        if ($this->request->getPost('riapri_step_materiali')) {
+            $redirect = $redirect->with('mostra_step_materiali', true);
+        }
+
+        return $redirect;
     }
 
     /**

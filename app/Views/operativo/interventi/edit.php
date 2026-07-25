@@ -285,45 +285,8 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                 <?php endif ?>
 
                 <!-- Mini-form aggiunta materiale -->
-                <form action="<?= base_url('operativo/materiali/store') ?>" method="post" id="form-materiale">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="intervento_id" value="<?= $intervento['id'] ?>">
-                    <input type="hidden" name="cliente_id"   value="<?= $intervento['cliente_id'] ?>">
-                    <input type="hidden" name="articolo_id"  id="h-articolo-id">
-                    <input type="hidden" name="descrizione"  id="h-descrizione">
-                    <?php if ($from): ?>
-                        <input type="hidden" name="from" value="<?= esc($from) ?>">
-                    <?php endif ?>
-                    <div class="row g-2 align-items-end">
-                        <div class="col-md-5">
-                            <label class="form-label small">Articolo / Descrizione <span class="text-danger">*</span></label>
-                            <select id="sel-materiale" placeholder="Cerca articolo o digita descrizione libera…">
-                                <option value=""></option>
-                                <?php foreach ($articoliPerCat as $cat): ?>
-                                    <optgroup label="<?= esc($cat['nome']) ?>">
-                                        <?php foreach ($cat['articoli'] as $a): ?>
-                                            <option value="<?= $a['id'] ?>"><?= esc($a['descrizione']) ?></option>
-                                        <?php endforeach ?>
-                                    </optgroup>
-                                <?php endforeach ?>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label small">Qtà</label>
-                            <input type="number" name="quantita" class="form-control form-control-sm"
-                                   min="1" value="1" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label small">Note</label>
-                            <input type="text" name="note" class="form-control form-control-sm" maxlength="255">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">
-                                <i class="bi bi-plus-lg me-1"></i>Aggiungi
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                <?php $this->setData(['interventoId' => $intervento['id'], 'clienteId' => $intervento['cliente_id']]); ?>
+                <?= $this->include('operativo/interventi/_form_materiale') ?>
             </div>
 
             <!-- Sezione diario — form separati, fuori dal form-update -->
@@ -416,34 +379,10 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
+<?= $this->include('operativo/interventi/_form_materiale_scripts') ?>
 <script>
 (function () {
     var durateDefault = <?= json_encode($durateDefault) ?>;
-
-    var ts = new TomSelect('#sel-materiale', {
-        wrapperClass: 'ts-wrapper ts-upper',
-        create: function (input) {
-            var v = input.trim().toUpperCase();
-            return { value: v, text: v };
-        },
-        createOnBlur: true,
-        placeholder: 'Cerca articolo o digita descrizione libera…',
-        allowEmptyOption: true,
-        createFilter: function (input) { return input.trim().length > 0; }
-    });
-
-    document.getElementById('form-materiale').addEventListener('submit', function (e) {
-        var val = ts.getValue();
-        if (! val) { e.preventDefault(); alert('Seleziona un articolo o digita una descrizione.'); return; }
-        if (/^\d+$/.test(val)) {
-            document.getElementById('h-articolo-id').value = val;
-            document.getElementById('h-descrizione').value  = '';
-        } else {
-            document.getElementById('h-articolo-id').value = '';
-            document.getElementById('h-descrizione').value  = val;
-        }
-    });
 
     document.getElementById('tipo_intervento_id').addEventListener('change', function () {
         var durata = document.getElementById('durata_stimata');

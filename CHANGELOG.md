@@ -1,5 +1,17 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.26] - 2026-07-25
+
+### Chiusura intervento: checklist materiali itemizzata e aggiunta materiali per la prossima visita (6.R)
+
+- [APP] Il modal "Chiudi intervento" mostra una checklist con una riga per ogni materiale da portare (checkbox pre-selezionato = consegnato), non più una domanda sì/no in blocco — con "Seleziona/deseleziona tutto" se ci sono più materiali. Solo i materiali smarcati tornano sospesi sul cliente, con la stessa riassegnazione automatica alla prossima visita già esistente per gli abbonamenti
+- [APP] Dopo la chiusura si apre sempre un secondo modal, "Materiali per la prossima visita": permette di aggiungere materiali sospesi per il cliente (anche fuori catalogo, con descrizione libera) senza uscire dalla scheda intervento; mostra anche l'elenco dei sospesi già presenti per quel cliente (esclusi quelli appena liberati un attimo prima dalla checklist)
+- [APP] Fix: su mobile il campo di ricerca articolo del mini-form "Aggiungi materiale" non scrollava per un bug del componente di ricerca su WebKit iOS — su schermi piccoli usa ora la lista nativa del telefono, con "Descrizione libera…" come prima opzione per i materiali fuori catalogo
+- [DEV] `InterventiMaterialiModel`: nuovi `consegnaSelezionati()`/`liberaSelezionati()` (logica itemizzata usata da `chiudi()`); `liberaPerIntervento()` resta invariato per `annulla()`/`delete()` (libera sempre tutto in blocco)
+- [DEV] `InterventiController::chiudi()` riscritto sulla differenza tra materiali selezionati/non selezionati nella checklist; `show()` passa `articoliPerCat`/`materialiSospesi`/`mostraStepMateriali` (da flashdata) alla view
+- [DEV] Mini-form materiali estratto nei partial condivisi `_form_materiale.php`/`_form_materiale_scripts.php`, riusati da `edit.php` e dal nuovo modal in `show.php` invece di markup duplicato
+- [DEV] `MaterialiController::store()`: `from` usato come destinazione reale quando il materiale non è legato a un intervento (caso del nuovo modal); gestisce `riapri_step_materiali` per riaprire il modal dopo un salvataggio
+
 ## [0.24.25] - 2026-07-23
 
 ### Calendario: pool "da pianificare" agganciato al periodo visibile, non più al mese fisso

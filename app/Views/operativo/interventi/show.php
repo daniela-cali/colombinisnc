@@ -9,8 +9,15 @@
  * @var array      $statiLabel  [codice => etichetta]
  * @var array      $materiali   Righe da InterventiMaterialiModel::perIntervento()
  * @var array      $note        Righe da InterventiNoteModel::perIntervento() (diario)
+ * @var array      $articoliPerCat Da ArticoliModel::perCategoria() [cat_id => ['nome'=>..,'articoli'=>[..]]]
+ * @var array      $materialiSospesi Sospesi già presenti per il cliente (esclusi quelli appena liberati da questa chiusura)
+ * @var bool       $mostraStepMateriali Flashdata: apre in automatico il modal "materiali prossima visita"
  */
 $this->extend('layouts/admin');
+
+$articoliPerCat      = $articoliPerCat ?? [];
+$materialiSospesi    = $materialiSospesi ?? [];
+$mostraStepMateriali = $mostraStepMateriali ?? false;
 
 $statoBadge = [
     'da_pianificare' => 'secondary',
@@ -297,6 +304,7 @@ $statoBadge = [
                 <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Chiudi intervento</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <?php $materialiDaPortare = array_filter($materiali, fn ($m) => $m['stato'] === \App\Models\InterventiMaterialiModel::STATO_DA_PORTARE); ?>
             <form method="post" action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/chiudi') ?>">
             <?= csrf_field() ?>
             <div class="modal-body">
@@ -304,8 +312,30 @@ $statoBadge = [
                     Confermi la chiusura dell'intervento
                     <strong><?= esc($intervento['codice']) ?></strong>?
                 </p>
-                <?php if (! empty($materiali)): ?>
-                    <p class="mt-3 mb-0">Hai consegnato i materiali al cliente?</p>
+                <?php if (! empty($materialiDaPortare)): ?>
+                    <p class="mt-3 mb-2">Materiali da consegnare:</p>
+                    <?php if (count($materialiDaPortare) > 1): ?>
+                        <div class="form-check mb-2 pb-2 border-bottom">
+                            <input class="form-check-input" type="checkbox" id="chk-materiali-tutti" checked>
+                            <label class="form-check-label fw-semibold" for="chk-materiali-tutti">
+                                Seleziona/deseleziona tutto
+                            </label>
+                        </div>
+                    <?php endif ?>
+                    <?php foreach ($materialiDaPortare as $m): ?>
+                        <div class="form-check">
+                            <input class="form-check-input chk-materiale" type="checkbox"
+                                   name="consegnato[]" value="<?= $m['id'] ?>"
+                                   id="chk-materiale-<?= $m['id'] ?>" checked>
+                            <label class="form-check-label" for="chk-materiale-<?= $m['id'] ?>">
+                                <?= (int) $m['quantita'] ?>× <?= esc($m['desc_materiale']) ?>
+                            </label>
+                        </div>
+                    <?php endforeach ?>
+                    <p class="mt-2 mb-0 text-muted small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        I materiali non selezionati torneranno tra i sospesi del cliente.
+                    </p>
                 <?php endif ?>
                 <?php if (! empty($intervento['abbonamento_id']) && ! empty($tipo['ha_pulizia_fondo'])): ?>
                     <div class="form-check mt-3">
@@ -320,22 +350,78 @@ $statoBadge = [
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                <?php if (! empty($materiali)): ?>
-                    <button type="submit" name="materiali_consegnati" value="0" class="btn btn-outline-success">
-                        <i class="bi bi-x-circle me-1"></i>No, non portati
-                    </button>
-                    <button type="submit" name="materiali_consegnati" value="1" class="btn btn-success">
-                        <i class="bi bi-check-circle me-1"></i>Sì, consegnati
-                    </button>
-                <?php else: ?>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-circle me-1"></i>Chiudi
-                    </button>
-                <?php endif ?>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle me-1"></i>Chiudi intervento
+                </button>
             </div>
             </form>
         </div>
     </div>
 </div>
 
+<!-- Modal: materiali per la prossima visita -->
+<div class="modal fade" id="modal-materiali-prossima-visita" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-box-seam me-2"></i>Materiali per la prossima visita</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Ci sono materiali da portare alla prossima visita?</p>
+                <?php if (! empty($materialiSospesi)): ?>
+                    <p class="text-muted small mb-2">Già segnati per questo cliente:</p>
+                    <ul class="list-group list-group-flush mb-3">
+                        <?php foreach ($materialiSospesi as $m): ?>
+                            <li class="list-group-item px-0 py-1">
+                                <?= (int) $m['quantita'] ?>× <?= esc($m['desc_materiale']) ?>
+                                <?php if (! empty($m['note'])): ?>
+                                    <span class="text-muted small">— <?= esc($m['note']) ?></span>
+                                <?php endif ?>
+                            </li>
+                        <?php endforeach ?>
+                    </ul>
+                <?php endif ?>
+                <?php
+                $this->setData([
+                    'interventoId'        => null,
+                    'clienteId'           => $intervento['cliente_id'],
+                    'from'                => current_url(),
+                    'riapriStepMateriali' => true,
+                ]);
+                ?>
+                <?= $this->include('operativo/interventi/_form_materiale') ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, ho finito</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('styles') ?>
+<link rel="stylesheet" href="<?= base_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<?= $this->include('operativo/interventi/_form_materiale_scripts') ?>
+<script>
+(function () {
+    var master = document.getElementById('chk-materiali-tutti');
+    if (master) {
+        var righe = document.querySelectorAll('.chk-materiale');
+        master.addEventListener('change', function () {
+            righe.forEach(function (c) { c.checked = master.checked; });
+        });
+    }
+
+    <?php if ($mostraStepMateriali): ?>
+    enqueueModal('modal-materiali-prossima-visita', function () {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-materiali-prossima-visita')).show();
+    });
+    <?php endif ?>
+})();
+</script>
 <?= $this->endSection() ?>

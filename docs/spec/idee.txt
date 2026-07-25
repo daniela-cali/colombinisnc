@@ -16,7 +16,8 @@ Riunione 10.07.2026
 
 5.R CHIUSO v0.24.13 — e verificare anche il contrario: se programmati in data ma assenza.. avvisare di cambiare tecnico
 
-6.R materiale da portare prossima visita! fare brainstorming, secondo me tocca anche la parte della dashboard tecnico in chiusura intervento
+6.R CHIUSO v0.24.26 — materiale da portare prossima visita! fare brainstorming, secondo me tocca anche la parte della dashboard tecnico in chiusura intervento
+(checklist itemizzata di consegna + modal automatico "prossima visita" in operativo/interventi/show.php — unico punto di chiusura intervento, usato anche dalla dashboard tecnico, nessuna vista separata da toccare)
 
 7.R CHIUSO v0.24.22 — verificare scadenze aperte.. così crea troppo casino: elenco collassabile? fare brainstorming assieme
 (diviso in due: barra "Attenzione" nel calendario con tre pill collassabili, qui chiusa; concetto generico "entro la settimana" rimandato a una futura card dashboard, non ancora specificato)

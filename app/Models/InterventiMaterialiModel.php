@@ -103,22 +103,55 @@ class InterventiMaterialiModel extends Model
     }
 
     /**
-     * Segna come consegnati tutti i materiali di un intervento.
+     * Riporta tra i sospesi i materiali non consegnati di un intervento.
+     * Prepende "[Da {codice}]" alla nota per conservare la traccia dell'origine.
+     * Usato da annulla()/delete() (blanket, tutto l'intervento) — per la chiusura
+     * itemizzata vedi liberaSelezionati().
      */
-    public function consegnaPerIntervento(int $interventoId): void
+    public function liberaPerIntervento(int $interventoId, string $codice): void
     {
-        $this->where('intervento_id', $interventoId)
+        $materiali = $this->where('intervento_id', $interventoId)
+                          ->where('stato', self::STATO_DA_PORTARE)
+                          ->findAll();
+
+        foreach ($materiali as $m) {
+            $nota = trim('[Da ' . $codice . '] ' . ($m['note'] ?? ''));
+            $this->update($m['id'], [
+                'intervento_id' => null,
+                'note'          => $nota ?: null,
+            ]);
+        }
+    }
+
+    /**
+     * Segna come consegnati i soli materiali indicati (per ID) di un intervento.
+     * Il filtro anche su intervento_id impedisce che un POST manomesso marchi
+     * come consegnati materiali di un altro intervento.
+     */
+    public function consegnaSelezionati(array $ids, int $interventoId): void
+    {
+        if (empty($ids)) {
+            return;
+        }
+        $this->whereIn('id', $ids)
+             ->where('intervento_id', $interventoId)
              ->set('stato', self::STATO_CONSEGNATO)
              ->update();
     }
 
     /**
-     * Riporta tra i sospesi i materiali non consegnati di un intervento.
-     * Prepende "[Da {codice}]" alla nota per conservare la traccia dell'origine.
+     * Riporta tra i sospesi i soli materiali indicati (per ID) di un intervento.
+     * Stessa logica di liberaPerIntervento() (nota "[Da {codice}]") ma ristretta
+     * al sottoinsieme scelto dal tecnico nella checklist di chiusura.
      */
-    public function liberaPerIntervento(int $interventoId, string $codice): void
+    public function liberaSelezionati(array $ids, int $interventoId, string $codice): void
     {
-        $materiali = $this->where('intervento_id', $interventoId)
+        if (empty($ids)) {
+            return;
+        }
+
+        $materiali = $this->whereIn('id', $ids)
+                          ->where('intervento_id', $interventoId)
                           ->where('stato', self::STATO_DA_PORTARE)
                           ->findAll();
 
