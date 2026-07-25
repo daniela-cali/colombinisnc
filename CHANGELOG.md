@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.27] - 2026-07-25
+
+### Calendario: fix tecnico assegnato perso nel pool "da pianificare"
+
+- [APP] Un intervento con tecnico già assegnato ma ancora "da pianificare" ora mostra correttamente il tecnico nella card del pool e nel modal di dettaglio, e lo mantiene preselezionato quando lo trascini sul calendario per pianificarlo — prima veniva sempre mostrato "Non assegnato" e perso al trascinamento
+- [DEV] `InterventiModel::poolDaPianificare()` seleziona ora anche `tecnico_id`/`tecnico_nome` (join `personale`); `_pool.php` espone `data-tecnico-id`/`data-tecnico-nome`; `calendario.js` legge il dataset della card invece del valore hardcoded "Non assegnato" e preseleziona il tecnico nel modal di pianificazione
+
 ## [0.24.26] - 2026-07-25
 
 ### Chiusura intervento: checklist materiali itemizzata e aggiunta materiali per la prossima visita (6.R)

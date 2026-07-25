@@ -116,7 +116,7 @@
             document.getElementById('modal-cliente').textContent = card.dataset.cliente || ('#' + id);
             document.getElementById('modal-content').style.borderLeft = '4px solid #6c757d';
             document.getElementById('modal-tipo').textContent    = card.dataset.tipoNome || '—';
-            document.getElementById('modal-tecnico').textContent = 'Non assegnato';
+            document.getElementById('modal-tecnico').textContent = card.dataset.tecnicoNome || 'Non assegnato';
             document.getElementById('modal-data').textContent    = 'Da pianificare';
             document.getElementById('modal-stato').innerHTML     = '<span class="badge bg-secondary">Da pianificare</span>';
             document.getElementById('modal-descrizione').textContent = card.dataset.descr || '';
@@ -218,6 +218,9 @@
             pianOraEl.value = timeStr || oraInizio;
             document.getElementById('pian-orario-sugg').classList.add('d-none');
             buildTecnicoSelect(pianTecnicoEl);
+            // Se l'intervento ha già un tecnico assegnato (es. impostato alla creazione), lo
+            // preseleziona — altrimenti trascinare la card sul calendario lo perderebbe.
+            pianTecnicoEl.value = cardEl.dataset.tecnicoId || '';
             aggiornaAvvisoAssenza();
 
             // Avviso scadenza: se la data del drop è successiva alla data_scadenza dell'intervento.

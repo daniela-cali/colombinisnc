@@ -259,6 +259,8 @@ class InterventiModel extends Model
         return $this->select("interventi.id, interventi.tipo_intervento_id, interventi.priorita,
                       interventi.urgenza, interventi.extra, interventi.stato, interventi.data_scadenza, interventi.durata_stimata,
                       interventi.descrizione, interventi.cantiere_id, interventi.abbonamento_id, interventi.created_at,
+                      interventi.tecnico_id,
+                      TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome,
                       CASE WHEN c.tipo = 'persona_fisica'
                            THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
                            ELSE c.ragsoc
@@ -267,6 +269,7 @@ class InterventiModel extends Model
                       c.zona  AS cliente_zona,
                       c.distanza_sede")
             ->join('clienti c', 'c.id = interventi.cliente_id', 'left')
+            ->join('personale p', 'p.id = interventi.tecnico_id', 'left')
             ->where('interventi.stato', self::STATO_DA_PIANIFICARE)
             ->groupStart()
                 ->where('interventi.abbonamento_id IS NULL', null, false)

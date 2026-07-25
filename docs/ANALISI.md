@@ -563,6 +563,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `InterventiMaterialiModel::consegnaSelezionati()`/`liberaSelezionati()` (logica itemizzata); mini-form materiali estratto in partial condivisi `_form_materiale.php`/`_form_materiale_scripts.php` (`edit.php` + nuovo modal)
 - Vedi `docs/spec/chiusura_intervento_materiali_spec.md`
 
+#### ✅ v0.24.27 — Calendario: fix tecnico assegnato perso nel pool "da pianificare"
+- Un intervento con tecnico già assegnato ma ancora "da pianificare" ora mostra correttamente il tecnico nella card del pool e nel modal di dettaglio, e lo mantiene preselezionato trascinandolo sul calendario — prima mostrava sempre "Non assegnato" e lo perdeva al trascinamento
+- `InterventiModel::poolDaPianificare()` seleziona ora `tecnico_id`/`tecnico_nome` (join `personale`); `_pool.php` espone `data-tecnico-id`/`data-tecnico-nome`; `calendario.js` legge il dataset invece del valore hardcoded e preseleziona il tecnico nel modal di pianificazione
+- Bug preesistente, emerso testando la geolocalizzazione cantieri (v0.24.28): il pool era stato progettato assumendo che un intervento "da pianificare" non avesse mai un tecnico preassegnato
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
