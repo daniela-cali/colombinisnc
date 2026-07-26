@@ -50,6 +50,14 @@ $this->extend('layouts/admin');
                 <?php foreach ($g['interventi'] as $i):
                     $haCoord  = $i['lat'] !== null && $i['lng'] !== null;
                     $inCorso  = $i['stato'] === 'in_corso';
+
+                    $indirizzoCompleto = trim($i['indirizzo'] . ', ' . $i['cap'] . ' ' . $i['citta'], ', ');
+                    $naviga = null;
+                    if ($haCoord) {
+                        $naviga = 'https://www.google.com/maps/dir/?api=1&destination=' . $i['lat'] . ',' . $i['lng'];
+                    } elseif ($indirizzoCompleto) {
+                        $naviga = 'https://www.google.com/maps/dir/?api=1&destination=' . urlencode($indirizzoCompleto);
+                    }
                 ?>
                 <div class="card agenda-card mb-2">
                     <div class="card-body">
@@ -72,7 +80,7 @@ $this->extend('layouts/admin');
 
                         <div class="agenda-indirizzo text-muted">
                             <i class="bi bi-geo-alt me-1"></i>
-                            <?= esc(trim($i['indirizzo'] . ', ' . $i['cap'] . ' ' . $i['citta'], ', ')) ?>
+                            <?= esc($indirizzoCompleto) ?>
                         </div>
 
                         <?php if (! empty($i['materiali'])): ?>
@@ -92,13 +100,19 @@ $this->extend('layouts/admin');
                         <?php endif ?>
 
                         <div class="agenda-azioni mt-2">
+                            <?php if ($naviga): ?>
+                            <a href="<?= esc($naviga) ?>" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+                                <i class="bi bi-signpost-2 me-1"></i>Naviga
+                            </a>
+                            <?php endif ?>
                             <?php if ($haCoord): ?>
-                            <button type="button" class="btn btn-outline-primary btn-sm"
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                    title="Anteprima mappa" aria-label="Anteprima mappa"
                                     data-bs-toggle="modal" data-bs-target="#modalMappa"
                                     data-lat="<?= esc($i['lat']) ?>"
                                     data-lng="<?= esc($i['lng']) ?>"
                                     data-nome="<?= esc($i['cliente_denominazione']) ?>">
-                                <i class="bi bi-geo-alt-fill me-1"></i>Mappa
+                                <i class="bi bi-geo-alt-fill"></i>
                             </button>
                             <?php endif ?>
                             <a href="<?= base_url('operativo/interventi/' . $i['id']) ?>" class="btn btn-primary btn-sm">
