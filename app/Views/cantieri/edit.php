@@ -48,6 +48,12 @@ $this->extend('layouts/admin');
                     <input type="hidden" name="from" value="<?= esc($from) ?>">
                 <?php endif ?>
 
+                <!-- Campi geocodifica — compilati dal JS se si rigeocodifica, altrimenti restano i valori esistenti -->
+                <input type="hidden" name="lat"                 value="<?= esc($cantiere['lat']) ?>">
+                <input type="hidden" name="lng"                 value="<?= esc($cantiere['lng']) ?>">
+                <input type="hidden" name="geocoded_at"         value="<?= esc($cantiere['geocoded_at']) ?>">
+                <input type="hidden" name="geocodifica_fallita" value="<?= esc($cantiere['geocodifica_fallita']) ?>">
+
                 <div class="card-body">
 
                     <!-- Cliente -->
@@ -109,6 +115,39 @@ $this->extend('layouts/admin');
                         </div>
                     </div>
 
+                    <!-- Luogo e referente -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-geo-alt me-1"></i> Luogo e referente</p>
+                    <div class="row g-3 mb-1">
+                        <div class="col-md-6">
+                            <label class="form-label">Indirizzo</label>
+                            <input type="text" name="indirizzo" class="form-control"
+                                   value="<?= esc(old('indirizzo', $cantiere['indirizzo'])) ?>"
+                                   placeholder="Indirizzo cantiere, se diverso da anagrafica cliente">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Città</label>
+                            <input type="text" name="citta" class="form-control"
+                                   value="<?= esc(old('citta', $cantiere['citta'])) ?>"
+                                   placeholder="Città cantiere, se diversa da anagrafica cliente">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-secondary w-100"
+                                    data-geocoder
+                                    title="Rileva coordinate dall'indirizzo">
+                                <i class="bi bi-geo-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="geo-result" class="small mb-3 mt-1"></div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label">Referente</label>
+                            <input type="text" name="referente" class="form-control" maxlength="150"
+                                   value="<?= esc(old('referente', $cantiere['referente'])) ?>"
+                                   placeholder="es. Manuel (custode) 339 1234567">
+                        </div>
+                    </div>
+
                     <!-- Periodo -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-calendar-range me-1"></i> Periodo</p>
                     <div class="row g-3 mb-4">
@@ -147,4 +186,8 @@ $this->extend('layouts/admin');
 
     </div>
 </div>
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="<?= base_url('js/geocoding.js') ?>"></script>
 <?= $this->endSection() ?>

@@ -235,6 +235,38 @@ class CantieriController extends BaseController
     }
 
     /**
+     * Salva la posizione del pin impostata manualmente dalla scheda cantiere
+     * (mappa Leaflet, stesso pattern di ClientiController::aggiornaPosizione()).
+     * Sostituisce un'eventuale geocodifica automatica fallita.
+     */
+    public function aggiornaPosizione(int $id): RedirectResponse
+    {
+        $model    = new CantieriModel();
+        $cantiere = $model->find($id);
+        if (! $cantiere) {
+            return redirect()->to('cantieri')->with('error', 'Cantiere non trovato.');
+        }
+
+        $rules = [
+            'lat' => 'required|decimal|greater_than_equal_to[-90]|less_than_equal_to[90]',
+            'lng' => 'required|decimal|greater_than_equal_to[-180]|less_than_equal_to[180]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->to('cantieri/' . $id . '#sec-posizione')->with('error', 'Coordinate non valide.');
+        }
+
+        $model->update($id, [
+            'lat'                 => $this->request->getPost('lat'),
+            'lng'                 => $this->request->getPost('lng'),
+            'geocoded_at'         => date('Y-m-d H:i:s'),
+            'geocodifica_fallita' => 0,
+        ]);
+
+        return redirect()->to('cantieri/' . $id . '#sec-posizione')->with('success', 'Posizione aggiornata.');
+    }
+
+    /**
      * Aggiunge una nota al diario del cantiere, tornando alla pagina di origine.
      */
     public function aggiungiNota(): RedirectResponse
@@ -296,6 +328,9 @@ class CantieriController extends BaseController
             'titolo'             => 'required|min_length[2]|max_length[150]',
             'tipo'               => "required|in_list[{$tipiAmmessi}]",
             'stato'              => "required|in_list[{$statiAmmessi}]",
+            'indirizzo'          => 'permit_empty|max_length[255]',
+            'citta'              => 'permit_empty|max_length[100]',
+            'referente'          => 'permit_empty|max_length[150]',
             'data_inizio'        => 'permit_empty|valid_date[Y-m-d]',
             'data_fine_prevista' => 'permit_empty|valid_date[Y-m-d]',
         ];

@@ -563,6 +563,19 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `InterventiMaterialiModel::consegnaSelezionati()`/`liberaSelezionati()` (logica itemizzata); mini-form materiali estratto in partial condivisi `_form_materiale.php`/`_form_materiale_scripts.php` (`edit.php` + nuovo modal)
 - Vedi `docs/spec/chiusura_intervento_materiali_spec.md`
 
+#### ✅ v0.24.27 — Calendario: fix tecnico assegnato perso nel pool "da pianificare"
+- Un intervento con tecnico già assegnato ma ancora "da pianificare" ora mostra correttamente il tecnico nella card del pool e nel modal di dettaglio, e lo mantiene preselezionato trascinandolo sul calendario — prima mostrava sempre "Non assegnato" e lo perdeva al trascinamento
+- `InterventiModel::poolDaPianificare()` seleziona ora `tecnico_id`/`tecnico_nome` (join `personale`); `_pool.php` espone `data-tecnico-id`/`data-tecnico-nome`; `calendario.js` legge il dataset invece del valore hardcoded e preseleziona il tecnico nel modal di pianificazione
+- Bug preesistente, emerso testando la geolocalizzazione cantieri (v0.24.28): il pool era stato progettato assumendo che un intervento "da pianificare" non avesse mai un tecnico preassegnato
+
+#### ✅ v0.24.28 — Cantieri: luogo, referente e geolocalizzazione propri
+- Tre campi testuali nullable su `cantieri` (`indirizzo`, `citta`, `referente`) con fallback sui campi omonimi del cliente quando NULL — copre i casi di intermediari o più proprietà collegate allo stesso cliente senza attrito nel caso normale
+- Geolocalizzazione propria del cantiere (`lat`/`lng`/`geocoded_at`/`geocodifica_fallita`), stesso fallback: sezione "Posizione" in scheda cantiere con mappa Leaflet, geocodifica automatica e correzione manuale del pin, ricalcando `clienti/show.php`
+- Script Leaflet estratto in `public/js/mappa-posizione.js`, riusato da scheda cliente e cantiere (contenitore generico `#mappa-posizione`)
+- Nuovo tipo cantiere `manutenzione_straordinaria` (nessun ALTER, il campo `tipo` è già VARCHAR)
+- Fix: `InterventiModel::agendaTecnicoPeriodo()` ignorava `cantiere_id` — la mappa/"Apri in Google Maps" nell'agenda mobile del tecnico puntava sempre all'indirizzo del cliente anche per interventi su cantieri con luogo diverso; ora `LEFT JOIN cantieri` + `COALESCE`
+- Vedi `docs/spec/cantieri_luogo_referente_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

@@ -1,5 +1,26 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.28] - 2026-07-25
+
+### Cantieri: luogo, referente e geolocalizzazione propri
+
+- [APP] Il cantiere può avere un indirizzo, una città, un referente operativo (nome/ruolo/telefono) e una posizione sulla mappa propri, diversi da quelli del cliente — utile per intermediari o più proprietà collegate allo stesso cliente. Se lasciati vuoti, valgono automaticamente quelli del cliente
+- [APP] Scheda cantiere: nuova sezione "Posizione" con mappa Leaflet, bottone "Correggi posizione" e geocodifica automatica dall'indirizzo — stesso comportamento già in uso sui clienti
+- [APP] Nuovo tipo cantiere "Manutenzione straordinaria", accanto a Nuova costruzione e Ristrutturazione
+- [APP] Fix: la mappa e "Apri in Google Maps" nell'agenda mobile del tecnico usano ora la posizione del cantiere quando presente, non più sempre quella del cliente — prima potevano mandare il tecnico all'indirizzo sbagliato per interventi su cantieri con luogo diverso
+- [DEV] Migration `AddLuogoReferenteGeoToCantieri`; `CantieriModel` aggiornato (`$allowedFields`, costante `TIPO_MANUTENZIONE_STRAORDINARIA`, normalizzazione nullable/maiuscolo in `normalizza()`)
+- [DEV] Nuovo endpoint `CantieriController::aggiornaPosizione()` (`POST cantieri/(:num)/posizione`), stesso schema di `ClientiController::aggiornaPosizione()`
+- [DEV] Script Leaflet estratto in `public/js/mappa-posizione.js`, riusato da scheda cliente e scheda cantiere (contenitore generico `#mappa-posizione`, nessuna logica specifica dell'entità)
+- [DEV] `InterventiModel::agendaTecnicoPeriodo()`: `LEFT JOIN cantieri` + `COALESCE` su indirizzo/città/lat/lng
+- [DEV] Vedi `docs/spec/cantieri_luogo_referente_spec.md`
+
+## [0.24.27] - 2026-07-25
+
+### Calendario: fix tecnico assegnato perso nel pool "da pianificare"
+
+- [APP] Un intervento con tecnico già assegnato ma ancora "da pianificare" ora mostra correttamente il tecnico nella card del pool e nel modal di dettaglio, e lo mantiene preselezionato quando lo trascini sul calendario per pianificarlo — prima veniva sempre mostrato "Non assegnato" e perso al trascinamento
+- [DEV] `InterventiModel::poolDaPianificare()` seleziona ora anche `tecnico_id`/`tecnico_nome` (join `personale`); `_pool.php` espone `data-tecnico-id`/`data-tecnico-nome`; `calendario.js` legge il dataset della card invece del valore hardcoded "Non assegnato" e preseleziona il tecnico nel modal di pianificazione
+
 ## [0.24.26] - 2026-07-25
 
 ### Chiusura intervento: checklist materiali itemizzata e aggiunta materiali per la prossima visita (6.R)

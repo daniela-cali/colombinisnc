@@ -82,6 +82,8 @@ foreach ($poolPerZona as $zonaKey => $blocchi):
              data-scadenza="<?= esc($i['data_scadenza'] ?? '') ?>"
              data-creato="<?= esc($i['created_at'] ?? '') ?>"
              data-urgenza="<?= (int) ($i['urgenza'] ?? 0) ?>"
+             data-tecnico-id="<?= (int) ($i['tecnico_id'] ?? 0) ?>"
+             data-tecnico-nome="<?= htmlspecialchars($i['tecnico_nome'] ?? '', ENT_QUOTES) ?>"
              data-materiali="<?= esc($materialiJson, 'attr') ?>">
             <div class="d-flex justify-content-between align-items-start mb-1">
                 <div class="d-flex gap-1">

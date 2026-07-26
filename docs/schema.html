@@ -296,7 +296,14 @@
   <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE RESTRICT</td></tr>
   <tr><td><code>titolo</code></td><td>VARCHAR(150)</td><td></td><td></td><td></td></tr>
-  <tr><td><code>tipo</code></td><td>VARCHAR(30)</td><td></td><td></td><td>Valori: <code>nuova_costruzione</code> · <code>ristrutturazione</code></td></tr>
+  <tr><td><code>indirizzo</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Luogo del cantiere · NULL = indirizzo del cliente · aggiunto v0.24.28</td></tr>
+  <tr><td><code>citta</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td>Città del cantiere · NULL = città del cliente · aggiunto v0.24.28</td></tr>
+  <tr><td><code>referente</code></td><td>VARCHAR(150)</td><td class="null">NULL</td><td></td><td>Testo libero: nome, ruolo, telefono · aggiunto v0.24.28</td></tr>
+  <tr><td><code>lat</code></td><td>DECIMAL(10,7)</td><td class="null">NULL</td><td></td><td>Posizione del cantiere · NULL = posizione del cliente · aggiunto v0.24.28</td></tr>
+  <tr><td><code>lng</code></td><td>DECIMAL(10,7)</td><td class="null">NULL</td><td></td><td>Aggiunto v0.24.28</td></tr>
+  <tr><td><code>geocoded_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Ultima geocodifica riuscita o correzione manuale · aggiunto v0.24.28</td></tr>
+  <tr><td><code>geocodifica_fallita</code></td><td>TINYINT</td><td></td><td>0</td><td>Aggiunto v0.24.28</td></tr>
+  <tr><td><code>tipo</code></td><td>VARCHAR(30)</td><td></td><td></td><td>Valori: <code>nuova_costruzione</code> · <code>ristrutturazione</code> · <code>manutenzione_straordinaria</code> (v0.24.28)</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ tipi_intervento.id · ON DELETE SET NULL · tipo predefinito per i nuovi interventi del cantiere</td></tr>
   <tr><td><code>stato</code></td><td>VARCHAR(30)</td><td></td><td>aperto</td><td>Valori: <code>aperto</code> · <code>sospeso</code> · <code>chiuso</code></td></tr>
   <tr><td><code>data_inizio</code></td><td>DATE</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -426,6 +433,16 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.24.28</td>
+    <td><code>AddLuogoReferenteGeoToCantieri</code></td>
+    <td>
+      Su <code>cantieri</code>: <code>indirizzo VARCHAR(255) NULL</code>, <code>citta VARCHAR(100) NULL</code>, <code>referente VARCHAR(150) NULL</code>
+      (fallback sui campi omonimi del cliente quando NULL), <code>lat</code>/<code>lng DECIMAL(10,7) NULL</code>, <code>geocoded_at DATETIME NULL</code>,
+      <code>geocodifica_fallita TINYINT default 0</code> (stessa semantica di <code>clienti</code>). Nessun ALTER: nuovo valore <code>manutenzione_straordinaria</code>
+      per il campo <code>tipo</code>, già VARCHAR.
+    </td>
+  </tr>
   <tr>
     <td>v0.24.1</td>
     <td><code>CreateViewsAbbonamentiInterventi</code></td>
