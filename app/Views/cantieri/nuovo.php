@@ -155,11 +155,17 @@ $this->extend('layouts/admin');
                     </div>
                     <div id="geo-result" class="small mb-3 mt-1"></div>
                     <div class="row g-3 mb-4">
-                        <div class="col-12">
+                        <div class="col-md-8">
                             <label class="form-label">Referente</label>
-                            <input type="text" name="referente" class="form-control" maxlength="150"
-                                   value="<?= esc(old('referente')) ?>"
-                                   placeholder="es. Rossi (capo cantiere) 339 1234567">
+                            <input type="text" name="referente_nome" class="form-control" maxlength="150"
+                                   value="<?= esc(old('referente_nome')) ?>"
+                                   placeholder="es. Rossi (capo cantiere)">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Telefono referente</label>
+                            <input type="tel" name="referente_telefono" class="form-control" maxlength="50"
+                                   value="<?= esc(old('referente_telefono')) ?>"
+                                   placeholder="339 1234567">
                         </div>
                     </div>
 

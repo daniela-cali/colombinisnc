@@ -73,6 +73,49 @@ $statoBadge = [
                             <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id']) ?>" class="fw-semibold">
                                 <?= esc(\App\Models\ClientiModel::denominazione($cliente)) ?>
                             </a>
+
+                            <?php
+                            // Il cantiere ha priorità su luogo/posizione se propri (stesso fallback
+                            // di InterventiModel::agendaTecnicoPeriodo() — vedi cantieri_luogo_referente_spec.md).
+                            $luogoIndirizzo    = ($cantiere['indirizzo'] ?? null) ?: $cliente['indirizzo'];
+                            $luogoCitta        = ($cantiere['citta'] ?? null) ?: $cliente['citta'];
+                            $luogoLat          = ($cantiere['lat'] ?? null) ?: $cliente['lat'];
+                            $luogoLng          = ($cantiere['lng'] ?? null) ?: $cliente['lng'];
+                            $indirizzoCompleto = trim($luogoIndirizzo . ', ' . $cliente['cap'] . ' ' . $luogoCitta, ', ');
+
+                            $naviga = null;
+                            if ($luogoLat !== null && $luogoLng !== null) {
+                                $naviga = 'https://www.google.com/maps/dir/?api=1&destination=' . $luogoLat . ',' . $luogoLng;
+                            } elseif ($indirizzoCompleto) {
+                                $naviga = 'https://www.google.com/maps/dir/?api=1&destination=' . urlencode($indirizzoCompleto);
+                            }
+                            ?>
+                            <?php if ($indirizzoCompleto): ?>
+                                <div class="text-muted small mt-1">
+                                    <i class="bi bi-geo-alt me-1"></i><?= esc($indirizzoCompleto) ?>
+                                </div>
+                            <?php endif ?>
+
+                            <div class="d-flex flex-wrap gap-2 mt-2">
+                                <?php if ($naviga): ?>
+                                    <a href="<?= esc($naviga) ?>" target="_blank" rel="noopener"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-signpost-2 me-1"></i>Naviga
+                                    </a>
+                                <?php endif ?>
+                                <?php if ($cliente['telefono']): ?>
+                                    <a href="tel:<?= esc($cliente['telefono']) ?>" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-telephone me-1"></i>Chiama
+                                    </a>
+                                <?php endif ?>
+                                <?php if (! empty($cantiere['referente_telefono'])): ?>
+                                    <a href="tel:<?= esc($cantiere['referente_telefono']) ?>"
+                                       class="btn btn-sm btn-outline-secondary"
+                                       <?php if ($cantiere['referente_nome']): ?>title="<?= esc($cantiere['referente_nome']) ?>"<?php endif ?>>
+                                        <i class="bi bi-telephone me-1"></i>Chiama referente
+                                    </a>
+                                <?php endif ?>
+                            </div>
                         <?php else: ?>
                             <span class="text-muted">—</span>
                         <?php endif ?>

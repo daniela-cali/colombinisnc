@@ -91,9 +91,15 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
                         </dd>
                     <?php endif ?>
 
-                    <?php if ($cantiere['referente']): ?>
+                    <?php if ($cantiere['referente_nome'] || $cantiere['referente_telefono']): ?>
                         <dt class="col-5 text-muted">Referente</dt>
-                        <dd class="col-7"><?= esc($cantiere['referente']) ?></dd>
+                        <dd class="col-7">
+                            <?= esc($cantiere['referente_nome'] ?? '') ?>
+                            <?php if ($cantiere['referente_telefono']): ?>
+                                <?php if ($cantiere['referente_nome']): ?><br><?php endif ?>
+                                <a href="tel:<?= esc($cantiere['referente_telefono']) ?>" class="text-reset"><?= esc($cantiere['referente_telefono']) ?></a>
+                            <?php endif ?>
+                        </dd>
                     <?php endif ?>
 
                     <dt class="col-5 text-muted">Tipo</dt>

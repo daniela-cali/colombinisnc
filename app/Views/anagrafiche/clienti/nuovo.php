@@ -162,7 +162,7 @@ $this->extend('layouts/admin');
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label">Telefono</label>
-                            <input type="text" name="telefono" class="form-control"
+                            <input type="tel" name="telefono" class="form-control"
                                    value="<?= esc(old('telefono')) ?>">
                         </div>
                         <div class="col-md-6">

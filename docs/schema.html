@@ -298,7 +298,8 @@
   <tr><td><code>titolo</code></td><td>VARCHAR(150)</td><td></td><td></td><td></td></tr>
   <tr><td><code>indirizzo</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Luogo del cantiere · NULL = indirizzo del cliente · aggiunto v0.24.28</td></tr>
   <tr><td><code>citta</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td>Città del cantiere · NULL = città del cliente · aggiunto v0.24.28</td></tr>
-  <tr><td><code>referente</code></td><td>VARCHAR(150)</td><td class="null">NULL</td><td></td><td>Testo libero: nome, ruolo, telefono · aggiunto v0.24.28</td></tr>
+  <tr><td><code>referente_nome</code></td><td>VARCHAR(150)</td><td class="null">NULL</td><td></td><td>Nome ed eventuale ruolo · aggiunto v0.24.28 come <code>referente</code>, rinominato in <code>SplitReferenteCantieri</code></td></tr>
+  <tr><td><code>referente_telefono</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td>Numero isolato per link <code>tel:</code> · nessun fallback sul telefono del cliente</td></tr>
   <tr><td><code>lat</code></td><td>DECIMAL(10,7)</td><td class="null">NULL</td><td></td><td>Posizione del cantiere · NULL = posizione del cliente · aggiunto v0.24.28</td></tr>
   <tr><td><code>lng</code></td><td>DECIMAL(10,7)</td><td class="null">NULL</td><td></td><td>Aggiunto v0.24.28</td></tr>
   <tr><td><code>geocoded_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Ultima geocodifica riuscita o correzione manuale · aggiunto v0.24.28</td></tr>

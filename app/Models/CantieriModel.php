@@ -13,7 +13,7 @@ class CantieriModel extends Model
 
     protected $allowedFields = [
         'cliente_id', 'titolo', 'tipo', 'tipo_intervento_id', 'stato',
-        'indirizzo', 'citta', 'referente',
+        'indirizzo', 'citta', 'referente_nome', 'referente_telefono',
         'lat', 'lng', 'geocoded_at', 'geocodifica_fallita',
         'data_inizio', 'data_fine_prevista', 'note',
         'created_by', 'updated_by',

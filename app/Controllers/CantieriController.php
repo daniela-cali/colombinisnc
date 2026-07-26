@@ -330,7 +330,8 @@ class CantieriController extends BaseController
             'stato'              => "required|in_list[{$statiAmmessi}]",
             'indirizzo'          => 'permit_empty|max_length[255]',
             'citta'              => 'permit_empty|max_length[100]',
-            'referente'          => 'permit_empty|max_length[150]',
+            'referente_nome'     => 'permit_empty|max_length[150]',
+            'referente_telefono' => 'permit_empty|max_length[50]',
             'data_inizio'        => 'permit_empty|valid_date[Y-m-d]',
             'data_fine_prevista' => 'permit_empty|valid_date[Y-m-d]',
         ];
