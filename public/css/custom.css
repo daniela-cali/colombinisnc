@@ -687,3 +687,32 @@ tr:has(a.js-row-open) {
     border-radius: .375rem;
     cursor: pointer;
 }
+
+/* =========================================================
+   Scheda intervento — footer azioni: bottoni impilati e a
+   piena larghezza sotto i 576px, con priorità "Completa" per
+   primo e "Annulla"/"Elimina" per ultimo e staccati (touch
+   target 44px, mobile_ux_spec.md §2.2). Sopra i 576px nessun
+   effetto: il layout desktop resta quello di sempre.
+   ========================================================= */
+@media (max-width: 575.98px) {
+    .intervento-azioni {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .intervento-azioni > * {
+        margin: 0 !important;
+        width: 100%;
+    }
+    .intervento-azioni .btn {
+        min-height: 44px;
+    }
+    .intervento-azioni .btn-azione-completa       { order: 1; }
+    .intervento-azioni .btn-azione-modifica       { order: 2; }
+    .intervento-azioni .btn-azione-scheda-cliente { order: 3; }
+    .intervento-azioni .btn-azione-annulla,
+    .intervento-azioni .btn-azione-elimina {
+        order: 4;
+        margin-top: .75rem !important;
+    }
+}

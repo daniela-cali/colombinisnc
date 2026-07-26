@@ -252,53 +252,51 @@ $statoBadge = [
 
             </div>
 
-            <div class="card-footer d-flex justify-content-between align-items-center">
+            <div class="card-footer d-flex flex-wrap gap-2 align-items-center intervento-azioni">
                 <?php if ($cliente): ?>
                     <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi') ?>"
-                       class="btn btn-sm btn-outline-secondary">
+                       class="btn btn-sm btn-outline-secondary btn-azione-scheda-cliente me-auto">
                         <i class="bi bi-arrow-left me-1"></i>Scheda cliente
                     </a>
                 <?php else: ?>
                     <a href="<?= base_url('operativo/interventi') ?>"
-                       class="btn btn-sm btn-outline-secondary">
+                       class="btn btn-sm btn-outline-secondary btn-azione-scheda-cliente me-auto">
                         <i class="bi bi-arrow-left me-1"></i>Interventi
                     </a>
                 <?php endif ?>
-                <div class="d-flex gap-2 ms-auto">
-                    <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_ANNULLATO): ?>
-                        <form method="post"
-                              action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
-                              onsubmit="return confirm('Eliminare definitivamente <?= esc($intervento['codice']) ?>?')">
-                            <?= csrf_field() ?>
-                            <?php if ($cliente): ?>
-                                <input type="hidden" name="from"
-                                       value="<?= esc(base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')) ?>">
-                            <?php endif ?>
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash me-1"></i>Elimina
-                            </button>
-                        </form>
-                    <?php endif ?>
-                    <?php if (! in_array($intervento['stato'], [\App\Models\InterventiModel::STATO_COMPLETATO, \App\Models\InterventiModel::STATO_ANNULLATO])): ?>
-                        <button type="button" class="btn btn-sm btn-outline-danger"
-                                data-bs-toggle="modal" data-bs-target="#modal-annulla">
-                            <i class="bi bi-x-circle me-1"></i>Annulla intervento
+                <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_ANNULLATO): ?>
+                    <form method="post" class="btn-azione-elimina"
+                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
+                          onsubmit="return confirm('Eliminare definitivamente <?= esc($intervento['codice']) ?>?')">
+                        <?= csrf_field() ?>
+                        <?php if ($cliente): ?>
+                            <input type="hidden" name="from"
+                                   value="<?= esc(base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')) ?>">
+                        <?php endif ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                            <i class="bi bi-trash me-1"></i>Elimina
                         </button>
-                        <button type="button" class="btn btn-sm btn-success"
-                                data-bs-toggle="modal" data-bs-target="#modal-chiudi">
-                            <i class="bi bi-check-circle me-1"></i>Chiudi intervento
-                        </button>
-                    <?php endif ?>
-                    <?php
-                        $editFrom = $cliente
-                            ? base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')
-                            : base_url('operativo/interventi');
-                    ?>
-                    <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
-                       class="btn btn-sm btn-primary">
-                        <i class="bi bi-pencil me-1"></i>Modifica
-                    </a>
-                </div>
+                    </form>
+                <?php endif ?>
+                <?php if (! in_array($intervento['stato'], [\App\Models\InterventiModel::STATO_COMPLETATO, \App\Models\InterventiModel::STATO_ANNULLATO])): ?>
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-azione-annulla"
+                            data-bs-toggle="modal" data-bs-target="#modal-annulla">
+                        <i class="bi bi-x-circle me-1"></i>Annulla intervento
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success btn-azione-completa"
+                            data-bs-toggle="modal" data-bs-target="#modal-chiudi">
+                        <i class="bi bi-check-circle me-1"></i>Chiudi intervento
+                    </button>
+                <?php endif ?>
+                <?php
+                    $editFrom = $cliente
+                        ? base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')
+                        : base_url('operativo/interventi');
+                ?>
+                <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
+                   class="btn btn-sm btn-primary btn-azione-modifica">
+                    <i class="bi bi-pencil me-1"></i>Modifica
+                </a>
             </div>
         </div>
 
