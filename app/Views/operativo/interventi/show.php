@@ -285,7 +285,7 @@ $statoBadge = [
                     </button>
                     <button type="button" class="btn btn-sm btn-success btn-azione-completa"
                             data-bs-toggle="modal" data-bs-target="#modal-chiudi">
-                        <i class="bi bi-check-circle me-1"></i>Chiudi intervento
+                        <i class="bi bi-check-circle me-1"></i>Completa intervento
                     </button>
                 <?php endif ?>
                 <?php
@@ -324,12 +324,12 @@ $statoBadge = [
                 <?php endif ?>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, torna indietro</button>
                 <form method="post"
                       action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/annulla') ?>">
                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-x-circle me-1"></i>Annulla intervento
+                        <i class="bi bi-x-circle me-1"></i>Sì, annulla l'intervento
                     </button>
                 </form>
             </div>
@@ -337,12 +337,12 @@ $statoBadge = [
     </div>
 </div>
 
-<!-- Modal: chiudi intervento -->
+<!-- Modal: completa intervento -->
 <div class="modal fade" id="modal-chiudi" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Chiudi intervento</h5>
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Completa intervento</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <?php $materialiDaPortare = array_filter($materiali, fn ($m) => $m['stato'] === \App\Models\InterventiMaterialiModel::STATO_DA_PORTARE); ?>
@@ -350,7 +350,7 @@ $statoBadge = [
             <?= csrf_field() ?>
             <div class="modal-body">
                 <p class="mb-0">
-                    Confermi la chiusura dell'intervento
+                    Confermi il completamento dell'intervento
                     <strong><?= esc($intervento['codice']) ?></strong>?
                 </p>
                 <?php if (! empty($materialiDaPortare)): ?>
@@ -390,9 +390,9 @@ $statoBadge = [
                 <?php endif ?>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, torna indietro</button>
                 <button type="submit" class="btn btn-success">
-                    <i class="bi bi-check-circle me-1"></i>Chiudi intervento
+                    <i class="bi bi-check-circle me-1"></i>Sì, segna come completato
                 </button>
             </div>
             </form>
