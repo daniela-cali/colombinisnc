@@ -217,8 +217,9 @@ class InterventiController extends BaseController
         }
 
         $model->update($id, [
-            'stato'        => InterventiModel::STATO_COMPLETATO,
-            'pulizia_fondo' => (int) (bool) $this->request->getPost('pulizia_fondo'),
+            'stato'              => InterventiModel::STATO_COMPLETATO,
+            'pulizia_fondo'      => (int) (bool) $this->request->getPost('pulizia_fondo'),
+            'data_completamento' => date('Y-m-d H:i:s'),
         ]);
 
         $matModel     = new InterventiMaterialiModel();
@@ -335,6 +336,34 @@ class InterventiController extends BaseController
         $dest = ($from && str_starts_with($from, base_url())) ? $from : 'operativo/interventi/' . $id . '/edit';
 
         return redirect()->to($dest)->with('success', 'Intervento aggiornato.');
+    }
+
+    /**
+     * Segna l'inizio lavoro: stato → in corso, solo da "pianificato".
+     * `data_inizio_lavoro` è puramente informativa (calcolo futuro della durata media
+     * degli interventi, mobile_ux_spec.md §2.5): nessuna funzionalità dipende da questo stato oggi.
+     */
+    public function inizia(int $id)
+    {
+        $model      = new InterventiModel();
+        $intervento = $model->find($id);
+
+        if (! $intervento) {
+            return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
+        }
+
+        if ($intervento['stato'] !== InterventiModel::STATO_PIANIFICATO) {
+            return redirect()->to('operativo/interventi/' . $id)
+                ->with('error', 'L\'intervento può essere avviato solo dallo stato "Pianificato".');
+        }
+
+        $model->update($id, [
+            'stato'              => InterventiModel::STATO_IN_CORSO,
+            'data_inizio_lavoro' => date('Y-m-d H:i:s'),
+        ]);
+
+        return redirect()->to('operativo/interventi/' . $id)
+            ->with('success', 'Intervento ' . esc($intervento['codice']) . ' avviato.');
     }
 
     /**

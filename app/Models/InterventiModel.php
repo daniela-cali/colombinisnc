@@ -17,6 +17,7 @@ class InterventiModel extends Model
         'extra', 'pulizia_fondo', 'apertura', 'chiusura',
         'priorita', 'stato', 'tipo_intervento_id',
         'data_pianificata', 'data_scadenza', 'durata_stimata', 'urgenza',
+        'data_inizio_lavoro', 'data_completamento',
         'descrizione', 'impianto_id', 'note',
         'created_by', 'updated_by',
     ];

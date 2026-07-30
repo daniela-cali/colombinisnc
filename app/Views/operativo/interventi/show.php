@@ -278,6 +278,15 @@ $statoBadge = [
                         </button>
                     </form>
                 <?php endif ?>
+                <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_PIANIFICATO): ?>
+                    <form method="post" class="btn-azione-inizia"
+                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/inizia') ?>">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                            <i class="bi bi-play-circle me-1"></i>Inizio lavoro
+                        </button>
+                    </form>
+                <?php endif ?>
                 <?php if (! in_array($intervento['stato'], [\App\Models\InterventiModel::STATO_COMPLETATO, \App\Models\InterventiModel::STATO_ANNULLATO])): ?>
                     <button type="button" class="btn btn-sm btn-outline-danger btn-azione-annulla"
                             data-bs-toggle="modal" data-bs-target="#modal-annulla">

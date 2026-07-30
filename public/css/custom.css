@@ -707,6 +707,7 @@ tr:has(a.js-row-open) {
     .intervento-azioni .btn {
         min-height: 44px;
     }
+    .intervento-azioni .btn-azione-inizia,
     .intervento-azioni .btn-azione-completa       { order: 1; }
     .intervento-azioni .btn-azione-modifica       { order: 2; }
     .intervento-azioni .btn-azione-scheda-cliente { order: 3; }
