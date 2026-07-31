@@ -1,5 +1,24 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.29] - 2026-07-31
+
+### Valutazione UX mobile per i tecnici
+
+- [APP] Scheda intervento: indirizzo e bottoni "Naviga" (Google Maps) e "Chiama" a un tap sotto il nome cliente — usa la posizione del cantiere quando presente, altrimenti quella del cliente
+- [APP] Cantieri: referente operativo separato in nome e telefono propri (prima un unico campo testo libero) — bottone "Chiama referente" nella scheda intervento quando il cantiere ne ha uno, senza alcun fallback sul telefono del cliente
+- [APP] Campi telefono (cliente, referente cantiere) con tastiera numerica su mobile
+- [APP] Scheda intervento: bottoni del footer impilati e a piena larghezza sotto i 576px, ordine Completa/Inizio lavoro → Modifica → Scheda cliente → Annulla/Elimina (questi ultimi staccati)
+- [APP] Rinomina "Chiudi intervento" → "Completa intervento" (bottone, titolo e testo di conferma del modal); testi dei modal di conferma resi espliciti ("Sì, segna come completato" / "Sì, annulla l'intervento")
+- [APP] Agenda mobile del tecnico: bottone "Naviga" diretto sulla card promosso ad azione primaria, l'anteprima mappa Leaflet diventa azione secondaria icon-only
+- [APP] Nuovo bottone "Inizio lavoro" nella scheda intervento (da stato "pianificato"): traccia l'orario di inizio lavoro e quello di completamento, in vista di un futuro calcolo della durata media degli interventi
+- [APP] Scheda intervento: su mobile l'azione del momento (Inizio lavoro se pianificato, Completa intervento se in corso) resta ancorata in basso schermo durante lo scroll — verde per distinguersi dalla navbar blu — così è sempre raggiungibile col pollice senza dover scorrere fino in fondo alla scheda
+- [APP] Icona tooltip "Shift+clic" (ordinamento multi-colonna, concetto solo desktop) nascosta sotto i 768px nella lista interventi
+- [APP] Messaggi di successo/errore/avviso ancorati in basso come un toast su mobile, invece che in cima alla pagina dove restavano fuori schermo se l'utente era già scrollato più in basso
+- [DEV] Migration `SplitReferenteCantieri` (rename `cantieri.referente` → `referente_nome`, nuova colonna `referente_telefono`)
+- [DEV] Migration `AddTracciamentoTempiInterventi` (`interventi.data_inizio_lavoro`, `data_completamento`); nuova rotta/metodo `InterventiController::inizia()` (transizione solo da `pianificato`), `chiudi()` valorizza anche `data_completamento`
+- [DEV] Footer di `interventi/show.php` appiattito in un unico contenitore flex (l'`order` CSS funziona solo tra fratelli diretti); classi semantiche `btn-azione-*` per i bottoni
+- [DEV] Vedi `docs/spec/mobile_ux_spec.md` e `docs/spec/cantieri_referente_telefono_spec.md`
+
 ## [0.24.28] - 2026-07-25
 
 ### Cantieri: luogo, referente e geolocalizzazione propri

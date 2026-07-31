@@ -576,6 +576,14 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Fix: `InterventiModel::agendaTecnicoPeriodo()` ignorava `cantiere_id` — la mappa/"Apri in Google Maps" nell'agenda mobile del tecnico puntava sempre all'indirizzo del cliente anche per interventi su cantieri con luogo diverso; ora `LEFT JOIN cantieri` + `COALESCE`
 - Vedi `docs/spec/cantieri_luogo_referente_spec.md`
 
+#### ✅ v0.24.29 — Valutazione UX mobile per i tecnici
+- Scheda intervento: indirizzo e bottoni "Naviga"/"Chiama" a un tap sotto il nome cliente (posizione del cantiere se presente, altrimenti del cliente); footer bottoni impilati e touch-friendly sotto i 576px; rinomina "Chiudi intervento" → "Completa intervento" con testi dei modal espliciti; nuovo bottone "Inizio lavoro" con tracciamento `data_inizio_lavoro`/`data_completamento`
+- Su mobile l'azione del momento (Inizio lavoro/Completa intervento) resta ancorata in basso schermo durante lo scroll, verde per contrasto con la navbar — le azioni secondarie (Modifica, Annulla, Elimina, Scheda cliente) restano nel footer normale
+- Cantieri: referente operativo separato in `referente_nome`/`referente_telefono` (era un campo testo libero unico) — bottone "Chiama referente" nella scheda intervento, nessun fallback sul telefono del cliente
+- Agenda mobile del tecnico: "Naviga" promosso ad azione primaria, l'anteprima mappa Leaflet retrocessa ad azione secondaria icon-only
+- Rifiniture: tooltip "Shift+clic" (concetto solo desktop) nascosto sotto i 768px; messaggi di successo/errore/avviso ancorati in basso come toast su mobile
+- Vedi `docs/spec/mobile_ux_spec.md` e `docs/spec/cantieri_referente_telefono_spec.md`; manifest PWA (§2.6) valutato e rimandato — costo/beneficio non giustificato ora, il checkbox "Ricordami" citato nello stesso punto era già presente
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

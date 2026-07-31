@@ -699,6 +699,8 @@ tr:has(a.js-row-open) {
     .intervento-azioni {
         flex-direction: column;
         align-items: stretch;
+        /* Spazio per non far finire l'ultimo bottone sotto il CTA fisso (.azione-cta-mobile). */
+        padding-bottom: 4.5rem;
     }
     .intervento-azioni > * {
         margin: 0 !important;
@@ -715,5 +717,35 @@ tr:has(a.js-row-open) {
     .intervento-azioni .btn-azione-elimina {
         order: 4;
         margin-top: .75rem !important;
+    }
+
+    /* Azione del momento (Inizio lavoro / Completa intervento): sempre raggiungibile
+       senza scroll, ancorata in basso come i flash message qui sotto. */
+    .intervento-azioni .azione-cta-mobile {
+        position: fixed;
+        left: .75rem;
+        right: .75rem;
+        bottom: .75rem;
+        z-index: 1040;
+        box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .3);
+    }
+}
+
+/* =========================================================
+   Flash message (success/error/warning) — su mobile ancorati
+   in basso come un toast, invece che in cima alla pagina dove
+   restano fuori dallo schermo se l'utente è già scrollato più
+   in basso (es. redirect con hash #pane-... del sistema "from",
+   mobile_ux_spec.md §2.7). Sopra i 576px nessun effetto.
+   ========================================================= */
+@media (max-width: 575.98px) {
+    .app-main > .alert-dismissible {
+        position: fixed;
+        left: .75rem;
+        right: .75rem;
+        bottom: .75rem;
+        z-index: 1040;
+        margin: 0 !important;
+        box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .3);
     }
 }

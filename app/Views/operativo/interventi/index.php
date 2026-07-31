@@ -41,7 +41,7 @@ $prioritaBadge = [
             <div class="card-header d-flex align-items-center">
                 <h3 class="card-title mb-0">
                     <i class="bi bi-tools me-2"></i><?= esc($sezioneLabel) ?>
-                    <i class="bi bi-info-circle text-muted ms-2"
+                    <i class="bi bi-info-circle text-muted ms-2 d-none d-md-inline"
                        style="font-size:.85rem; font-weight:normal"
                        data-bs-toggle="tooltip"
                        title="Clicca su un'intestazione per ordinare. Tieni premuto Shift e clicca su altre colonne per ordinare su più criteri."></i>

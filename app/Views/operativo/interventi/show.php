@@ -278,11 +278,21 @@ $statoBadge = [
                         </button>
                     </form>
                 <?php endif ?>
+                <?php
+                    // Azione del momento per lo stato corrente: su mobile resta ancorata in
+                    // basso schermo, sempre raggiungibile senza scroll (mobile_ux_spec.md §2.7).
+                    $azioneDelMomento = match ($intervento['stato']) {
+                        \App\Models\InterventiModel::STATO_PIANIFICATO => 'inizia',
+                        \App\Models\InterventiModel::STATO_IN_CORSO    => 'completa',
+                        default                                        => null,
+                    };
+                ?>
                 <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_PIANIFICATO): ?>
-                    <form method="post" class="btn-azione-inizia"
+                    <form method="post"
+                          class="btn-azione-inizia <?= $azioneDelMomento === 'inizia' ? 'azione-cta-mobile' : '' ?>"
                           action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/inizia') ?>">
                         <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-sm btn-primary w-100">
+                        <button type="submit" class="btn btn-sm btn-success w-100">
                             <i class="bi bi-play-circle me-1"></i>Inizio lavoro
                         </button>
                     </form>
@@ -292,7 +302,8 @@ $statoBadge = [
                             data-bs-toggle="modal" data-bs-target="#modal-annulla">
                         <i class="bi bi-x-circle me-1"></i>Annulla intervento
                     </button>
-                    <button type="button" class="btn btn-sm btn-success btn-azione-completa"
+                    <button type="button"
+                            class="btn btn-sm btn-success btn-azione-completa <?= $azioneDelMomento === 'completa' ? 'azione-cta-mobile' : '' ?>"
                             data-bs-toggle="modal" data-bs-target="#modal-chiudi">
                         <i class="bi bi-check-circle me-1"></i>Completa intervento
                     </button>
