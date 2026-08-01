@@ -1,5 +1,20 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.31] - 2026-08-01
+
+### Restrizioni server-side per il ruolo "tecnico"
+
+- [APP] I tecnici possono ora solo consultare (non creare/modificare/eliminare) Abbonamenti e Cantieri; su Magazzino possono creare e modificare articoli ma non eliminarli; su Clienti tutto tranne l'eliminazione
+- [APP] Interventi: un tecnico può avviare/completare/annullare/modificare solo i propri interventi assegnati, mai quelli di un collega; l'eliminazione resta sempre riservata a ufficio/admin/developer
+- [APP] Scheda intervento: i pulsanti Inizio lavoro/Completa/Annulla/Modifica non sono più mostrati quando il tecnico non può agire su quell'intervento; Elimina visibile solo a chi ha il permesso, e solo per interventi annullati
+- [APP] Ufficio non ha più accesso a Impostazioni (solo admin/developer)
+- [APP] Abbonamenti, Cantieri e Magazzino/Articoli ora visibili in menu anche ai tecnici puri, coerente con l'accesso in lettura
+- [DEV] Nuovi permessi Shield in `AuthGroups.php`: `abbonamenti.manage`, `cantieri.manage`, `magazzino.elimina`, `clienti.elimina`, `interventi.elimina`; matrice divisa in `PERMESSI_ADMIN`/`PERMESSI_UFFICIO`
+- [DEV] `Routes.php`: rotte di scrittura di Abbonamenti/Cantieri isolate in sotto-gruppo con filtro `permission:*.manage`; rotta `delete` isolata con permesso dedicato per Clienti/Interventi/Magazzino
+- [DEV] `InterventiController::accessoConsentito()`: verifica di proprietà (tecnico_id dell'intervento vs personale collegato all'utente loggato via `PersonaleModel::perUtente()`), richiamata in `inizia()`/`chiudi()`/`annulla()`/`update()`
+- [DEV] Helper `acl` (per `is_solo_tecnico()`) reso autoloadato globalmente in `Autoload.php`, prima disponibile solo dentro `DashboardController`
+- [DEV] Vedi `docs/spec/permessi_tecnici_spec.md`
+
 ## [0.24.30] - 2026-08-01
 
 ### Interventi: vista "Tutti" senza filtro di sezione

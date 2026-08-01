@@ -74,6 +74,11 @@ class AuthGroups extends ShieldAuthGroups
     public array $permissions = [
         'personale.manage'    => 'Può gestire anagrafica personale e account',
         'impostazioni.manage' => 'Può accedere alle impostazioni applicative',
+        'abbonamenti.manage'  => 'Può creare, modificare e cambiare stato agli abbonamenti',
+        'cantieri.manage'     => 'Può creare, modificare, cambiare stato ed eliminare i cantieri',
+        'magazzino.elimina'   => 'Può eliminare gli articoli di magazzino',
+        'clienti.elimina'     => 'Può eliminare un cliente',
+        'interventi.elimina'  => 'Può eliminare un intervento (distinto da annulla)',
     ];
 
     /**
@@ -84,19 +89,21 @@ class AuthGroups extends ShieldAuthGroups
      *
      * This defines group-level permissions.
      */
+    //Costante di definizione permessi, eventualmente per permettere più granularità
+    private const PERMESSI_ADMIN = [
+        'personale.*', 'impostazioni.*', 'abbonamenti.*',
+        'cantieri.*', 'magazzino.*', 'clienti.*', 'interventi.*',
+    ];
+    private const PERMESSI_UFFICIO = [
+        'personale.*', 'abbonamenti.*',
+        'cantieri.*', 'magazzino.*', 'clienti.*', 'interventi.*',
+    ];
+   
+    
     public array $matrix = [
-        'admin' => [
-            'personale.manage',
-            'impostazioni.manage',
-        ],
-        'developer' => [
-            'personale.manage',
-            'impostazioni.manage',
-        ],
-        'ufficio' => [
-            'personale.manage',
-            'impostazioni.manage',
-        ],
+        'admin' => self::PERMESSI_ADMIN,
+        'developer' => self::PERMESSI_ADMIN,
+        'ufficio' => self::PERMESSI_UFFICIO,
         'tecnico' => [],
         'cliente' => [],
     ];

@@ -12,6 +12,7 @@
  * @var array      $articoliPerCat Da ArticoliModel::perCategoria() [cat_id => ['nome'=>..,'articoli'=>[..]]]
  * @var array      $materialiSospesi Sospesi già presenti per il cliente (esclusi quelli appena liberati da questa chiusura)
  * @var bool       $mostraStepMateriali Flashdata: apre in automatico il modal "materiali prossima visita"
+ * @var bool       $puoAgire: nasconde visualizzazione pulsanti senza utilizzo, nel caso un utente non possa agire (non suo intervento)"
  */
 $this->extend('layouts/admin');
 
@@ -264,59 +265,63 @@ $statoBadge = [
                         <i class="bi bi-arrow-left me-1"></i>Interventi
                     </a>
                 <?php endif ?>
-                <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_ANNULLATO): ?>
+                <?php if (auth()->user()->can('interventi.elimina') && $intervento['stato'] === \App\Models\InterventiModel::STATO_ANNULLATO): ?>
                     <form method="post" class="btn-azione-elimina"
-                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
-                          onsubmit="return confirm('Eliminare definitivamente <?= esc($intervento['codice']) ?>?')">
+                        action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
+                        onsubmit="return confirm('Eliminare definitivamente <?= esc($intervento['codice']) ?>?')">
                         <?= csrf_field() ?>
                         <?php if ($cliente): ?>
                             <input type="hidden" name="from"
-                                   value="<?= esc(base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')) ?>">
-                        <?php endif ?>
-                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-                            <i class="bi bi-trash me-1"></i>Elimina
-                        </button>
+                            value="<?= esc(base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')) ?>">
+                            <?php endif ?>
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                <i class="bi bi-trash me-1"></i>Elimina
+                            </button>
                     </form>
-                <?php endif ?>
-                <?php
-                    // Azione del momento per lo stato corrente: su mobile resta ancorata in
-                    // basso schermo, sempre raggiungibile senza scroll (mobile_ux_spec.md §2.7).
-                    $azioneDelMomento = match ($intervento['stato']) {
-                        \App\Models\InterventiModel::STATO_PIANIFICATO => 'inizia',
-                        \App\Models\InterventiModel::STATO_IN_CORSO    => 'completa',
-                        default                                        => null,
-                    };
-                ?>
-                <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_PIANIFICATO): ?>
-                    <form method="post"
-                          class="btn-azione-inizia <?= $azioneDelMomento === 'inizia' ? 'azione-cta-mobile' : '' ?>"
-                          action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/inizia') ?>">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-sm btn-success w-100">
-                            <i class="bi bi-play-circle me-1"></i>Inizio lavoro
+                    <?php endif ?>
+                    <?php if($puoAgire): ?>
+                    <?php
+                        // Azione del momento per lo stato corrente: su mobile resta ancorata in
+                        // basso schermo, sempre raggiungibile senza scroll (mobile_ux_spec.md §2.7).
+                        $azioneDelMomento = match ($intervento['stato']) {
+                            \App\Models\InterventiModel::STATO_PIANIFICATO => 'inizia',
+                            \App\Models\InterventiModel::STATO_IN_CORSO    => 'completa',
+                            default                                        => null,
+                        };
+                    ?>
+                    <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_PIANIFICATO): ?>
+                        <form method="post"
+                            class="btn-azione-inizia <?= $azioneDelMomento === 'inizia' ? 'azione-cta-mobile' : '' ?>"
+                            action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/inizia') ?>">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                <i class="bi bi-play-circle me-1"></i>Inizio lavoro
+                            </button>
+                        </form>
+                    <?php endif ?>
+                    <?php if (! in_array($intervento['stato'], [\App\Models\InterventiModel::STATO_COMPLETATO, \App\Models\InterventiModel::STATO_ANNULLATO])): ?>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-azione-annulla"
+                                data-bs-toggle="modal" data-bs-target="#modal-annulla">
+                            <i class="bi bi-x-circle me-1"></i>Annulla intervento
                         </button>
-                    </form>
+                        <button type="button"
+                                class="btn btn-sm btn-success btn-azione-completa <?= $azioneDelMomento === 'completa' ? 'azione-cta-mobile' : '' ?>"
+                                data-bs-toggle="modal" data-bs-target="#modal-chiudi">
+                            <i class="bi bi-check-circle me-1"></i>Completa intervento
+                        </button>
+                    <?php endif ?>
+                    <?php
+                        $editFrom = $cliente
+                            ? base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')
+                            : base_url('operativo/interventi');
+                    ?>
+                    <?php if($intervento['stato'] !== \App\Models\InterventiModel::STATO_ANNULLATO ): ?>
+                        <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
+                        class="btn btn-sm btn-primary btn-azione-modifica">
+                            <i class="bi bi-pencil me-1"></i>Modifica
+                        </a>
+                    <?php endif ?>
                 <?php endif ?>
-                <?php if (! in_array($intervento['stato'], [\App\Models\InterventiModel::STATO_COMPLETATO, \App\Models\InterventiModel::STATO_ANNULLATO])): ?>
-                    <button type="button" class="btn btn-sm btn-outline-danger btn-azione-annulla"
-                            data-bs-toggle="modal" data-bs-target="#modal-annulla">
-                        <i class="bi bi-x-circle me-1"></i>Annulla intervento
-                    </button>
-                    <button type="button"
-                            class="btn btn-sm btn-success btn-azione-completa <?= $azioneDelMomento === 'completa' ? 'azione-cta-mobile' : '' ?>"
-                            data-bs-toggle="modal" data-bs-target="#modal-chiudi">
-                        <i class="bi bi-check-circle me-1"></i>Completa intervento
-                    </button>
-                <?php endif ?>
-                <?php
-                    $editFrom = $cliente
-                        ? base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')
-                        : base_url('operativo/interventi');
-                ?>
-                <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
-                   class="btn btn-sm btn-primary btn-azione-modifica">
-                    <i class="bi bi-pencil me-1"></i>Modifica
-                </a>
             </div>
         </div>
 

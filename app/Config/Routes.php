@@ -60,46 +60,56 @@ $routes->group('anagrafiche', function ($routes) {
     });
 
     $routes->group('clienti', function ($routes) {
+        //Nessuna restrizione oltre l'essere autenticati
         $routes->get('/',              'Anagrafiche\ClientiController::index');
         $routes->get('nuovo',          'Anagrafiche\ClientiController::nuovo');
         $routes->post('store',         'Anagrafiche\ClientiController::store');
         $routes->get('(:num)',           'Anagrafiche\ClientiController::show/$1');
+        $routes->get('(:num)/edit',    'Anagrafiche\ClientiController::edit/$1');
+        $routes->post('(:num)/update', 'Anagrafiche\ClientiController::update/$1');
         $routes->get('(:num)/materiali','Anagrafiche\ClientiController::materiali/$1');
         $routes->get('(:num)/pdf',      'Anagrafiche\ClientiController::pdf/$1');
         $routes->get('(:num)/sospesi',  'Anagrafiche\ClientiController::sospesiJson/$1');
-        $routes->get('(:num)/edit',    'Anagrafiche\ClientiController::edit/$1');
-        $routes->post('(:num)/update', 'Anagrafiche\ClientiController::update/$1');
-        $routes->post('(:num)/delete', 'Anagrafiche\ClientiController::delete/$1');
         $routes->post('(:num)/posizione', 'Anagrafiche\ClientiController::aggiornaPosizione/$1');
+        //Solo chi ha permessi (visibili in authGroups)
+        $routes->group('', ['filter' => 'permission:clienti.elimina'], function ($routes) {
+            $routes->post('(:num)/delete', 'Anagrafiche\ClientiController::delete/$1');
+        });
     });
 });
 
 // Abbonamenti
 $routes->group('abbonamenti', function ($routes) {
+    // Lettura: nessuna restrizione oltre l'essere autenticati
     $routes->get('/',               'AbbonamentiController::index');
-    $routes->get('nuovo',           'AbbonamentiController::nuovo');
-    $routes->post('store',          'AbbonamentiController::store');
     $routes->get('(:num)',          'AbbonamentiController::show/$1');
-    $routes->get('(:num)/edit',     'AbbonamentiController::edit/$1');
-    $routes->post('(:num)/update',  'AbbonamentiController::update/$1');
-    $routes->post('(:num)/stato',   'AbbonamentiController::cambiaStato/$1');
-    $routes->get('(:num)/rinnova',  'AbbonamentiController::rinnova/$1');
+    $routes->group('', ['filter' => 'permission:abbonamenti.manage'], function ($routes) {
+        $routes->get('nuovo',           'AbbonamentiController::nuovo');
+        $routes->post('store',          'AbbonamentiController::store');
+        $routes->get('(:num)/edit',     'AbbonamentiController::edit/$1');
+        $routes->post('(:num)/update',  'AbbonamentiController::update/$1');
+        $routes->post('(:num)/stato',   'AbbonamentiController::cambiaStato/$1');
+        $routes->get('(:num)/rinnova',  'AbbonamentiController::rinnova/$1');
+    });
 });
 
 // Cantieri
 $routes->group('cantieri', function ($routes) {
+    // Lettura: nessuna restrizione oltre l'essere autenticati
     $routes->get('/',               'CantieriController::index');
-    $routes->get('nuovo',           'CantieriController::nuovo');
-    $routes->post('store',          'CantieriController::store');
     $routes->get('(:num)',          'CantieriController::show/$1');
     $routes->get('(:num)/pdf',      'CantieriController::pdf/$1');
-    $routes->get('(:num)/edit',     'CantieriController::edit/$1');
-    $routes->post('(:num)/update',  'CantieriController::update/$1');
-    $routes->post('(:num)/stato',   'CantieriController::cambiaStato/$1');
-    $routes->post('(:num)/delete',  'CantieriController::delete/$1');
-    $routes->post('(:num)/posizione', 'CantieriController::aggiornaPosizione/$1');
     $routes->post('note/aggiungi',       'CantieriController::aggiungiNota');
     $routes->post('note/(:num)/elimina', 'CantieriController::eliminaNota/$1');
+    $routes->post('(:num)/posizione', 'CantieriController::aggiornaPosizione/$1');
+    $routes->group('', ['filter' => 'permission:cantieri.manage'], function ($routes) {
+        $routes->get('nuovo',           'CantieriController::nuovo');
+        $routes->post('store',          'CantieriController::store');
+        $routes->get('(:num)/edit',     'CantieriController::edit/$1');
+        $routes->post('(:num)/update',  'CantieriController::update/$1');
+        $routes->post('(:num)/stato',   'CantieriController::cambiaStato/$1');
+        $routes->post('(:num)/delete',  'CantieriController::delete/$1');
+    });
 });
 
 $routes->group('promemoria', function ($routes) {
@@ -121,11 +131,13 @@ $routes->group('operativo', function ($routes) {
         $routes->post('(:num)/inizia',  'Operativo\InterventiController::inizia/$1');
         $routes->post('(:num)/chiudi',  'Operativo\InterventiController::chiudi/$1');
         $routes->post('(:num)/annulla', 'Operativo\InterventiController::annulla/$1');
-        $routes->post('(:num)/delete', 'Operativo\InterventiController::delete/$1');
         $routes->post('(:num)/pianifica',              'Operativo\InterventiController::pianifica/$1');
         $routes->post('(:num)/annulla-pianificazione', 'Operativo\InterventiController::annullaPianificazione/$1');
         $routes->post('note/aggiungi',       'Operativo\InterventiController::aggiungiNota');
         $routes->post('note/(:num)/elimina', 'Operativo\InterventiController::eliminaNota/$1');
+        $routes->group('', ['filter' => 'permission:interventi.elimina'], function ($routes) {
+            $routes->post('(:num)/delete', 'Operativo\InterventiController::delete/$1');
+        });
     });
 
     $routes->group('viaggi', function ($routes) {
@@ -156,7 +168,9 @@ $routes->group('magazzino', function ($routes) {
         $routes->post('store',         'Magazzino\ArticoliController::store');
         $routes->get('(:num)/edit',    'Magazzino\ArticoliController::edit/$1');
         $routes->post('(:num)/update', 'Magazzino\ArticoliController::update/$1');
-        $routes->post('(:num)/delete', 'Magazzino\ArticoliController::delete/$1');
+        $routes->group('', ['filter' => 'permission:magazzino.elimina'], function ($routes) {
+            $routes->post('(:num)/delete', 'Magazzino\ArticoliController::delete/$1');
+        });
     });
 });
 

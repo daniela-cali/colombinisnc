@@ -182,7 +182,6 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                             <?php endforeach ?>
                         </ul>
                     </li>
-                    <?php if (! $_soloTecnico): ?>
                     <li class="nav-item">
                         <a href="<?= base_url('abbonamenti') ?>" class="nav-link <?= str_starts_with(uri_string(), 'abbonamenti') ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-file-earmark-text"></i>
@@ -195,7 +194,7 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                             <p>Cantieri</p>
                         </a>
                     </li>
-
+                    
                     <li class="nav-header">Magazzino</li>
                     <li class="nav-item">
                         <a href="<?= base_url('magazzino/articoli') ?>" class="nav-link <?= str_starts_with(uri_string(), 'magazzino') ? 'active' : '' ?>">
@@ -203,7 +202,8 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                             <p>Articoli</p>
                         </a>
                     </li>
-
+                    
+                    <?php if (! $_soloTecnico): ?>
                     <li class="nav-header">Amministrazione</li>
                     <li class="nav-item">
                         <a href="<?= base_url('impostazioni') ?>" class="nav-link <?= str_starts_with(uri_string(), 'impostazioni') ? 'active' : '' ?>">

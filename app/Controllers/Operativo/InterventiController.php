@@ -27,7 +27,7 @@ class InterventiController extends BaseController
         if (! array_key_exists($sezione, $categorie)) {
             $sezione = null;
         }
-                                                                            
+
         return view('operativo/interventi/index', [
             'interventi'    => (new InterventiModel())->elencoCompleto($sezione),
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
@@ -191,6 +191,7 @@ class InterventiController extends BaseController
             'articoliPerCat' => (new ArticoliModel())->perCategoria(),
             'materialiSospesi' => $materialiSospesi,
             'mostraStepMateriali' => (bool) session()->getFlashdata('mostra_step_materiali'),
+            'puoAgire' => $this->accessoConsentito($intervento["tecnico_id"]),
         ]);
     }
 
@@ -207,6 +208,13 @@ class InterventiController extends BaseController
 
         if (! $intervento) {
             return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
+        }
+
+        $accesso = $this->accessoConsentito($intervento["tecnico_id"]);
+
+        if (!$accesso) {
+            return redirect()->to('operativo/interventi')
+            ->with('error', 'Impossibile chiudere l\'intervento di un altro tecnico.');
         }
 
         // Guardia di sicurezza: la UI nasconde il pulsante in questi stati,
@@ -267,6 +275,13 @@ class InterventiController extends BaseController
 
         if (! $intervento) {
             return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
+        }
+
+        $accesso = $this->accessoConsentito($intervento["tecnico_id"]);
+
+        if (!$accesso) {
+            return redirect()->to('operativo/interventi')
+            ->with('error', 'Impossibile modificare l\'intervento di un altro tecnico.');
         }
 
         if ($intervento['stato'] === InterventiModel::STATO_ANNULLATO) {
@@ -352,6 +367,13 @@ class InterventiController extends BaseController
             return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
         }
 
+        $accesso = $this->accessoConsentito($intervento["tecnico_id"]);
+
+        if (!$accesso) {
+            return redirect()->to('operativo/interventi')
+            ->with('error', 'Impossibile iniziare l\'intervento di un altro tecnico.');
+        }
+
         if ($intervento['stato'] !== InterventiModel::STATO_PIANIFICATO) {
             return redirect()->to('operativo/interventi/' . $id)
                 ->with('error', 'L\'intervento può essere avviato solo dallo stato "Pianificato".');
@@ -377,6 +399,13 @@ class InterventiController extends BaseController
 
         if (! $intervento) {
             return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
+        }
+
+        $accesso = $this->accessoConsentito($intervento["tecnico_id"]);
+
+        if (!$accesso) {
+            return redirect()->to('operativo/interventi')
+            ->with('error', 'Impossibile annullare l\'intervento di un altro tecnico.');
         }
 
         if (in_array($intervento['stato'], [InterventiModel::STATO_COMPLETATO, InterventiModel::STATO_ANNULLATO])) {
@@ -583,5 +612,27 @@ class InterventiController extends BaseController
             'data_scadenza'      => 'permit_empty|valid_date[Y-m-d]',
             'durata_stimata'     => 'permit_empty|is_natural',
         ];
+    }
+
+    /**
+     * Verifica se un tecnico sta modificando l'intervento di qualcun altro e blocca,
+     * lasciando accesso a chi non è un tecnico
+     */
+    private function accessoConsentito(int $interventoTecnicoId):bool 
+    {
+        if (!is_solo_tecnico()) return true;
+        
+        $utente = auth()->user()->id;
+        //Ricavo l'id del tecnico dalla tabella personale
+        $tecnicoLoggato = (new PersonaleModel)->perUtente($utente)["id"] ?? null;
+
+        if (! $tecnicoLoggato || ! $interventoTecnicoId) {
+            return false;
+        };
+        /**
+         * Cast esplicito a int in quanto il driver MySQL ignora il tipo nativo del campo passando per i metodi del model
+         * senza prepared statement!
+         */
+        return (int) $interventoTecnicoId === (int) $tecnicoLoggato;
     }
 }

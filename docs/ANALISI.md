@@ -589,6 +589,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `InterventiController::index()`: `$sezione` diventa `null` quando `?sezione=` manca o non è valida (invece di ricadere su "generale"); nessuna modifica al model, `elencoCompleto(null)` non applicava già alcun filtro
 - Vedi `docs/spec/interventi_vista_tutti_spec.md`
 
+#### ✅ v0.24.31 — Restrizioni server-side per il ruolo "tecnico"
+- Tecnici: sola lettura su Abbonamenti/Cantieri; libera creazione/modifica ma non eliminazione su Magazzino; nessuna restrizione su Clienti tranne l'eliminazione; su Interventi possono agire solo sui propri (mai eliminare)
+- Nuovi permessi Shield per modulo (`abbonamenti.manage`, `cantieri.manage`, `magazzino.elimina`, `clienti.elimina`, `interventi.elimina`); `InterventiController::accessoConsentito()` verifica la proprietà del record confrontando `tecnico_id` con il personale collegato all'utente loggato
+- Ufficio perde l'accesso a Impostazioni (solo admin/developer); Abbonamenti/Cantieri/Magazzino ora visibili in menu anche ai tecnici puri
+- Vedi `docs/spec/permessi_tecnici_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
