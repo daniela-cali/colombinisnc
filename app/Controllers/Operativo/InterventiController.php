@@ -23,17 +23,17 @@ class InterventiController extends BaseController
     {
         $categorie = TipiInterventoModel::CATEGORIE_LABEL;
         $sezione   = $this->request->getGet('sezione');
-
+        //Ora il fallback senza categoria deve essere TUTTI il filtro viene già applicato nel model
         if (! array_key_exists($sezione, $categorie)) {
-            $sezione = TipiInterventoModel::CATEGORIA_GENERALE;
+            $sezione = null;
         }
-
+                                                                            
         return view('operativo/interventi/index', [
             'interventi'    => (new InterventiModel())->elencoCompleto($sezione),
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
             'statiLabel'    => InterventiModel::STATI_LABEL,
             'sezione'       => $sezione,
-            'sezioneLabel'  => $categorie[$sezione],
+            'sezioneLabel'  => $categorie[$sezione] ?? 'Tutti gli interventi',
             'help_sezione'  => 'interventi',
         ]);
     }

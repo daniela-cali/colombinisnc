@@ -54,11 +54,11 @@ $prioritaBadge = [
             </div>
             <div class="card-body">
                 <div class="mb-3 filtri-scroll">
-                    <button class="btn btn-sm btn-outline-warning" data-filtro="da_pianificare">
-                        <i class="bi bi-hourglass-split me-1"></i>Da pianificare
-                    </button>
                     <button class="btn btn-sm btn-outline-primary" data-filtro="pianificati">
                         <i class="bi bi-calendar-check me-1"></i>Pianificati
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning" data-filtro="da_pianificare">
+                        <i class="bi bi-hourglass-split me-1"></i>Da pianificare
                     </button>
                     <button class="btn btn-sm btn-outline-success" data-filtro="completati">
                         <i class="bi bi-check-circle me-1"></i>Completati
@@ -296,7 +296,7 @@ $(function () {
         b.addEventListener('click', function () { setFiltro(this.dataset.filtro); });
     });
 
-    setFiltro('da_pianificare');
+    setFiltro('pianificati');
 });
 </script>
 <?= $this->endSection() ?>

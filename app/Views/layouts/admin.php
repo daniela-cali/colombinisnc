@@ -155,7 +155,7 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                     <li class="nav-header">Operativo</li>
                     <?php
                         $interventiAttivo = str_starts_with(uri_string(), 'operativo/interventi');
-                        $sezioneCorrente  = service('request')->getGet('sezione') ?: \App\Models\TipiInterventoModel::CATEGORIA_GENERALE;
+                        $sezioneCorrente  = service('request')->getGet('sezione');
                         $iconeSezione     = [
                             'generale'    => 'bi-tools',
                             'piscine'     => 'bi-water',
@@ -163,7 +163,7 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                         ];
                     ?>
                     <li class="nav-item <?= $interventiAttivo ? 'menu-open' : '' ?>">
-                        <a href="#" class="nav-link <?= $interventiAttivo ? 'active' : '' ?>">
+                        <a href="<?= base_url('operativo/interventi')?>" class="nav-link <?= $interventiAttivo ? 'active' : '' ?>">
                             <i class="nav-icon bi bi-tools"></i>
                             <p>
                                 Interventi

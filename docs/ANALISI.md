@@ -584,6 +584,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Rifiniture: tooltip "Shift+clic" (concetto solo desktop) nascosto sotto i 768px; messaggi di successo/errore/avviso ancorati in basso come toast su mobile
 - Vedi `docs/spec/mobile_ux_spec.md` e `docs/spec/cantieri_referente_telefono_spec.md`; manifest PWA (§2.6) valutato e rimandato — costo/beneficio non giustificato ora, il checkbox "Ricordami" citato nello stesso punto era già presente
 
+#### ✅ v0.24.30 — Interventi: vista "Tutti" senza filtro di sezione
+- Click sulla voce di menu "Interventi" apre la lista completa senza filtrare per sezione (Generale/Piscine/Addolcitori) — utile per cercare un intervento senza sapere a priori la categoria, o avere una panoramica generale; le sotto-voci di sezione restano invariate
+- `InterventiController::index()`: `$sezione` diventa `null` quando `?sezione=` manca o non è valida (invece di ricadere su "generale"); nessuna modifica al model, `elencoCompleto(null)` non applicava già alcun filtro
+- Vedi `docs/spec/interventi_vista_tutti_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

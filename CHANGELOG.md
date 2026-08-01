@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.30] - 2026-08-01
+
+### Interventi: vista "Tutti" senza filtro di sezione
+
+- [APP] Click sulla voce di menu "Interventi" ora apre anche la lista completa di tutti gli interventi, senza filtrare per sezione (Generale/Piscine/Addolcitori) — utile per cercare un intervento di cui non si conosce a priori la categoria, o avere una panoramica generale. Le tre sotto-voci di sezione restano invariate
+- [DEV] `InterventiController::index()`: `$sezione` diventa `null` (invece di ricadere su "generale") quando `?sezione=` manca o non è valida; `InterventiModel::elencoCompleto(null)` già non applicava alcun filtro, nessuna modifica al model
+- [DEV] `admin.php`: link della voce menu "Interventi" da `href="#"` a link reale; tolto il fallback su "generale" in `$sezioneCorrente` (altrimenti la sotto-voce "Generici" risultava evidenziata per errore quando la vista attiva è "Tutti")
+- [DEV] Vedi `docs/spec/interventi_vista_tutti_spec.md`
+
 ## [0.24.29] - 2026-07-31
 
 ### Valutazione UX mobile per i tecnici

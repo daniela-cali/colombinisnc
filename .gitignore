@@ -139,3 +139,9 @@ node_modules/
 # Backup codice
 #-------------------------
 __*
+
+#-------------------------
+# Dati calendario importazione
+#-------------------------
+/docs/storico_ics
+*.ics
