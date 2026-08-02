@@ -57,7 +57,13 @@ $this->extend('layouts/admin');
                             <tbody>
                                 <?php foreach ($articoli as $a): ?>
                                     <tr class="<?= $a['attivo'] ? '' : 'text-muted' ?>" title="ID articolo: <?= $a['id'] ?>"><?php // ID utile per debug DB ?>
-                                        <td class="small text-muted"><?= esc($a['codice'] ?? '—') ?></td>
+                                    <!-- 1 Codice -->
+                                        <td> 
+                                            <a href="<?= base_url('magazzino/articoli/' . $a['id']) ?>"
+                                               class="text-decoration-none js-row-open">
+                                                <code class="small"><?= esc($a['codice'] ?? '—') ?></code>
+                                            </a>
+                                        </td>
                                         <td class="fw-semibold"><?= esc($a['descrizione']) ?></td>
                                         <td class="small text-muted"><?= esc($a['categoria_nome'] ?? '—') ?></td>
                                         <td class="text-center small"><?= esc($a['unita_misura']) ?></td>

@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.32] - 2026-08-02
+
+### Scheda articolo (vista di sola lettura)
+
+- [APP] Nuova scheda di dettaglio per gli articoli di magazzino (sola lettura): codice, descrizione, categoria, unità di misura, stato attivo, costo, vendita, giacenza — si apre cliccando il codice nella lista Articoli
+- [DEV] Nuova rotta `GET magazzino/articoli/(:num)` → `ArticoliController::show()`; redirect con messaggio d'errore se l'ID non esiste
+- [DEV] Lista Articoli: il codice diventa un link con classe `js-row-open` (apertura scheda anche con doppio click sulla riga, stesso pattern già in uso in Interventi/Clienti/Cantieri/Personale/Abbonamenti)
+- [DEV] `custom.css`: regola `span.prezzo::before` (prefisso "€" davanti al prezzo) era finita per errore dentro un media query mobile — spostata fuori, ora attiva su tutte le dimensioni di schermo
+
 ## [0.24.31] - 2026-08-01
 
 ### Restrizioni server-side per il ruolo "tecnico"

@@ -166,6 +166,7 @@ $routes->group('magazzino', function ($routes) {
         $routes->get('/',              'Magazzino\ArticoliController::index');
         $routes->get('nuovo',          'Magazzino\ArticoliController::nuovo');
         $routes->post('store',         'Magazzino\ArticoliController::store');
+        $routes->get('(:num)',         'Magazzino\ArticoliController::show/$1');
         $routes->get('(:num)/edit',    'Magazzino\ArticoliController::edit/$1');
         $routes->post('(:num)/update', 'Magazzino\ArticoliController::update/$1');
         $routes->group('', ['filter' => 'permission:magazzino.elimina'], function ($routes) {

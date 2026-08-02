@@ -99,4 +99,5 @@ class ArticoliModel extends Model
         }
         return $out;
     }
+
 }

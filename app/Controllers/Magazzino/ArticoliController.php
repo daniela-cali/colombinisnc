@@ -33,6 +33,21 @@ class ArticoliController extends BaseController
     }
 
     /**
+     * Scheda read-only di un articolo.
+     */
+    public function show(int $id): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        $articolo = (new ArticoliModel())->find($id);
+        if (! $articolo) {
+            return redirect()->to('magazzino/articoli')->with('error', 'Articolo non trovato.');
+        }
+        $articolo['categoria_label'] = (new CategorieArticoliModel())->find($articolo['categoria_id'])['nome'];
+        return view('magazzino/articoli/show', [
+            'articolo'   => $articolo,
+        ]);
+    }
+
+    /**
      * Salva il nuovo articolo.
      */
     public function store()

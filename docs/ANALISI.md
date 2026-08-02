@@ -595,6 +595,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Ufficio perde l'accesso a Impostazioni (solo admin/developer); Abbonamenti/Cantieri/Magazzino ora visibili in menu anche ai tecnici puri
 - Vedi `docs/spec/permessi_tecnici_spec.md`
 
+#### ✅ v0.24.32 — Scheda articolo (vista di sola lettura)
+- Nuova pagina di dettaglio per un articolo di magazzino, raggiungibile cliccando il codice nella lista: dati anagrafici, prezzi e giacenza in sola lettura
+- Nuova rotta `GET magazzino/articoli/(:num)` → `ArticoliController::show()`, con redirect e messaggio d'errore se l'articolo non esiste
+- Fix CSS: il prefisso "€" davanti al prezzo (`span.prezzo::before`) era finito per errore dentro un media query mobile, ora attivo su tutte le dimensioni
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

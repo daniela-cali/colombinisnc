@@ -749,3 +749,7 @@ tr:has(a.js-row-open) {
         box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .3);
     }
 }
+
+span.prezzo::before {
+    content: "€ ";
+}
