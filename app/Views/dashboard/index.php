@@ -53,7 +53,7 @@ $mostratiProm = count($capOggi) + count($capDopo);
 ?>
 
 <!-- Riga contatori: info-box compatti, un link alla pagina relativa -->
-<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 mb-3">
+<div class="row info-box-row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-5 g-3 mb-3">
 
     <div class="col">
         <a href="<?= base_url('operativo/calendario') ?>" class="info-box text-reset text-decoration-none h-100">

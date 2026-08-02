@@ -27,7 +27,7 @@
     <?= $this->renderSection('styles') ?>
 </head>
 
-<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+<body class="layout-fixed fixed-header sidebar-expand-lg bg-body-tertiary">
 <?php
 helper('acl');
 $_isDevMode      = (bool) array_intersect(['developer'], auth()->user()->getGroups());

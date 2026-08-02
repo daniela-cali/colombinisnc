@@ -600,6 +600,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Nuova rotta `GET magazzino/articoli/(:num)` → `ArticoliController::show()`, con redirect e messaggio d'errore se l'articolo non esiste
 - Fix CSS: il prefisso "€" davanti al prezzo (`span.prezzo::before`) era finito per errore dentro un media query mobile, ora attivo su tutte le dimensioni
 
+#### ✅ v0.24.33 — Navbar fissa in scroll + fix layout dashboard e scheda cliente
+- Navbar sempre visibile durante lo scroll su tutte le pagine; infobox della dashboard nascosti sotto i 576px e con testo che va a capo invece di schiacciare l'icona; barra laterale delle sezioni nella scheda cliente visibile da 1200px invece che da 1400px
+- Bug di AdminLTE 4 individuato e corretto: `.app-main` in `overflow:auto` (per `layout-fixed`) senza il wrapper che quello scroll richiederebbe — mai attivo, ma restava comunque il riferimento per gli elementi `position:sticky`, rompendo `.page-nav` e `.section-anchor`. Risolto con `overflow: visible` su `.app-main`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

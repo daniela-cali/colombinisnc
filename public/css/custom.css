@@ -34,6 +34,24 @@
     color: #fff !important;
 }
 
+/* --- Main content: niente scroll interno -----------------
+   Bug di AdminLTE 4, non nostro: con "layout-fixed" il framework
+   mette .app-main in overflow:auto per farlo scrollare al suo
+   interno (sidebar/navbar fissi, solo il contenuto scorre) — ma
+   quel comportamento funziona solo con un wrapper .app-main-wrapper
+   (min-height:100vh, layout a colonna) che nemmeno la demo ufficiale
+   di AdminLTE (dist/layout/fixed-complete.html) usa più nel markup
+   attuale. Risultato verificato in console: .app-main non scrolla
+   mai (scrollTop resta 0, scrolla la pagina intera) — ma resta
+   comunque il "contenitore di riferimento" per qualsiasi
+   position:sticky al suo interno, che quindi smette di funzionare
+   (.page-nav e .section-anchor nella scheda cliente). Ripristinando
+   overflow:visible lo sticky torna a calcolarsi sullo scroll reale
+   della pagina, coerente con come l'app scrolla davvero. */
+.sidebar-expand-lg.layout-fixed .app-main {
+    overflow: visible;
+}
+
 /* --- Sidebar ------------------------------------------- */
 .app-sidebar {
     border-right: none !important;
@@ -753,3 +771,16 @@ tr:has(a.js-row-open) {
 span.prezzo::before {
     content: "€ ";
 }
+/* Testo a capo nelle info-box*/
+.info-box .info-box-text {
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+/* Info-box iniziali non visibili su mobile, occupano troppe righe*/
+@media (max-width: 575.98px) {
+    .info-box-row {
+        display: none;
+    }
+}
+

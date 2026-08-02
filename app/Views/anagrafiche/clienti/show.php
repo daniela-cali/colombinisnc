@@ -661,8 +661,8 @@ $statoBadge = [
 
     </div><!-- /col contenuto -->
 
-    <!-- ── Anchor nav laterale (xxl+) ────────────────────────── -->
-    <div class="col-auto d-none d-xxl-block ps-3" style="width:130px">
+    <!-- ── Anchor nav laterale (xl+) ────────────────────────── -->
+    <div class="col-auto d-none d-xl-block ps-3" style="width:130px">
         <nav class="page-nav">
             <a href="#sec-anagrafica">Anagrafica</a>
             <a href="#sec-posizione">Posizione</a>
@@ -811,7 +811,7 @@ $(function () {
 (function () {
     var sections = document.querySelectorAll('.section-anchor');
     var navLinks = document.querySelectorAll('.page-nav a');
-    if (! navLinks.length) return;
+    if (! navLinks.length || window.innerWidth < 1200) return;
 
     var observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {

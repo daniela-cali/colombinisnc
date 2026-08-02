@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.24.33] - 2026-08-02
+
+### Navbar fissa in scroll + fix layout dashboard e scheda cliente
+
+- [APP] Navbar sempre visibile durante lo scroll, su tutte le pagine — non serve più tornare in cima per raggiungere il menu
+- [APP] Dashboard: il testo degli infobox dei contatori va a capo invece di restare su una riga sola schiacciando l'icona; infobox nascosti sotto i 576px (occupavano troppo spazio verticale su mobile)
+- [APP] Scheda cliente: la barra di navigazione laterale alle sezioni (Anagrafica, Posizione, ecc.) appare ora da 1200px di larghezza invece che da 1400px, e resta davvero agganciata durante lo scroll
+- [DEV] Bug di AdminLTE 4: con `layout-fixed` il framework mette `.app-main` in `overflow:auto` per farlo scrollare al suo interno, ma senza un wrapper `.app-main-wrapper` (assente anche nella demo ufficiale del framework) quello scroll non scatta mai — `.app-main` restava comunque il contenitore di riferimento per qualsiasi `position:sticky` al suo interno, rompendo `.page-nav` e `.section-anchor` nella scheda cliente. Ripristinato `overflow: visible` su `.app-main`
+- [DEV] Soglia della guardia JS dello scrollspy (`IntersectionObserver`) allineata a quella della classe `d-xl-block` della barra laterale (1200px)
+
 ## [0.24.32] - 2026-08-02
 
 ### Scheda articolo (vista di sola lettura)
