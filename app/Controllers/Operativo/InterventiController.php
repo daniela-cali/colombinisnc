@@ -628,7 +628,7 @@ class InterventiController extends BaseController
      * Verifica se un tecnico sta modificando l'intervento di qualcun altro e blocca,
      * lasciando accesso a chi non è un tecnico
      */
-    private function accessoConsentito(int $interventoTecnicoId):bool 
+    private function accessoConsentito(?int $interventoTecnicoId):bool 
     {
         if (!is_solo_tecnico()) return true;
         

@@ -1,5 +1,11 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.25.1] - 2026-08-05
+
+### Fix accesso tecnico a intervento senza tecnico assegnato
+
+- [DEV] Fix: `InterventiController::accessoConsentito()` dichiarava il parametro `int` ma riceveva `tecnico_id` `NULL` per gli interventi non ancora assegnati — `TypeError` a runtime per un tecnico che apriva uno di quegli interventi. Parametro reso `?int` (il metodo già gestiva il caso null nel corpo, negando l'accesso)
+
 ## [0.25.0] - 2026-08-05
 
 ### Crea intervento da nota cantiere

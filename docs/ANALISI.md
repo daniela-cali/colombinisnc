@@ -608,6 +608,9 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Dal diario del cantiere si può generare un intervento direttamente da una nota, precompilando cliente, cantiere e descrizione; il form nuovo intervento blocca il menu Cliente su quello di partenza quando arriva già da cantiere/abbonamento/scheda cliente, invece di mostrare l'elenco completo
 - Corretto un form GET che scriveva i parametri nell'`action` invece che in input hidden (persi al submit per come i browser ricostruiscono la query string dei form GET) e un bug JS (`cant === null` invece di gestire `undefined`) che nascondeva sempre il blocco "fase stagionale piscina"
 
+#### ✅ v0.25.1 — Fix accesso tecnico a intervento senza tecnico assegnato
+- `InterventiController::accessoConsentito()` dichiarava il parametro `int` ma poteva ricevere `tecnico_id` `NULL` (intervento non ancora assegnato) — `TypeError` a runtime per un tecnico che apriva quell'intervento. Parametro reso `?int`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
