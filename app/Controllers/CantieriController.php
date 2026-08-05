@@ -289,7 +289,7 @@ class CantieriController extends BaseController
 
         return redirect()->to($dest)->with('success', 'Nota aggiunta al diario.');
     }
-
+   
     /**
      * Elimina una nota dal diario, tornando alla scheda del cantiere di origine.
      */

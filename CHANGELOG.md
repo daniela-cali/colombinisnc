@@ -1,5 +1,19 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.25.0] - 2026-08-05
+
+### Crea intervento da nota cantiere
+
+- [APP] Dal diario del cantiere si può generare un intervento direttamente da una nota (bottone dedicato, con conferma) — precompila cliente, cantiere e descrizione (col testo della nota) nel form
+- [APP] Form nuovo intervento: quando arriva già con un cliente noto (da cantiere, da abbonamento o dalla scheda cliente), il menu Cliente mostra solo quel cliente invece dell'elenco completo — evita di generare per sbaglio un intervento con un cliente diverso da quello del cantiere/abbonamento di partenza
+- [APP] Form nuovo intervento: la descrizione si precompila anche arrivando da un cantiere (prima succedeva solo per le visite extra da abbonamento)
+- [APP] Form nuovo intervento: un clic sul bottone urgenza imposta/toglie la priorità "urgente" (se non è un intervento da abbonamento)
+- [APP] Diario cantiere: bottoni "Crea intervento" ed "Elimina nota" ora allineati insieme a fine riga invece che sparsi
+- [DEV] Nuovo parametro `?cantieri_note_id=` e `?tipo_intervento_id=` sulla rotta `operativo/interventi/nuovo`, letti in `InterventiController::nuovo()`
+- [DEV] Nuovo metodo `ClientiModel::trovaConDettagli()` per recuperare un solo cliente con gli stessi campi calcolati di `elencoCompleto()` (denominazione, tecnico preferito, num interventi)
+- [DEV] Fix: il bottone "Crea da nota" nel diario cantiere era un `<form method="get">` con i parametri scritti nell'`action` invece che in input hidden — nei form GET il browser ignora la query string dell'`action` e la ricostruisce solo dai campi del form, quindi i parametri venivano persi al submit. Sostituito con un link semplice (nessuna richiesta cambia stato, CSRF non serve su GET) con conferma via `onclick`
+- [DEV] Fix bug JS: il controllo di visibilità del blocco "fase stagionale piscina" confrontava `cant === null`, ma un campo assente nel DOM produce `undefined` (mai strettamente uguale a `null`) — il blocco non compariva più per nessun intervento piscine, nemmeno quelli non collegati a un cantiere
+
 ## [0.24.33] - 2026-08-02
 
 ### Navbar fissa in scroll + fix layout dashboard e scheda cliente

@@ -130,4 +130,5 @@ class CantieriModel extends Model
             ->orderBy('cantieri.data_inizio', 'DESC')
             ->findAll();
     }
+
 }

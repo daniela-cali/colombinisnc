@@ -1,6 +1,6 @@
 <?php
 /**
- * @var array    $clienti        Righe da ClientiModel::elencoCompleto()
+ * @var array    $clienti        Righe da ClientiModel::elencoCompleto() / Riga unica se proviene da cantieri o abbonamenti
  * @var array    $tecnici        Righe da PersonaleModel::elencoPerGruppi(['tecnico'])
  * @var array    $tipi           Righe da TipiInterventoModel::attivi()
  * @var array    $prioritaLabel  [codice => etichetta]
@@ -60,7 +60,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <input type="hidden" name="priorita" value="abbonamento">
                 <?php endif ?>
                 <?php if ($cantiere_id): ?>
-                    <input type="hidden" name="cantiere_id" value="<?= (int) $cantiere_id ?>">
+                    <input type="hidden" name="cantiere_id" id="cantiere_id" value="<?= (int) $cantiere_id ?>">
                 <?php endif ?>
                 <div class="card-body">
 
@@ -81,13 +81,14 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                             <label class="form-label">Cliente <span class="text-danger">*</span></label>
                             <select name="cliente_id" class="form-select">
                                 <option value="">— seleziona —</option>
-                                <?php foreach ($clienti as $c): ?>
-                                    <option value="<?= $c['id'] ?>"
-                                            <?= old('cliente_id', $cliente_id) == $c['id'] ? 'selected' : '' ?>>
-                                        <?= esc($c['denominazione']) ?>
-                                    </option>
-                                <?php endforeach ?>
-                            </select>
+                                    <?php foreach ($clienti as $c): ?>
+                                        <option value="<?= $c['id'] ?>"
+                                                <?= old('cliente_id', $cliente_id) == $c['id'] ? 'selected' : '' ?>>
+                                            <?= esc($c['denominazione']) ?>
+                                        </option>
+                                    <?php endforeach ?>
+                                </select>
+
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Tecnico assegnato</label>
@@ -111,7 +112,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
                             <input type="text" name="descrizione" id="descrizione" class="form-control"
                                    maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
-                                   value="<?= esc(old('descrizione', $extra ? $descrizioneDefault : '')) ?>">
+                                   value="<?= esc(old('descrizione', $descrizioneDefault)) ?>">
                         </div>
                     </div>
 
@@ -180,7 +181,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         </div>
                     </div>
 
-                    <!-- Fase stagionale (solo tipi piscine) -->
+                    <!-- Fase stagionale (solo tipi piscine) no cantieri -->
                     <div id="blocco-fase" class="d-none">
                         <p class="text-muted section-header mb-3"><i class="bi bi-water me-1"></i> Fase stagionale piscina</p>
                         <div class="row g-3 mb-4">
@@ -357,14 +358,17 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
     });
 
     // ── Fase stagionale: visibile solo per i tipi di categoria "piscine" ──────
-    var selTipo    = document.getElementById('tipo_intervento_id');
-    var bloccoFase = document.getElementById('blocco-fase');
-    var selFase    = document.getElementById('fase');
-
+    var selTipo         = document.getElementById('tipo_intervento_id');
+    var bloccoFase      = document.getElementById('blocco-fase');
+    var selFase         = document.getElementById('fase');
+    var cantiereIdEl    = document.getElementById('cantiere_id');
+    var cant = cantiereIdEl ? cantiereIdEl.value : null;
+        
+    /** Aggiunge il blocco fase apertura/chiusura se è piscine ma NON collegato ad un cantiere */                                      
     function aggiornaBloccoFase() {
         var opt = selTipo.options[selTipo.selectedIndex];
         var cat = opt ? opt.dataset.categoria : '';
-        if (cat === 'piscine') {
+        if (cat === 'piscine' && cant === null ) {
             bloccoFase.classList.remove('d-none');
         } else {
             bloccoFase.classList.add('d-none');
@@ -381,6 +385,16 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
         var stato = document.getElementById('stato');
         if (this.value && stato.value === 'da_pianificare') {
             stato.value = 'pianificato';
+        }
+    });
+    
+    // ── Impostando l'urgenza, la priorità passa da Normale a Urgente e viceversa se non si tratta di un abbonamento
+    // ── Dato che priorità viene usato come riconoscimento
+    var urgenza = document.getElementById('urgenza');
+    urgenza.addEventListener('click', function () {
+        var priorita = document.getElementById('priorita');
+        if (priorita.value != 'abbonamento') {
+            priorita.value = priorita.value != 'urgente' ? 'urgente' : 'normale';
         }
     });
 

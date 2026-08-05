@@ -166,7 +166,7 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
         </div>
 
         <!-- Posizione -->
-        <div class="card card-outline card-primary" id="sec-posizione">
+        <div class="card card-outline card-primary mt-2" id="sec-posizione">
             <div class="card-header">
                 <h3 class="card-title mb-0">
                     <i class="bi bi-geo-alt me-2"></i>Posizione
@@ -298,7 +298,7 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
         </div>
 
         <!-- Diario -->
-        <div class="card card-outline card-info" id="sec-diario">
+        <div class="card card-outline card-info mt-2" id="sec-diario">
             <div class="card-header">
                 <h3 class="card-title mb-0">
                     <i class="bi bi-journal-text me-2"></i>Diario
@@ -319,6 +319,18 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
                                         <span class="text-muted small ms-1">— <?= esc($n['autore']) ?></span>
                                     <?php endif ?>
                                 </div>
+                                <?php 
+                                $nuovoInterventoDaNotaUrl = base_url('operativo/interventi/nuovo?cantiere_id=' . $cantiere['id']
+                                . '&cliente_id=' . $cantiere['cliente_id']
+                                . '&cantieri_note_id=' . $n['id']
+                                . '&from=' . urlencode($schedaUrl . '#sec-interventi'));
+                                //dd($nuovoInterventoDaNotaUrl);
+                                ?>
+                                <div class="d-flex gap-1">
+                                <a href="<?= $nuovoInterventoDaNotaUrl ?>" class="btn btn-sm btn-outline-primary"
+                                    title="Crea intervento" onclick="return confirm('Generare intervento da questa nota?')">
+                                    <i class="bi bi-tools"></i>
+                                </a>
                                 <form method="post"
                                       action="<?= base_url('cantieri/note/' . $n['id'] . '/elimina') ?>"
                                       class="d-inline" onsubmit="return confirm('Eliminare questa nota?')">
@@ -328,6 +340,7 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
+                                </div>
                             </li>
                         <?php endforeach ?>
                     </ul>

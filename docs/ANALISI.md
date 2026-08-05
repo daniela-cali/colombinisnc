@@ -604,6 +604,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Navbar sempre visibile durante lo scroll su tutte le pagine; infobox della dashboard nascosti sotto i 576px e con testo che va a capo invece di schiacciare l'icona; barra laterale delle sezioni nella scheda cliente visibile da 1200px invece che da 1400px
 - Bug di AdminLTE 4 individuato e corretto: `.app-main` in `overflow:auto` (per `layout-fixed`) senza il wrapper che quello scroll richiederebbe — mai attivo, ma restava comunque il riferimento per gli elementi `position:sticky`, rompendo `.page-nav` e `.section-anchor`. Risolto con `overflow: visible` su `.app-main`
 
+#### ✅ v0.25.0 — Crea intervento da nota cantiere
+- Dal diario del cantiere si può generare un intervento direttamente da una nota, precompilando cliente, cantiere e descrizione; il form nuovo intervento blocca il menu Cliente su quello di partenza quando arriva già da cantiere/abbonamento/scheda cliente, invece di mostrare l'elenco completo
+- Corretto un form GET che scriveva i parametri nell'`action` invece che in input hidden (persi al submit per come i browser ricostruiscono la query string dei form GET) e un bug JS (`cant === null` invece di gestire `undefined`) che nascondeva sempre il blocco "fase stagionale piscina"
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

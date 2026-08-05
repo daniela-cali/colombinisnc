@@ -50,11 +50,14 @@ class InterventiController extends BaseController
         $extra            = (int) $this->request->getGet('extra');
         $clienteId        = (int) $this->request->getGet('cliente_id');
         $cantiereId       = (int) $this->request->getGet('cantiere_id');
-        $tipoInterventoId    = 0;
+        /* Aggiungo la possibilità di passare via get l'id di cantieri_note in modo da poter creare anche da nota eventuale solo con l'url diretta a intervento/nuovo */
+        $canteriNoteId   = (int) $this->request->getGet('cantieri_note_id');
+        $tipoInterventoId    = (int) $this->request->getGet('tipo_intervento_id');
         $haPuliziaFondo      = false;
         $cantiere            = null;
+        $cantiereNota        = null;      
         $descrizioneDefault  = '';
-
+        $cliente            = (new ClientiModel())->find($clienteId);
         if ($extra && $abbonamentoId) {
             $abbonamento = (new \App\Models\AbbonamentiModel())->find($abbonamentoId);
             if ($abbonamento) {
@@ -65,7 +68,6 @@ class InterventiController extends BaseController
 
                 // Precompilata qui perché per le visite extra il select tipo_intervento_id è
                 // disabled: l'auto-precompilazione JS legata al suo evento "change" non scatta mai.
-                $cliente            = (new ClientiModel())->find($clienteId);
                 $descrizioneDefault = ($cliente ? ClientiModel::denominazione($cliente) : '')
                     . ': visita extra ' . ($tipo['nome'] ?? '');
             }
@@ -78,13 +80,21 @@ class InterventiController extends BaseController
             if ($cantiere) {
                 $clienteId        = (int) $cantiere['cliente_id'];
                 $tipoInterventoId = (int) ($cantiere['tipo_intervento_id'] ?? 0);
+                $descrizioneDefault = ($cliente ? 'Cantiere '.ClientiModel::denominazione($cliente).': ' : '');
             } else {
                 $cantiereId = 0;
             }
         }
 
+        if ($canteriNoteId) {
+            $cantiereNota = (new \App\Models\CantieriNoteModel())->find($canteriNoteId);
+            $descrizioneDefault = ($cliente ? 'Cantiere '.ClientiModel::denominazione($cliente).': '.$cantiereNota['testo'] : '');
+        }
+        /* Se passa già ID da scheda cliente/cantiere/abbonamento non carica tutto l'elenco di clienti, ma solo quello in questione */
+        $clienti = $clienteId ? (new ClientiModel())->trovaConDettagli($clienteId) : (new ClientiModel())->elencoCompleto();
+
         return view('operativo/interventi/nuovo', [
-            'clienti'              => (new ClientiModel())->elencoCompleto(),
+            'clienti'              => $clienti,
             'tecnici'              => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
             'tipi'                 => (new TipiInterventoModel())->attivi(),
             'prioritaLabel'        => InterventiModel::PRIORITA_LABEL,
