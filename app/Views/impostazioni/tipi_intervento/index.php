@@ -105,9 +105,10 @@ $this->extend('layouts/admin');
                                                 data-ha-pulizia-fondo="<?= $t['ha_pulizia_fondo'] ?>">
                                             <i class="bi bi-pencil"></i>
                                         </button>
+                                        <?php $nomeTipo = $t['nome']; ?>
                                         <form action="<?= base_url('impostazioni/tipi-intervento/' . $t['id'] . '/delete') ?>"
                                               method="post" class="d-inline"
-                                              onsubmit="return confirm('Eliminare il tipo \"<?= esc(addslashes($t['nome'])) ?>\"?')">
+                                              onsubmit="return confirm('Eliminare il tipo <?= esc(addslashes($nomeTipo)) ?>?')">
                                             <?= csrf_field() ?>
                                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                                 <i class="bi bi-trash"></i>
@@ -236,7 +237,7 @@ $this->extend('layouts/admin');
                             ]) ?>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Sezione</label>
+                            <label class="form-label">Categoria</label>
                             <select name="categoria" id="edit-categoria" class="form-select">
                                 <?php foreach ($categorie as $cod => $lab): ?>
                                     <option value="<?= esc($cod) ?>"><?= esc($lab) ?></option>
@@ -267,6 +268,13 @@ $this->extend('layouts/admin');
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="ha_pulizia_fondo" id="edit-ha-pulizia-fondo" value="1">
                                 <label class="form-check-label" for="edit-ha-pulizia-fondo">Prevede opzione pulizia fondo</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check d-none" id="div-operazioni-standard">
+                                <textarea name="edit-operazioni_standard" id="edit-operazioni_standard" class="form-control" rows="10"></textarea>
+                                <label class="form-check-label" for="edit-operazioni_standard">Operazioni standard previste nell'abbonamento</label>
+
                             </div>
                         </div>
                     </div>
@@ -301,6 +309,9 @@ document.getElementById('modal-edit').addEventListener('show.bs.modal', function
     document.getElementById('edit-abbonabile').checked      = btn.dataset.abbonabile      === '1';
     document.getElementById('edit-prefisso-codice').value      = btn.dataset.prefissoCodice  || '';
     document.getElementById('edit-ha-pulizia-fondo').checked   = btn.dataset.haPuliziaFondo  === '1';
+    var div = document.getElementById('div-operazioni-standard');
+    div.classList.toggle('d-none', !document.getElementById('edit-abbonabile').checked);
+    
 });
 </script>
 <?= $this->endSection() ?>

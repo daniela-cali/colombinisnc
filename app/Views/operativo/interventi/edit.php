@@ -346,10 +346,11 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                 </form>
             </div>
 
+            <?php $codiceIntervento = $intervento['codice']; ?>
             <div class="card-footer d-flex justify-content-between align-items-center gap-2">
                 <form action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
                       method="post" class="d-inline"
-                      onsubmit="return confirm('Eliminare definitivamente l\'intervento <?= esc($intervento['codice']) ?>?')">
+                      onsubmit="return confirm('Eliminare definitivamente l\'intervento <?= esc($codiceIntervento) ?>?')">
                     <?= csrf_field() ?>
                     <?php if ($from): ?>
                         <input type="hidden" name="from" value="<?= esc($from) ?>">

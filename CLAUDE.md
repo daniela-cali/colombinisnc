@@ -226,6 +226,18 @@ Dichiarare tutte le variabili passate dalla chiamata `view(...)` nel controller.
 public function tecnicoDisponibile(int $tipoId, string $data): ?array
 ```
 
+## Valori PHP dentro attributi HTML con JS inline (onclick, onsubmit, ecc.)
+Non scrivere mai un accesso ad array PHP (`$var['chiave']`) direttamente dentro un attributo `onXXX="..."` (es. `onsubmit`, `onclick`). L'attributo è delimitato da apici doppi e spesso contiene già una stringa JS delimitata da apici singoli (es. `confirm('...')`): qualunque apice si scelga per la chiave dell'array (singolo o doppio) finisce per collidere con uno dei due livelli di apici che lo racchiudono.
+
+Il problema è invisibile a runtime — PHP valuta `$var['chiave']` prima che il browser veda l'HTML, quindi gli apici della sintassi PHP non compaiono mai nell'output — ma confonde il parser HTML/JS dell'editor: causa falsi errori del linter o styling errato (es. testo in corsivo) sul codice successivo nel file.
+
+Soluzione: estrarre sempre il valore in una variabile PHP semplice prima dell'attributo, e usare solo quella dentro l'attributo — nessuna parentesi quadra, nessun apice aggiuntivo nella zona sensibile.
+
+```php
+<?php $codiceIntervento = $intervento['codice']; ?>
+<form onsubmit="return confirm('Eliminare <?= esc($codiceIntervento) ?>?')">
+```
+
 ## AdminLTE 4 — Layout card
 Le convenzioni per card-header, card-footer e card-tools vanno documentate qui man mano che si scopre il comportamento reale di AdminLTE 4 con Bootstrap 5. Non usare i pattern del vecchio progetto (`float-left`/`float-right`, `clearfix`) — erano workaround di Bootstrap 4.
 

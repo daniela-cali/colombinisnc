@@ -365,7 +365,7 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
-                    versione: '<?= htmlspecialchars($_cl['versioneCorrente']) ?>',
+                    versione: '<?= htmlspecialchars($_cl["versioneCorrente"]) ?>',
                     '<?= csrf_token() ?>': '<?= csrf_hash() ?>'
                 })
             }).then(function (r) {

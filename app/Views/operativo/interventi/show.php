@@ -266,9 +266,10 @@ $statoBadge = [
                     </a>
                 <?php endif ?>
                 <?php if (auth()->user()->can('interventi.elimina') && $intervento['stato'] === \App\Models\InterventiModel::STATO_ANNULLATO): ?>
+                    <?php $codiceIntervento = $intervento['codice']; ?>
                     <form method="post" class="btn-azione-elimina"
                         action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
-                        onsubmit="return confirm('Eliminare definitivamente <?= esc($intervento['codice']) ?>?')">
+                        onsubmit="return confirm('Eliminare definitivamente <?= esc($codiceIntervento) ?>?')">
                         <?= csrf_field() ?>
                         <?php if ($cliente): ?>
                             <input type="hidden" name="from"
