@@ -167,6 +167,29 @@ class AbbonamentiModel extends Model
     }
 
     /**
+     * Marca come scaduti gli abbonamenti attivi la cui data_fine è già passata.
+     * Chiamato dal batch notturno (comando batch:abbonamenti-scaduti).
+     */
+ 
+     public function leggiScaduti(): array
+     {
+        $abbonamenti = $this->select('abbonamenti.id, c.denominazione,ti.nome, abbonamenti.stato, abbonamenti.data_fine')
+            ->join('tipi_intervento ti', 'abbonamenti.tipo_intervento_id = ti.id')
+            ->join('clienti c', 'abbonamenti.cliente_id = c.id')
+            ->where('data_fine <', date('Y-m-d'))
+            ->where('stato', 'attivo')
+          ->get()->getResultArray();
+          
+         return $abbonamenti;
+     }
+
+     public function updateScaduti(array $ids): int
+     {
+         $this->whereIn('id', $ids)->update(null, ['stato'=>self::STATO_SCADUTO]);
+         return $this->db->affectedRows();
+     }
+
+    /**
      * Abbonamenti attivi in scadenza entro $giorni giorni, con denominazione cliente,
      * tipo intervento e giorni rimanenti. Ordinati per data di fine crescente (dashboard).
      */
