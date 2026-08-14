@@ -75,6 +75,12 @@ Per testare l'app dal telefono sulla stessa rete Wi-Fi del PC di sviluppo:
 
 Se l'IP del PC cambia (riconnessione Wi-Fi, rinnovo DHCP): controllare il nuovo indirizzo con `ipconfig` (voce "Indirizzo IPv4" della scheda Wi-Fi) e aggiornare `app.baseURL` di conseguenza. Per fermare il server: `Ctrl+C` nel terminale in cui gira.
 
+**Hot-reload della Debug Toolbar disattivato (blocca `php -S`)**
+`app/Config/Events.php` non registra più la rotta `__hot-reload` (era codice di scaffolding standard di CodeIgniter 4). Quella rotta apre una connessione SSE che il browser tiene aperta indefinitamente finché la tab resta aperta. Siccome `php -S` gestisce **una richiesta alla volta per l'intero processo** (non per tab/sessione), anche una sola di quelle connessioni rimaste appese blocca tutto il server — qualunque altra richiesta, da qualunque tab o browser, resta in coda senza mai essere servita, senza nessun errore nei log (non è un'eccezione, è solo una connessione che non finisce mai). Sintomo tipico: il sito "si pianta" dal nulla, non riparte nemmeno in incognito, ma il processo PHP risulta ancora vivo. Se in futuro serve riattivarla, va usato un server che gestisca richieste concorrenti (es. `php spark serve` con più worker, o Apache/nginx+PHP-FPM) — mai con `php -S`.
+
+**Doppio login involontario → `LogicException` di Shield**
+Se una tab con il form di login resta aperta mentre la sessione nel frattempo è già autenticata (tasto Indietro, tab dimenticata, doppio submit), il POST arrivava direttamente a `LoginController::loginAction()` e Shield lanciava `LogicException: The user has User Info in Session...`. Il filtro `App\Filters\NoAuth` (redirect alla dashboard se già loggato) era applicato solo alla rotta `GET login` in `Routes.php`, non al `POST login` registrato da Shield in `AuthRoutes.php`. Fix: `Routes.php` ora sovrascrive **anche** il `POST login` con lo stesso filtro `noauth`, prima che `service('auth')->routes($routes)` (fine file) registri le rotte di default di Shield.
+
 ## Sistema di ritorno "from"
 Quando un form (edit o nuovo) può essere aperto da contesti diversi (lista, scheda cliente, ecc.), si usa il parametro `from` per tornare alla pagina di origine dopo salvataggio o eliminazione.
 

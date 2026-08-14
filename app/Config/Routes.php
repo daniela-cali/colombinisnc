@@ -11,7 +11,8 @@ $routes->group('profilo', function ($routes) {
     $routes->post('versione-vista', 'ProfiloController::versioneVista');
 });
 
-$routes->get('login', '\CodeIgniter\Shield\Controllers\LoginController::loginView', ['filter' => 'noauth']);
+$routes->get('login',  '\CodeIgniter\Shield\Controllers\LoginController::loginView',   ['filter' => 'noauth']);
+$routes->post('login', '\CodeIgniter\Shield\Controllers\LoginController::loginAction', ['filter' => 'noauth']);
 
 // Impostazioni
 $routes->group('impostazioni', ['filter' => 'permission:impostazioni.manage'], function ($routes) {
