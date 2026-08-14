@@ -129,7 +129,7 @@ class AbbonamentiModel extends Model
                 'ti.nome AS tipo_nome',
                 "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato = 'attivo'
                       THEN 'scaduto' ELSE abbonamenti.stato END AS stato_calcolato",
-                'EXISTS(SELECT 1 FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id) AS ha_successore',
+                '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
             ])
@@ -156,9 +156,10 @@ class AbbonamentiModel extends Model
                 'ti.nome AS tipo_nome',
                 "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato = 'attivo'
                       THEN 'scaduto' ELSE abbonamenti.stato END AS stato_calcolato",
-                'EXISTS(SELECT 1 FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id) AS ha_successore',
+                '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
+                'SUBSTRING(abbonamenti.data_inizio, 1, 4) AS anno_inizio',
             ])
             ->join('clienti c',         'c.id  = abbonamenti.cliente_id',        'left')
             ->join('tipi_intervento ti', 'ti.id = abbonamenti.tipo_intervento_id', 'left')

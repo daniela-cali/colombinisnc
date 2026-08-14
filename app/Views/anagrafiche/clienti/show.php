@@ -699,7 +699,7 @@ $statoBadge = [
 <?= $this->section('scripts') ?>
 <script src="<?= base_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <?= $this->include('partials/datatables_scripts') ?>
-<script src="<?= base_url('js/pill-filtri.js') ?>"></script>
+<script src="<?= base_url('js/search-bar.js') ?>"></script>
 
 <script>
 // Tom Select — form materiali sospesi

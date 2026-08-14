@@ -1,7 +1,7 @@
 <?php
 /**
  * @var string $title
- * @var array  $abbonamento          Da AbbonamentiModel::trovaConDettagli() — include stato_calcolato, ha_successore
+ * @var array  $abbonamento          Da AbbonamentiModel::trovaConDettagli() — include stato_calcolato, successore_id
  * @var array  $periodi              Da AbbonamentiPeriodiModel::perAbbonamento()
  * @var array  $interventi           Interventi figli: id, codice, data_scadenza, data_pianificata, stato
  * @var array  $statiLabel           AbbonamentiModel::STATI_LABEL
@@ -147,12 +147,19 @@ $stato = $abbonamento['stato_calcolato'];
             <?php endif ?>
 
             <!-- Rinnova -->
-            <?php if (! $abbonamento['ha_successore'] && in_array($stato, ['scaduto', 'disdetto'], true)): ?>
+            <?php if (in_array($stato, ['scaduto', 'disdetto'], true)): ?>
                 <div class="card-footer">
-                    <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/rinnova') ?>"
-                       class="btn btn-primary btn-sm w-100">
-                        <i class="bi bi-arrow-repeat me-1"></i>Rinnova abbonamento
-                    </a>
+                    <?php if ($abbonamento['successore_id']): ?>
+                        <a href="<?= base_url('abbonamenti/' . $abbonamento['successore_id']) ?>"
+                           class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="bi bi-arrow-right-circle me-1"></i>Vai al rinnovo
+                        </a>
+                    <?php else: ?>
+                        <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/rinnova') ?>"
+                           class="btn btn-primary btn-sm w-100">
+                            <i class="bi bi-arrow-repeat me-1"></i>Rinnova abbonamento
+                        </a>
+                    <?php endif ?>
                 </div>
             <?php endif ?>
 

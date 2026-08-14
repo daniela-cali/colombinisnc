@@ -16,12 +16,20 @@ class AbbonamentiController extends BaseController
      */
     public function index(): string
     {
+        $abbonamenti  = (new AbbonamentiModel())->elencoConDettagli();
+        $tipiPresenti = array_values(array_unique(array_filter(array_column($abbonamenti, 'tipo_nome'))));
+        sort($tipiPresenti);
+        $anniPresenti = array_values(array_unique(array_filter(array_column($abbonamenti, 'anno_inizio'))));
+        rsort($anniPresenti);
+
         return view('abbonamenti/index', [
-            'title'       => 'Abbonamenti',
-            'abbonamenti' => (new AbbonamentiModel())->elencoConDettagli(),
-            'statiLabel'  => AbbonamentiModel::STATI_LABEL,
-            'statiBadge'  => AbbonamentiModel::STATI_BADGE,
-            'frequenze'   => AbbonamentiModel::FREQUENZE_LABEL,
+            'title'        => 'Abbonamenti',
+            'abbonamenti'  => $abbonamenti,
+            'tipiPresenti' => $tipiPresenti,
+            'anniPresenti' => $anniPresenti,
+            'statiLabel'   => AbbonamentiModel::STATI_LABEL,
+            'statiBadge'   => AbbonamentiModel::STATI_BADGE,
+            'frequenze'    => AbbonamentiModel::FREQUENZE_LABEL,
             'help_sezione' => 'abbonamenti',
         ]);
     }

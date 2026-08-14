@@ -2,7 +2,7 @@
     'use strict';
 
     /**
-     * Filtri "pill" generici per tabelle DataTables.
+     * Filtri generici per tabelle DataTables — pulsanti "pill" o voci di un dropdown, stesso meccanismo.
      *
      * Il contenitore dei bottoni deve avere:
      *   data-pill-tabella   id della <table> già inizializzata come DataTable
@@ -19,6 +19,10 @@
      * Il filtro di default all'apertura pagina si ottiene marcando un bottone con
      * [data-default] e simulando un click su di esso subito dopo aver creato la
      * DataTable, nello script della singola pagina.
+     *
+     * Uso opzionale come dropdown: se il contenitore [data-pill-tabella] include uno
+     * <span class="filtro-label">, il suo testo viene aggiornato con l'etichetta del
+     * bottone cliccato (utile per un bottone dropdown-toggle che mostra il filtro attivo).
      */
 
     document.addEventListener('click', function (e) {
@@ -51,6 +55,9 @@
         container.querySelectorAll('[data-filtro]').forEach(function (b) {
             b.classList.toggle('active', b === btn);
         });
+
+        var label = container.querySelector('.filtro-label');
+        if (label) label.textContent = btn.textContent.trim();
     });
 
 })();
