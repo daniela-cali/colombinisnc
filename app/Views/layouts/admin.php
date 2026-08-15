@@ -57,6 +57,16 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
             if (!running) runNext();
         };
     })();
+
+    // Bootstrap imposta aria-hidden sul modal in chiusura prima che il focus
+    // (es. il bottone "chiudi" appena cliccato) si sia spostato altrove: si
+    // toglie il focus subito, per non lasciarlo "intrappolato" in un elemento
+    // nascosto agli screen reader. Vale per tutti i modal dell'app.
+    document.addEventListener('hide.bs.modal', function (e) {
+        if (e.target.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
+    });
 </script>
 <div class="app-wrapper">
 

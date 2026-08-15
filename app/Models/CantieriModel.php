@@ -104,10 +104,7 @@ class CantieriModel extends Model
     public function conCliente(int $id): ?array
     {
         return $this->select("cantieri.*,
-                CASE WHEN c.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                     ELSE c.ragsoc
-                END AS cliente_denominazione,
+                c.denominazione AS cliente_denominazione,
                 c.indirizzo AS cliente_indirizzo, c.citta AS cliente_citta,
                 c.lat AS cliente_lat, c.lng AS cliente_lng, c.nazione AS cliente_nazione")
             ->join('clienti c', 'c.id = cantieri.cliente_id', 'left')
@@ -121,10 +118,7 @@ class CantieriModel extends Model
     public function elencoCompleto(): array
     {
         return $this->select("cantieri.*,
-                CASE WHEN c.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                     ELSE c.ragsoc
-                END AS cliente_denominazione")
+                c.denominazione AS cliente_denominazione")
             ->join('clienti c', 'c.id = cantieri.cliente_id', 'left')
             ->orderBy('cantieri.stato', 'ASC')
             ->orderBy('cantieri.data_inizio', 'DESC')

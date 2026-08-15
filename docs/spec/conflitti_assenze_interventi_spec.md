@@ -31,10 +31,7 @@ Due punti di visualizzazione, stesso meccanismo sottostante:
 public function inConflittoConAssenze(): array
 {
     return $this->select("interventi.id, interventi.data_pianificata,
-            CASE WHEN clienti.tipo = 'persona_fisica'
-                 THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                 ELSE clienti.ragsoc
-            END AS cliente_denominazione,
+           clienti.denominazione AS cliente_denominazione,
             TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico,
             assenze.tipo AS assenza_tipo")
         ->join('clienti', 'clienti.id = interventi.cliente_id')

@@ -10,6 +10,8 @@
  * @var array|null $abbonamento Pre-compilazione per rinnovo; null per nuovo
  */
 $this->extend('layouts/admin');
+
+$operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
 ?>
 <?= $this->section('title') ?><?= esc($title) ?><?= $this->endSection() ?>
 
@@ -55,7 +57,8 @@ $this->extend('layouts/admin');
                     <!-- Cliente -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-person me-1"></i> Cliente</p>
                     <div class="row g-3 mb-4">
-                        <?php if ($cliente): ?>
+                        <?php //Caso cliente già definito da scheda cliente
+                        if ($cliente): ?>
                             <div class="col-12">
                                 <input type="hidden" name="cliente_id" value="<?= (int) $cliente['id'] ?>">
                                 <input type="text" class="form-control" readonly
@@ -63,7 +66,8 @@ $this->extend('layouts/admin');
                                            ? trim(($cliente['cognome'] ?? '') . ' ' . ($cliente['nome'] ?? ''))
                                            : $cliente['ragsoc']) ?>">
                             </div>
-                        <?php else: ?>
+                        <?php else: //Caso cliente non definito (da pulsante nuovo)
+                            ?>
                             <div class="col-12">
                                 <label class="form-label">Cliente <span class="text-danger">*</span></label>
                                 <select name="cliente_id" class="form-select">
@@ -99,6 +103,14 @@ $this->extend('layouts/admin');
                         </div>
                     </div>
 
+                    <!-- Operazioni incluse -->
+                    <p class="text-muted section-header mb-3"><i class="bi bi-list-check me-1"></i> Operazioni incluse</p>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <textarea name="operazioni_incluse" id="operazioni_incluse" class="form-control" rows="6"><?= esc(old('operazioni_incluse', $abbonamento['operazioni_incluse'] ?? '')) ?></textarea>
+                        </div>
+                    </div>
+
                     <!-- Periodo -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-calendar-range me-1"></i> Periodo di validità</p>
                     <div class="row g-3 mb-4">
@@ -122,11 +134,17 @@ $this->extend('layouts/admin');
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label">Prezzo totale (€)</label>
-                            <input type="text" name="prezzo" class="form-control"
-                                   placeholder="0.00"
+                            <input type="text" data-currency-display="prezzo" class="form-control" inputmode="decimal" placeholder="0,00">
+                            <input type="hidden" name="prezzo" id="prezzo"
                                    value="<?= esc(old('prezzo', $abbonamento['prezzo'] ?? '')) ?>">
                         </div>
                         <div class="col-md-8">
+                            <label class="form-label">Modalità di pagamento</label>
+                            <input type="text" name="modalita_pagamento" class="form-control"
+                                   placeholder="es. a metà servizio, saldo ad Agosto"
+                                   value="<?= esc(old('modalita_pagamento', $abbonamento['modalita_pagamento'] ?? '')) ?>">
+                        </div>
+                        <div class="col-12">
                             <label class="form-label">Note</label>
                             <textarea name="note" class="form-control" rows="2"><?= esc(old('note', $abbonamento['note'] ?? '')) ?></textarea>
                         </div>
@@ -138,7 +156,7 @@ $this->extend('layouts/admin');
                         <i class="bi bi-arrow-left me-1"></i>Annulla
                     </a>
                     <button type="submit" class="btn btn-primary btn-sm ms-auto">
-                        <i class="bi bi-check-lg me-1"></i>Salva e genera interventi
+                        <i class="bi bi-check-lg me-1"></i>Salva
                     </button>
                 </div>
             </form>
@@ -154,14 +172,36 @@ $this->extend('layouts/admin');
     const sel = document.getElementById('tipo-intervento-id');
     if (!sel) return;
 
+    const operazioniStandardDefault = <?= json_encode($operazioniStandardDefault) ?>;
+
     function aggiornaPulizia() {
         const opt = sel.options[sel.selectedIndex];
         const show = opt && opt.dataset.haPuliziaFondo === '1';
         if (typeof window.setPuliziaFondo === 'function') window.setPuliziaFondo(show);
     }
 
-    sel.addEventListener('change', aggiornaPulizia);
+    function aggiornaOperazioniIncluse() {
+        const testo = document.getElementById('operazioni_incluse');
+        if (! testo) return;
+
+        const nuovoDefault = operazioniStandardDefault[sel.value] || '';
+
+        if (! testo.value) {
+            testo.value = nuovoDefault;
+            return;
+        }
+
+        if (confirm('Cambiare tipo riporta le operazioni incluse al valore standard del nuovo tipo, perdendo le eventuali modifiche fatte qui. Procedere?')) {
+            testo.value = nuovoDefault;
+        }
+    }
+
+    sel.addEventListener('change', function () {
+        aggiornaPulizia();
+        aggiornaOperazioniIncluse();
+    });
     aggiornaPulizia();
 })();
 </script>
+<script src="<?= base_url('js/currency-input.js') ?>"></script>
 <?= $this->endSection() ?>

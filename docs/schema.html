@@ -89,6 +89,7 @@
   <tr><td><code>ragsoc</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Valorizzato se tipo = societa</td></tr>
   <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td>Valorizzato se tipo = persona_fisica</td></tr>
   <tr><td><code>cognome</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td>Valorizzato se tipo = persona_fisica</td></tr>
+  <tr><td><code>denominazione</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Generata (STORED): cognome+nome se persona_fisica, altrimenti ragsoc</td></tr>
   <tr><td><code>piva</code></td><td>VARCHAR(15)</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>cfisc</code></td><td>VARCHAR(16)</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>indirizzo</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -131,6 +132,7 @@
   <tr><td><code>abbonabile</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = può essere usato negli abbonamenti · aggiunto v0.14.0</td></tr>
   <tr><td><code>prefisso_codice</code></td><td>VARCHAR(10)</td><td class="null">NULL</td><td>NULL</td><td>Prefisso 3 caratteri per codici da abbonamento (es. PIS, ADD). NULL = usa INT · aggiunto v0.14.0</td></tr>
   <tr><td><code>ha_pulizia_fondo</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = il tipo prevede l'opzione pulizia fondo (es. piscine) · aggiunto v0.14.0</td></tr>
+  <tr><td><code>operazioni_standard</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Testo libero, elenco puntato (una riga = un punto) delle operazioni tipiche del tipo — precompila <code>abbonamenti.operazioni_incluse</code> · aggiunto v0.26.0</td></tr>
   <tr><td><code>ordine</code></td><td>INT UNSIGNED</td><td></td><td>0</td><td></td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -253,12 +255,14 @@
   <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE RESTRICT</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ tipi_intervento.id · ON DELETE RESTRICT · stesso tipo per tutti gli interventi generati</td></tr>
-  <tr><td><span class="badge badge-fk">FK</span> <code>abbonamento_precedente_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE SET NULL · catena storica rinnovi; CTE ricorsiva MySQL 8+ per ricostruirla</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <span class="badge badge-uq">UQ</span> <code>abbonamento_precedente_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE SET NULL · catena storica rinnovi 1-a-1 (UNIQUE impedisce due rinnovi dello stesso abbonamento) · CTE ricorsiva MySQL 8+ per ricostruirla · UQ aggiunto v0.26.0</td></tr>
   <tr><td><code>data_inizio</code></td><td>DATE</td><td></td><td></td><td>Tipicamente 01/01 — primo giorno di validità</td></tr>
   <tr><td><code>data_fine</code></td><td>DATE</td><td></td><td></td><td>Tipicamente 31/12 — ultimo giorno di validità</td></tr>
   <tr><td><code>durata_mesi</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Calcolato automaticamente dal model al salvataggio</td></tr>
   <tr><td><code>prezzo</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td></td><td>Totale abbonamento per il periodo intero (non per visita)</td></tr>
-  <tr><td><code>stato</code></td><td>VARCHAR(20)</td><td></td><td>attivo</td><td>Valori: <code>attivo</code> · <code>sospeso</code> · <code>scaduto</code> · <code>disdetto</code></td></tr>
+  <tr><td><code>operazioni_incluse</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Precompilato da <code>tipi_intervento.operazioni_standard</code> alla scelta del tipo, poi libero per il singolo cliente · aggiunto v0.26.0</td></tr>
+  <tr><td><code>modalita_pagamento</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Testo libero, specifico dell'accordo col cliente · aggiunto v0.26.0</td></tr>
+  <tr><td><code>stato</code></td><td>VARCHAR(20)</td><td></td><td>proposta</td><td>Valori: <code>proposta</code> · <code>attivo</code> · <code>sospeso</code> · <code>scaduto</code> · <code>disdetto</code> · <code>rifiutata</code> · default cambiato da <code>attivo</code> v0.26.0</td></tr>
   <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -434,6 +438,18 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.26.0</td>
+    <td><code>AddOperazioniStandardToTipiIntervento</code><br><code>AddStatoPropostaRifiutataAbbonamenti</code><br><code>AddDenominazioneToClienti</code><br><code>AddUniqueKeyAbbonamentoPrecedenteId</code><br><code>UpdateViewsAbbonamentiInterventiDenominazione</code></td>
+    <td>
+      Su <code>tipi_intervento</code>: <code>operazioni_standard TEXT NULL</code>. Su <code>abbonamenti</code>: <code>operazioni_incluse TEXT NULL</code>,
+      <code>modalita_pagamento VARCHAR(255) NULL</code>, nuovi valori stato <code>proposta</code>/<code>rifiutata</code> (default colonna cambiato da <code>attivo</code> a <code>proposta</code>),
+      <code>UNIQUE KEY</code> su <code>abbonamento_precedente_id</code> (un abbonamento ha al massimo un rinnovo). Su <code>clienti</code>: colonna generata
+      <code>denominazione VARCHAR(255) GENERATED ALWAYS AS (...) STORED</code> (cognome+nome se persona_fisica, altrimenti ragsoc) — sostituisce il
+      <code>CASE WHEN</code> duplicato in ogni query; le 3 view di <code>CreateViewsAbbonamentiInterventi</code> ricreate per usarla (migration separata,
+      non quella originale del 6 luglio: <code>clienti.denominazione</code> non esisteva ancora a quella data nella sequenza delle migration).
+    </td>
+  </tr>
   <tr>
     <td>v0.24.28</td>
     <td><code>AddLuogoReferenteGeoToCantieri</code></td>

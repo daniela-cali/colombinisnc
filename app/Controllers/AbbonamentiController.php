@@ -44,7 +44,7 @@ class AbbonamentiController extends BaseController
         $clienteId = (int) ($this->request->getGet('cliente_id') ?? 0);
 
         return view('abbonamenti/nuovo', [
-            'title'     => 'Nuovo abbonamento',
+            'title'     => 'Nuova proposta di abbonamento',
             'cliente'   => $clienteId ? (new ClientiModel())->find($clienteId) : null,
             'clienti'   => (new ClientiModel())->orderBy('ragsoc')->findAll(),
             'tipi'      => (new TipiInterventoModel())->abbonabili(),
@@ -55,8 +55,7 @@ class AbbonamentiController extends BaseController
     }
 
     /**
-     * Salva il nuovo abbonamento, i suoi periodi e genera il batch di interventi in transazione.
-     * Rollback completo se qualcosa fallisce — né abbonamento né interventi rimangono.
+     * Salva il nuovo abbonamento, la generazioni degli interventi è esclusiva dello stato attivo, prima è solo una proposta.
      */
     public function store(): RedirectResponse
     {
@@ -78,12 +77,9 @@ class AbbonamentiController extends BaseController
 
         $db = db_connect();
         $db->transStart();
-
-        $abbonamentoId = $model->insert($this->request->getPost(), true);
+        //Proposta non arriva nel post ed è default db, ma lo passo lo stesso forzandolo in inserimento nuovo abbonamento
+        $abbonamentoId = $model->insert(array_merge($this->request->getPost(), ['stato' => AbbonamentiModel::STATO_PROPOSTA]), true);
         $this->salvaPeriodi($abbonamentoId, $periodi);
-
-        $abbonamento = $model->find($abbonamentoId);
-        $n           = $model->generaInterventi($abbonamentoId, $abbonamento);
 
         $db->transComplete();
 
@@ -95,7 +91,7 @@ class AbbonamentiController extends BaseController
         $from = $this->request->getPost('from');
         $dest = ($from && str_starts_with($from, base_url())) ? $from : base_url('abbonamenti/' . $abbonamentoId);
 
-        return redirect()->to($dest)->with('success', "Abbonamento creato con {$n} interventi pianificati.");
+        return redirect()->to($dest)->with('success', "Abbonamento creato.");
     }
 
     /**
@@ -189,8 +185,11 @@ class AbbonamentiController extends BaseController
      * Cambia lo stato dell'abbonamento con i relativi effetti sugli interventi figli.
      *
      * Transizioni consentite:
-     * - attivo   → sospeso  : interventi futuri da_pianificare → sospeso
-     * - sospeso  → attivo   : POST ripristina=1 → da_pianificare; 0 → annullato
+     * - proposta   → attivo   : accettazione unico punto in cui si generano gli interventi
+     *              → rifiutata: fase terminale, nessun effetto
+     * - rifiutata  → proposta : ripensamento o modifica elementi della proposta
+     * - attivo     → sospeso  : interventi futuri da_pianificare → sospeso
+     * - sospeso    → attivo   : POST ripristina=1 → da_pianificare; 0 → annullato
      * - attivo/sospeso → disdetto: tutti i futuri da_pianificare e sospeso → annullato
      */
     public function cambiaStato(int $id): RedirectResponse
@@ -205,8 +204,10 @@ class AbbonamentiController extends BaseController
         $statoAttuale = $abbonamento['stato'];
 
         $transizioni = [
-            'attivo'  => [AbbonamentiModel::STATO_SOSPESO, AbbonamentiModel::STATO_DISDETTO],
-            'sospeso' => [AbbonamentiModel::STATO_ATTIVO,  AbbonamentiModel::STATO_DISDETTO],
+            'proposta'   => [AbbonamentiModel::STATO_ATTIVO, AbbonamentiModel::STATO_RIFIUTATA],
+            'rifiutata'  => [AbbonamentiModel::STATO_PROPOSTA],
+            'attivo'     => [AbbonamentiModel::STATO_SOSPESO, AbbonamentiModel::STATO_DISDETTO],
+            'sospeso'    => [AbbonamentiModel::STATO_ATTIVO,  AbbonamentiModel::STATO_DISDETTO],
         ];
 
         if (! isset($transizioni[$statoAttuale]) || ! in_array($nuovoStato, $transizioni[$statoAttuale], true)) {
@@ -262,7 +263,7 @@ class AbbonamentiController extends BaseController
             'data_inizio'               => date('Y-m-d', strtotime($precedente['data_inizio'] . ' +1 year')),
             'data_fine'                 => date('Y-m-d', strtotime($precedente['data_fine']   . ' +1 year')),
             'abbonamento_precedente_id' => $id,
-            'stato'                     => AbbonamentiModel::STATO_ATTIVO,
+            'stato'                     => AbbonamentiModel::STATO_PROPOSTA,
         ]);
 
         $periodi = (new AbbonamentiPeriodiModel())->perAbbonamento($id);
@@ -318,13 +319,98 @@ class AbbonamentiController extends BaseController
     private function periodiCoprono(array $periodi, string $dataInizioAbbonamento, string $dataFineAbbonamento): bool
     {
         $inizi = array_filter(array_column($periodi, 'data_inizio'));
-        $fini  = array_filter(array_column($periodi, 'data_fine'));
+        $fine  = array_filter(array_column($periodi, 'data_fine'));
 
-        if (empty($inizi) || empty($fini)) {
+        if (empty($inizi) || empty($fine)) {
             return false;
         }
 
-        return min($inizi) === $dataInizioAbbonamento && max($fini) === $dataFineAbbonamento;
+        return min($inizi) === $dataInizioAbbonamento && max($fine) === $dataFineAbbonamento;
+    }
+
+    /**
+     * Accetta un singolo abbonamento in transazione propria: aggiorna lo stato e genera gli interventi.
+     * Nessuna dipendenza da HTTP/redirect — richiamato sia da accetta() (singola) sia,
+     * in futuro, da accettaMultiplo() (in loop, una transazione per id).
+     */
+    private function accettaAbbonamento(int $id): array
+    {
+        $model       = new AbbonamentiModel();
+        $abbonamento = $model->find($id);
+
+        if (! $abbonamento || $abbonamento['stato'] !== AbbonamentiModel::STATO_PROPOSTA) {
+            return ['ok' => false, 'n' => 0];
+        }
+
+        $db = db_connect();
+        $db->transStart();
+
+        $model->update($id, ['stato' => AbbonamentiModel::STATO_ATTIVO]);
+        $n = $model->generaInterventi($id, $abbonamento);
+
+        $db->transComplete();
+
+        return ['ok' => $db->transStatus(), 'n' => $n];
+    }
+
+    /**
+     * Accetta una proposta: passa lo stato ad attivo e genera gli interventi.
+     */
+    public function accetta(int $id): RedirectResponse
+    {
+        $esito = $this->accettaAbbonamento($id);
+
+        if (! $esito['ok']) {
+            return redirect()->to('abbonamenti/' . $id)->with('error', 'Impossibile accettare la proposta.');
+        }
+
+        return redirect()->to('abbonamenti')->with('success', "Proposta accettata, {$esito['n']} interventi generati.");
+    }
+
+    /**
+     * Accetta in blocco più proposte selezionate nell'index (checkbox).
+     * Una transazione per abbonamento (vedi accettaAbbonamento()): un fallimento
+     * su un id non blocca gli altri.
+     */
+    public function accettaMultiplo(): RedirectResponse
+    {
+        $ids = array_map('intval', $this->request->getPost('ids') ?? []);
+
+        if (empty($ids)) {
+            return redirect()->to('abbonamenti')->with('error', 'Nessuna proposta selezionata.');
+        }
+
+        $accettati = 0;
+        $falliti   = 0;
+
+        foreach ($ids as $id) {
+            if ($this->accettaAbbonamento($id)['ok']) {
+                $accettati++;
+            } else {
+                $falliti++;
+            }
+        }
+
+        $msg = "{$accettati} proposte accettate.";
+        if ($falliti > 0) {
+            $msg .= " {$falliti} non riuscite.";
+        }
+
+        return redirect()->to('abbonamenti')->with($falliti > 0 ? 'warning' : 'success', $msg);
+    }
+
+    public function rifiuta(int $id): RedirectResponse
+    {
+        $abbonamento = (new AbbonamentiModel())->find($id);
+        if (! $abbonamento) {
+            return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
+        }
+        if ($abbonamento['stato'] !== AbbonamentiModel::STATO_PROPOSTA){
+            return redirect()->to('abbonamenti')->with('error', 'Questo abbonamento non è in stato proposta.');
+        }
+        $data['stato'] = AbbonamentiModel::STATO_RIFIUTATA;
+        (new AbbonamentiModel())->update($id, $data);
+        return redirect()->to('abbonamenti')->with('success', 'Proposta rifiutata correttamente.');
     }
 
     private function regolaValidazione(): array

@@ -1,5 +1,27 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.26.0] - 2026-08-15
+
+### Abbonamenti: proposta e accettazione
+
+- [APP] Ogni abbonamento (nuovo o rinnovo) nasce ora come **Proposta**: nessun intervento viene generato finché non viene accettato — prima la generazione era immediata alla creazione
+- [APP] Dalla scheda o dall'elenco, una proposta si può **accettare** (passa ad Attivo, genera tutte le visite previste) o **rifiutare** (passa a Rifiutata, resta nello storico senza generare nulla)
+- [APP] Elenco abbonamenti: selezione multipla delle proposte con checkbox + bottone "Accetta selezionati", utile a inizio anno con molti rinnovi da confermare in blocco
+- [APP] Nuovi campi nel form abbonamento: **Operazioni incluse** (testo libero, precompilato dal tipo scelto — chiede conferma prima di sovrascrivere un testo già presente cambiando tipo) e **Modalità di pagamento**
+- [APP] Nuovo campo **Operazioni standard** su Impostazioni → Tipi intervento: il testo di default che precompila "Operazioni incluse" per quel tipo
+- [APP] Elenco abbonamenti: filtri Stato/Tipo/Anno a tendina al posto delle pillole, con sotto-filtri "scaduti con/senza rinnovo"; filtro iniziale su "Attivi"
+- [APP] Da un abbonamento scaduto che ha già un rinnovo, link "Vai al rinnovo" al posto del bottone Rinnova
+- [APP] Campo Prezzo: formattazione automatica in stile italiano (1.234,56) su nuovo/modifica abbonamento
+- [APP] Guide di sezione aggiornate (Abbonamenti, Tipi intervento)
+- [DEV] `AbbonamentiModel`: nuove costanti `STATO_PROPOSTA`/`STATO_RIFIUTATA`, macchina a stati di `cambiaStato()` estesa; nuovi metodi `accetta()`/`accettaMultiplo()`/`rifiuta()` in `AbbonamentiController` (rotte `POST`, non `GET` — erano prive di protezione CSRF)
+- [DEV] `generaInterventi()` passa da `insert()` in loop a `insertBatch()`: da N query a una sola per abbonamento accettato. `insertBatch()` non esegue i callback `$beforeInsert` del model — codice progressivo (`generaCodice()`) e `created_by`/`updated_by` sono replicati a mano riga per riga prima dell'insert
+- [DEV] `UNIQUE KEY` su `abbonamenti.abbonamento_precedente_id`: un abbonamento può avere al massimo un rinnovo (integrità della catena a livello DB, non solo applicativa)
+- [DEV] Colonna generata `clienti.denominazione` (STORED) sostituisce il `CASE WHEN` duplicato in tutte le query di `ClientiModel`/`CantieriModel`/`InterventiModel`/`AbbonamentiModel`; convenzione fissata in `CLAUDE.md`: alias sempre `cliente_denominazione`. Le view di sola lettura `v_abbonamenti_clienti*`/`v_interventi_clienti` ricreate in una migration separata (non quella storica del 6 luglio, che avrebbe rotto una `migrate` da zero eseguendo prima che la colonna esistesse)
+- [DEV] Fix: `ClientiController::pdf()` passava la denominazione alla view con una chiave diversa da quella attesa — errore "Undefined variable" nella stampa PDF scheda cliente
+- [DEV] Nuovo script riusabile `public/js/currency-input.js` per la formattazione valuta live, dichiarativo (`data-currency-display`) come già `search-bar.js`
+- [DEV] `public/js/pill-filtri.js` rinominato `search-bar.js` (ora copre anche i filtri a tendina, non solo le pillole)
+- [DEV] Vedi `docs/spec/abbonamenti_proposte_spec.md`
+
 ## [0.25.1] - 2026-08-05
 
 ### Fix accesso tecnico a intervento senza tecnico assegnato

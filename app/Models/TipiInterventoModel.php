@@ -13,7 +13,7 @@ class TipiInterventoModel extends Model
 
     protected $allowedFields = [
         'codice', 'nome', 'categoria', 'icona', 'durata_default', 'attivo', 'abbonabile', 'ordine',
-        'prefisso_codice', 'ha_pulizia_fondo',
+        'prefisso_codice', 'ha_pulizia_fondo', 'operazioni_standard',
         'created_by', 'updated_by',
     ];
 
@@ -46,6 +46,10 @@ class TipiInterventoModel extends Model
 
         if (isset($data['data']['icona']) && $data['data']['icona'] === '') {
             $data['data']['icona'] = null;
+        }
+
+        if (isset($data['data']['operazioni_standard']) && $data['data']['operazioni_standard'] === '') {
+            $data['data']['operazioni_standard'] = null;
         }
 
         if (isset($data['data']['prefisso_codice'])) {

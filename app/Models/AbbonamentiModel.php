@@ -15,6 +15,7 @@ class AbbonamentiModel extends Model
         'cliente_id', 'tipo_intervento_id', 'abbonamento_precedente_id',
         'data_inizio', 'data_fine', 'durata_mesi',
         'prezzo', 'stato', 'note',
+        'operazioni_incluse', 'modalita_pagamento',
         'created_by', 'updated_by',
     ];
 
@@ -45,19 +46,25 @@ class AbbonamentiModel extends Model
     const STATO_SOSPESO  = 'sospeso';
     const STATO_SCADUTO  = 'scaduto';
     const STATO_DISDETTO = 'disdetto';
+    const STATO_PROPOSTA  = 'proposta';  // nuovo — stato di partenza
+    const STATO_RIFIUTATA = 'rifiutata'; // nuovo — terminale, il cliente non ha accettato
 
     const STATI_LABEL = [
         'attivo'   => 'Attivo',
         'sospeso'  => 'Sospeso',
         'scaduto'  => 'Scaduto',
         'disdetto' => 'Disdetto',
+        'proposta' => 'Proposta',
+        'rifiutata'=> 'Rifiutata',
     ];
 
     const STATI_BADGE = [
-        'attivo'   => 'bg-success',
-        'sospeso'  => 'bg-warning text-dark',
-        'scaduto'  => 'bg-secondary',
-        'disdetto' => 'bg-danger',
+        'attivo'    => 'bg-success',
+        'sospeso'   => 'bg-warning text-dark',
+        'scaduto'   => 'bg-secondary',
+        'disdetto'  => 'bg-danger',
+        'proposta'  =>  'bg-info text-dark',
+        'rifiutata' => 'bg-danger',
     ];
 
     /**
@@ -122,10 +129,7 @@ class AbbonamentiModel extends Model
     {
         $result = $this->select([
                 'abbonamenti.*',
-                "CASE WHEN c.tipo = 'persona_fisica'
-                      THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                      ELSE c.ragsoc
-                 END AS cliente_denominazione",
+                "c.denominazione AS cliente_denominazione",
                 'ti.nome AS tipo_nome',
                 "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato = 'attivo'
                       THEN 'scaduto' ELSE abbonamenti.stato END AS stato_calcolato",
@@ -149,10 +153,7 @@ class AbbonamentiModel extends Model
     {
         return $this->select([
                 'abbonamenti.*',
-                "CASE WHEN c.tipo = 'persona_fisica'
-                      THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                      ELSE c.ragsoc
-                 END AS cliente_denominazione",
+                "c.denominazione AS cliente_denominazione",
                 'ti.nome AS tipo_nome',
                 "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato = 'attivo'
                       THEN 'scaduto' ELSE abbonamenti.stato END AS stato_calcolato",
@@ -197,10 +198,7 @@ class AbbonamentiModel extends Model
     public function inScadenza(int $giorni = 30): array
     {
         return $this->select("abbonamenti.id, abbonamenti.data_fine,
-                CASE WHEN clienti.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                     ELSE clienti.ragsoc
-                END AS cliente_denominazione,
+                clienti.denominazione AS cliente_denominazione,
                 tipi_intervento.nome AS tipo,
                 DATEDIFF(abbonamenti.data_fine, CURDATE()) AS giorni_rimasti")
             ->join('clienti', 'clienti.id = abbonamenti.cliente_id')
@@ -213,9 +211,15 @@ class AbbonamentiModel extends Model
     }
 
     /**
-     * Genera in batch tutti gli interventi dai periodi dell'abbonamento e li inserisce in DB.
-     * Va chiamato dentro una transazione nel controller: se un insert fallisce il rollback
-     * annulla sia l'abbonamento che tutti gli interventi già inseriti.
+     * Genera in batch tutti gli interventi dai periodi dell'abbonamento e li inserisce in DB
+     * con un'unica insertBatch(). Va chiamato dentro una transazione nel controller: se un
+     * insert fallisce il rollback annulla sia l'abbonamento che tutti gli interventi già inseriti.
+     *
+     * insertBatch() non esegue i callback $beforeInsert del model (solo $useTimestamps
+     * resta automatico) — normalizza() di InterventiModel non viene quindi chiamato: il
+     * codice progressivo (generaCodice()) e created_by/updated_by sono replicati qui a mano,
+     * riga per riga, prima della insertBatch() finale.
+     *
      * Restituisce il numero di interventi creati.
      */
     public function generaInterventi(int $abbonamentoId, array $abbonamento): int
@@ -227,7 +231,11 @@ class AbbonamentiModel extends Model
         }
 
         $interventiModel = new InterventiModel();
-        $count = 0;
+        $tipo            = (new TipiInterventoModel())->find($abbonamento['tipo_intervento_id']);
+        $prefisso        = $tipo['prefisso_codice'] ?? 'INT';
+        $userId          = user_id();
+
+        $righe          = [];
         $ultimaScadenza = null; // garantisce sequenza strettamente crescente tra periodi diversi
 
         foreach ($periodi as $periodo) {
@@ -242,7 +250,8 @@ class AbbonamentiModel extends Model
                     continue; // duplicato/sovrapposizione al confine tra periodi: scartato
                 }
 
-                $interventiModel->insert([
+                $righe[] = [
+                    'codice'             => $interventiModel->generaCodice($prefisso),
                     'cliente_id'         => $abbonamento['cliente_id'],
                     'abbonamento_id'     => $abbonamentoId,
                     'tipo_intervento_id' => $abbonamento['tipo_intervento_id'],
@@ -251,14 +260,21 @@ class AbbonamentiModel extends Model
                     'data_pianificata'   => null,
                     'data_scadenza'      => $scadenza,
                     'pulizia_fondo'      => (int) ($periodo['con_pulizia_fondo'] ?? 0),
-                    'descrizione'        => 'Visita in abbonamento [#' . $abbonamentoId ."]",
-                ]);
-                $count++;
+                    'descrizione'        => 'Visita in abbonamento [#' . $abbonamentoId . ']',
+                    'created_by'         => $userId,
+                    'updated_by'         => $userId,
+                ];
                 $ultimaScadenza = $scadenza;
             }
         }
 
-        return $count;
+        if (empty($righe)) {
+            return 0;
+        }
+
+        $interventiModel->insertBatch($righe);
+
+        return count($righe);
     }
 
     /**
@@ -386,4 +402,5 @@ class AbbonamentiModel extends Model
 
         return $scadenze;
     }
+
 }

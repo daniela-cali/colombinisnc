@@ -222,10 +222,7 @@ class InterventiModel extends Model
     public function elencoCompleto(?string $categoria = null): array
     {
         $builder = $this->select("interventi.*,
-                CASE WHEN c.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                     ELSE c.ragsoc
-                END AS cliente_denominazione,
+                c.denominazione AS cliente_denominazione,
                 ti.nome      AS tipo_intervento_nome,
                 ti.icona     AS tipo_intervento_icona,
                 ti.categoria AS tipo_intervento_categoria,
@@ -262,10 +259,7 @@ class InterventiModel extends Model
                       interventi.descrizione, interventi.cantiere_id, interventi.abbonamento_id, interventi.created_at,
                       interventi.tecnico_id,
                       TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome,
-                      CASE WHEN c.tipo = 'persona_fisica'
-                           THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                           ELSE c.ragsoc
-                      END AS cliente_denominazione,
+                      c.denominazione AS cliente_denominazione,
                       c.citta AS cliente_citta,
                       c.zona  AS cliente_zona,
                       c.distanza_sede")
@@ -298,10 +292,7 @@ class InterventiModel extends Model
     {
         $righe = $this->select("interventi.id, interventi.data_scadenza, interventi.stato,
                       interventi.data_pianificata, interventi.created_at,
-                      CASE WHEN c.tipo = 'persona_fisica'
-                           THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                           ELSE c.ragsoc
-                      END AS cliente_denominazione")
+                      c.denominazione AS cliente_denominazione")
             ->join('clienti c', 'c.id = interventi.cliente_id', 'left')
             ->where('interventi.stato !=', self::STATO_COMPLETATO)
             ->where('interventi.stato !=', self::STATO_ANNULLATO)
@@ -422,10 +413,7 @@ class InterventiModel extends Model
     public function agendaGiorno(string $data, ?int $tecnicoId = null): array
     {
         $this->select("interventi.id, interventi.data_pianificata,
-                CASE WHEN clienti.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                     ELSE clienti.ragsoc
-                END AS cliente_denominazione,
+                clienti.denominazione AS cliente_denominazione,
                 clienti.citta, clienti.indirizzo,
                 tipi_intervento.nome AS tipo,
                 TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico")
@@ -449,10 +437,7 @@ class InterventiModel extends Model
     public function urgentiDaPianificare(?int $tecnicoId = null, int $limit = 0): array
     {
         $this->select("interventi.id,
-                CASE WHEN clienti.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                     ELSE clienti.ragsoc
-                END AS cliente_denominazione,
+                clienti.denominazione AS cliente_denominazione,
                 clienti.citta, tipi_intervento.nome AS tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = interventi.tipo_intervento_id', 'left')
@@ -476,10 +461,7 @@ class InterventiModel extends Model
     public function agendaTecnicoPeriodo(int $tecnicoId, string $dataInizio, string $dataFine): array
     {
         return $this->select("interventi.id, interventi.data_pianificata, interventi.stato,
-                CASE WHEN clienti.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                     ELSE clienti.ragsoc
-                END AS cliente_denominazione,
+                clienti.denominazione AS cliente_denominazione,
                 COALESCE(cantieri.indirizzo, clienti.indirizzo) AS indirizzo,
                 COALESCE(cantieri.citta, clienti.citta) AS citta,
                 clienti.cap,
@@ -531,10 +513,7 @@ class InterventiModel extends Model
     public function inConflittoConAssenze(): array
     {
         return $this->select("interventi.id, interventi.data_pianificata,
-                CASE WHEN clienti.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                     ELSE clienti.ragsoc
-                END AS cliente_denominazione,
+                clienti.denominazione AS cliente_denominazione,
                 TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico,
                 assenze.tipo AS assenza_tipo")
             ->join('clienti', 'clienti.id = interventi.cliente_id')
@@ -556,10 +535,7 @@ class InterventiModel extends Model
     {
         $query = $this->select("interventi.id, interventi.data_pianificata, interventi.durata_stimata,
                 interventi.descrizione, interventi.urgenza, interventi.priorita, interventi.tecnico_id,
-                CASE WHEN c.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                     ELSE c.ragsoc
-                END AS cliente_denominazione,
+                c.denominazione AS cliente_denominazione,
                 c.indirizzo, c.citta, c.zona AS cliente_zona,
                 TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_nome,
                 ti.nome AS tipo_nome, ti.icona AS tipo_icona")
@@ -585,10 +561,7 @@ class InterventiModel extends Model
         $this->select("interventi.id, interventi.stato, interventi.data_pianificata,
                 interventi.durata_stimata, interventi.descrizione, interventi.data_scadenza,
                 interventi.created_at,
-                CASE WHEN c.tipo = 'persona_fisica'
-                     THEN TRIM(CONCAT_WS(' ', c.cognome, c.nome))
-                     ELSE c.ragsoc
-                END AS cliente_denominazione,
+                c.denominazione AS cliente_denominazione,
                 c.citta AS cliente_citta,
                 p.nome AS tecnico_nome, p.cognome AS tecnico_cognome, p.colore AS tecnico_colore,
                 ti.durata_default AS tipo_durata, ti.nome AS tipo_nome, ti.icona AS tipo_icona")

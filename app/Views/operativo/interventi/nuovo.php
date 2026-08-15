@@ -84,7 +84,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                                     <?php foreach ($clienti as $c): ?>
                                         <option value="<?= $c['id'] ?>"
                                                 <?= old('cliente_id', $cliente_id) == $c['id'] ? 'selected' : '' ?>>
-                                            <?= esc($c['denominazione']) ?>
+                                            <?= esc($c['cliente_denominazione']) ?>
                                         </option>
                                     <?php endforeach ?>
                                 </select>

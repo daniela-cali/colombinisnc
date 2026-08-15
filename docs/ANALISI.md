@@ -611,6 +611,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 #### ✅ v0.25.1 — Fix accesso tecnico a intervento senza tecnico assegnato
 - `InterventiController::accessoConsentito()` dichiarava il parametro `int` ma poteva ricevere `tecnico_id` `NULL` (intervento non ancora assegnato) — `TypeError` a runtime per un tecnico che apriva quell'intervento. Parametro reso `?int`
 
+#### ✅ v0.26.0 — Abbonamenti: proposta e accettazione
+- Ogni abbonamento nasce come "Proposta" (nessun intervento generato); si accetta (attivo, genera le visite) o si rifiuta (terminale, nessun effetto) da scheda o elenco; accettazione multipla con checkbox per i rinnovi di inizio anno
+- Nuovi campi "Operazioni incluse" (precompilato dal tipo, testo libero) e "Modalità di pagamento"; nuovo campo "Operazioni standard" sui Tipi intervento come default di precompilazione
+- Elenco abbonamenti: filtri Stato/Tipo/Anno a tendina al posto delle pillole; link "Vai al rinnovo" quando uno scaduto ne ha già uno
+- `generaInterventi()` passato a `insertBatch()`; `UNIQUE KEY` su `abbonamento_precedente_id` per l'integrità della catena rinnovi; colonna generata `clienti.denominazione` sostituisce il `CASE WHEN` duplicato in tutte le query, convenzione `cliente_denominazione` fissata in `CLAUDE.md`
+- Vedi `docs/spec/abbonamenti_proposte_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

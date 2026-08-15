@@ -162,7 +162,7 @@ class ClientiController extends BaseController
 
         $html = view('anagrafiche/clienti/pdf_scheda_cliente', [
             'cliente'              => $cliente,
-            'denominazione'        => ClientiModel::denominazione($cliente),
+            'cliente_denominazione' => ClientiModel::denominazione($cliente),
             'sospesi'              => (new InterventiMaterialiModel())->sospesiPerCliente($id),
             'daPianificare'        => $daPianificare,
             'pianificati'          => $pianificati,

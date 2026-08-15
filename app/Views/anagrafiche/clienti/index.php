@@ -73,7 +73,7 @@ $this->extend('layouts/admin');
                                         <td>
                                             <a href="<?= base_url('anagrafiche/clienti/' . $c['id']) ?>"
                                                class="text-body fw-semibold text-decoration-none js-row-open">
-                                                <?= esc($c['denominazione']) ?>
+                                                <?= esc($c['cliente_denominazione']) ?>
                                             </a>
                                         </td>
                                         <td class="text-center" data-order="<?= $c['num_interventi'] ?>">

@@ -18,13 +18,17 @@
     <li><strong>Area</strong>: il raggruppamento della sidebar Interventi (Generale, Piscine, Addolcitori…); se non impostata ricade in Generale;</li>
     <li><strong>Icona</strong>: nome di un'icona Bootstrap Icons (facoltativo);</li>
     <li><strong>Durata standard</strong>: minuti proposti in pianificazione sul calendario;</li>
-    <li><strong>Ordine</strong>: posizione nelle liste.</li>
+    <li><strong>Ordine</strong>: posizione nelle liste;</li>
+    <li><strong>Abbonabile</strong>: se spuntato, il tipo è selezionabile quando si crea un abbonamento;</li>
+    <li><strong>Prevede pulizia fondo</strong>: mostra l'opzione pulizia fondo su interventi e periodi di questo tipo;</li>
+    <li><strong>Operazioni standard</strong>: testo libero con l'elenco delle operazioni tipiche di questo tipo (es. le voci di manutenzione previste), visibile solo se il tipo è Abbonabile. Serve come base di partenza: ogni abbonamento la eredita alla creazione e può poi correggerla per il singolo cliente.</li>
 </ul>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-plus-circle me-1"></i>Creare e modificare</h6>
 <p>
     Il <strong>form inline</strong> in cima alla pagina aggiunge un nuovo tipo; le righe
-    esistenti si modificano direttamente nella tabella. Il codice deve restare unico.
+    esistenti si modificano dal bottone <i class="bi bi-pencil"></i> di ogni riga. Il codice deve
+    restare unico.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-trash me-1"></i>Eliminare</h6>

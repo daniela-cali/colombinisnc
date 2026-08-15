@@ -206,14 +206,20 @@ $this->extend('layouts/admin');
                                             <?php endif ?>
                                         <?php endif ?>
                                         <?php if (in_array($a['stato_calcolato'], ['proposta'], true)): ?>
-                                            <a href="<?= base_url('abbonamenti/' . $a['id'] . '/accetta') ?>"
-                                               class="btn btn-sm btn-outline-success" title="Accettato">
-                                               <i class="bi bi-clipboard-check-fill"></i>
-                                            </a>
-                                            <a href="<?= base_url('abbonamenti/' . $a['id'] . '/rifiuta') ?>"
-                                               class="btn btn-sm btn-outline-danger" title="Rifiutato">
-                                               <i class="bi bi-clipboard-x-fill"></i>
-                                            </a>
+                                            <form action="<?= base_url('abbonamenti/' . $a['id'] . '/accetta') ?>" method="post" class="d-inline">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-success" title="Accetta"
+                                                        onclick="return confirm('Accettare la proposta? Verranno generati gli interventi.')">
+                                                    <i class="bi bi-clipboard-check-fill"></i>
+                                                </button>
+                                            </form>
+                                            <form action="<?= base_url('abbonamenti/' . $a['id'] . '/rifiuta') ?>" method="post" class="d-inline">
+                                                <?= csrf_field() ?>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Rifiuta"
+                                                        onclick="return confirm('Rifiutare questa proposta?')">
+                                                    <i class="bi bi-clipboard-x-fill"></i>
+                                                </button>
+                                            </form>
                                         <?php endif ?>
                                     </td>
                                     <!-- 9 Filter stato_calcolato -->

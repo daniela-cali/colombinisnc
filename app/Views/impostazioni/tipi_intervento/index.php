@@ -102,7 +102,8 @@ $this->extend('layouts/admin');
                                                 data-attivo="<?= $t['attivo'] ?>"
                                                 data-abbonabile="<?= $t['abbonabile'] ?>"
                                                 data-prefisso-codice="<?= esc($t['prefisso_codice'] ?? '') ?>"
-                                                data-ha-pulizia-fondo="<?= $t['ha_pulizia_fondo'] ?>">
+                                                data-ha-pulizia-fondo="<?= $t['ha_pulizia_fondo'] ?>"
+                                                data-operazioni-standard="<?= esc($t['operazioni_standard'] ?? '', 'attr') ?>">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <?php $nomeTipo = $t['nome']; ?>
@@ -191,6 +192,12 @@ $this->extend('layouts/admin');
                             </button>
                         </div>
                     </div>
+                    <div class="row g-2 mt-1 d-none" id="div-operazioni-standard-new">
+                        <div class="col-12">
+                            <label class="form-label form-label-sm" for="new-operazioni_standard">Operazioni standard previste nell'abbonamento</label>
+                            <textarea name="operazioni_standard" id="new-operazioni_standard" class="form-control form-control-sm" rows="6"><?= esc(old('operazioni_standard')) ?></textarea>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -272,7 +279,7 @@ $this->extend('layouts/admin');
                         </div>
                         <div class="col-12">
                             <div class="form-check d-none" id="div-operazioni-standard">
-                                <textarea name="edit-operazioni_standard" id="edit-operazioni_standard" class="form-control" rows="10"></textarea>
+                                <textarea name="operazioni_standard" id="edit-operazioni_standard" class="form-control" rows="10"></textarea>
                                 <label class="form-check-label" for="edit-operazioni_standard">Operazioni standard previste nell'abbonamento</label>
 
                             </div>
@@ -309,9 +316,17 @@ document.getElementById('modal-edit').addEventListener('show.bs.modal', function
     document.getElementById('edit-abbonabile').checked      = btn.dataset.abbonabile      === '1';
     document.getElementById('edit-prefisso-codice').value      = btn.dataset.prefissoCodice  || '';
     document.getElementById('edit-ha-pulizia-fondo').checked   = btn.dataset.haPuliziaFondo  === '1';
+    document.getElementById('edit-operazioni_standard').value  = btn.dataset.operazioniStandard || '';
     var div = document.getElementById('div-operazioni-standard');
     div.classList.toggle('d-none', !document.getElementById('edit-abbonabile').checked);
-    
+});
+
+document.getElementById('new-abbonabile').addEventListener('change', function () {
+    document.getElementById('div-operazioni-standard-new').classList.toggle('d-none', !this.checked);
+});
+
+document.getElementById('edit-abbonabile').addEventListener('change', function () {
+    document.getElementById('div-operazioni-standard').classList.toggle('d-none', !this.checked);
 });
 </script>
 <?= $this->endSection() ?>

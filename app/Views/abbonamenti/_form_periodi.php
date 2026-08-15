@@ -139,7 +139,6 @@ $initialPeriodi = old('periodi') ?: ($periodi ?? []);
 
             const inizioPrima = righe[0].querySelector('input[name$="[data_inizio]"]');
             const fineUltima  = righe[righe.length - 1].querySelector('input[name$="[data_fine]"]');
-
             const problemi = [];
             if (abbInizio && inizioPrima && inizioPrima.value && inizioPrima.value !== abbInizio.value) {
                 problemi.push('il primo periodo non inizia il ' + abbInizio.value + ' (Data inizio abbonamento)');

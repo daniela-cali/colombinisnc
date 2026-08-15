@@ -201,6 +201,16 @@ $db->table('users u')
           'left');
 ```
 
+## Denominazione cliente nelle query — sempre `cliente_denominazione`
+`clienti.denominazione` è una colonna generata (`GENERATED ALWAYS AS ... STORED`, vedi migrazione `AddDenominazioneToClienti`): ragione sociale per le società, cognome+nome per le persone fisiche. Quando una query la seleziona — sia con un JOIN da un'altra tabella (cantieri, interventi, abbonamenti) sia dentro `ClientiModel` stesso — va **sempre** aliasata come `cliente_denominazione`, mai lasciata come `denominazione` nudo:
+
+```php
+// ✓ ovunque, anche dentro ClientiModel
+->select("clienti.*, clienti.denominazione AS cliente_denominazione, ...")
+```
+
+In `ClientiModel::elencoCompleto()`/`trovaConDettagli()` questo produce un doppione apparente (`clienti.*` porta comunque con sé anche il campo grezzo `denominazione`) — è un effetto collaterale innocuo di `SELECT *`, non un errore: il codice applicativo (controller, view) non deve mai leggere quella chiave grezza, solo `cliente_denominazione`. Un solo nome in tutto il codice evita confusione tra query che joinano clienti da entità diverse.
+
 ## Commenti sui metodi PHP
 Aggiungere sempre un docblock sopra ogni metodo di controller o model che spieghi **cosa fa e perché**. Includere solo ciò che aggiunge valore rispetto alla firma: descrizione, eventuale `@throws`. Non ripetere `@param` e `@return` se il tipo è già dichiarato nella firma.
 

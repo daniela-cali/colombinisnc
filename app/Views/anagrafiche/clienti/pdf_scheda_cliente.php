@@ -1,7 +1,7 @@
 <?php
 /**
  * @var array  $cliente             Record clienti con tutti i campi
- * @var string $denominazione       Denominazione calcolata (ClientiModel::denominazione())
+ * @var string $cliente_denominazione Denominazione calcolata (ClientiModel::denominazione())
  * @var array  $sospesi             Righe da InterventiMaterialiModel::sospesiPerCliente()
  * @var array  $daPianificare       Interventi con stato = da_pianificare
  * @var array  $pianificati         Interventi con stato in (pianificato, in_corso)
@@ -47,7 +47,7 @@ $gruppiInterventi = [
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>Scheda Cliente — <?= esc($denominazione) ?></title>
+<title>Scheda Cliente — <?= esc($cliente_denominazione) ?></title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1f2937; padding: 24px 28px; }
@@ -124,7 +124,7 @@ table.tappe tbody tr:nth-child(even) { background: #f9fafb; }
     </td>
     <td style="width:45%; vertical-align:top;">
         <div class="doc-title">Scheda Cliente</div>
-        <div class="doc-sub-strong"><?= esc($denominazione) ?></div>
+        <div class="doc-sub-strong"><?= esc($cliente_denominazione) ?></div>
         <div class="doc-subtitle">Stampa: <?= date('d/m/Y H:i') ?></div>
     </td>
 </tr></table>
@@ -132,7 +132,7 @@ table.tappe tbody tr:nth-child(even) { background: #f9fafb; }
 <!-- Anagrafica -->
 <h2>Anagrafica</h2>
 <table class="dettagli">
-    <tr><td class="lbl">Denominazione</td><td><?= esc($denominazione) ?></td></tr>
+    <tr><td class="lbl">Denominazione</td><td><?= esc($cliente_denominazione) ?></td></tr>
 
     <?php if ($cliente['indirizzo'] || $cliente['citta']): ?>
     <tr>

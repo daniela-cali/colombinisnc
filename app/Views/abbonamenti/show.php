@@ -65,6 +65,11 @@ $stato = $abbonamento['stato_calcolato'];
                             : '—' ?>
                     </dd>
 
+                    <?php if ($abbonamento['modalita_pagamento']): ?>
+                        <dt class="col-5 text-muted">Pagamento</dt>
+                        <dd class="col-7"><?= esc($abbonamento['modalita_pagamento']) ?></dd>
+                    <?php endif ?>
+
                     <?php if ($abbonamento['abbonamento_precedente_id']): ?>
                         <dt class="col-5 text-muted">Rinnovo di</dt>
                         <dd class="col-7">
@@ -79,6 +84,12 @@ $stato = $abbonamento['stato_calcolato'];
                         <dd class="col-7"><?= nl2br(esc($abbonamento['note'])) ?></dd>
                     <?php endif ?>
                 </dl>
+
+                <?php if ($abbonamento['operazioni_incluse']): ?>
+                    <hr class="my-3">
+                    <p class="text-muted small fw-semibold mb-2"><i class="bi bi-list-check me-1"></i>Operazioni incluse</p>
+                    <p class="small mb-0"><?= nl2br(esc($abbonamento['operazioni_incluse'])) ?></p>
+                <?php endif ?>
 
                 <?php if (! empty($periodi)): ?>
                     <hr class="my-3">
@@ -109,6 +120,28 @@ $stato = $abbonamento['stato_calcolato'];
                     </div>
                 <?php endif ?>
             </div>
+
+            <!-- Accetta/Rifiuta proposta -->
+            <?php if ($stato === 'proposta'): ?>
+                <div class="card-footer">
+                    <div class="d-flex flex-column gap-2">
+                        <form action="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/accetta') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-success btn-sm w-100"
+                                    onclick="return confirm('Accettare la proposta? Verranno generati gli interventi.')">
+                                <i class="bi bi-clipboard-check-fill me-1"></i>Accetta proposta
+                            </button>
+                        </form>
+                        <form action="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/rifiuta') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                                    onclick="return confirm('Rifiutare questa proposta?')">
+                                <i class="bi bi-clipboard-x-fill me-1"></i>Rifiuta proposta
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            <?php endif ?>
 
             <!-- Azioni di stato -->
             <?php if (in_array($stato, ['attivo', 'sospeso'], true)): ?>

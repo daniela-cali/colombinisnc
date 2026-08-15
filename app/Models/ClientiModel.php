@@ -134,10 +134,7 @@ class ClientiModel extends Model
     public function elencoCompleto(): array
     {
         return $this->select("clienti.*,
-            CASE WHEN clienti.tipo = 'persona_fisica'
-                 THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                 ELSE clienti.ragsoc
-            END AS denominazione,
+            clienti.denominazione AS cliente_denominazione,
             TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_preferito_nome,
             (SELECT COUNT(*) FROM interventi WHERE interventi.cliente_id = clienti.id AND interventi.abbonamento_id IS NULL AND interventi.stato NOT IN ('completato','annullato')) AS num_interventi")
             ->join('personale p', 'p.id = clienti.tecnico_preferito_id', 'left')
@@ -149,10 +146,7 @@ class ClientiModel extends Model
     public function trovaConDettagli(int $id): ?array
     {
         return $this->select("clienti.*,
-            CASE WHEN clienti.tipo = 'persona_fisica'
-                 THEN TRIM(CONCAT_WS(' ', clienti.cognome, clienti.nome))
-                 ELSE clienti.ragsoc
-            END AS denominazione,
+            clienti.denominazione AS cliente_denominazione,
             TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_preferito_nome,
             (SELECT COUNT(*) FROM interventi WHERE interventi.cliente_id = clienti.id AND interventi.abbonamento_id IS NULL AND interventi.stato NOT IN ('completato','annullato')) AS num_interventi")
             ->join('personale p', 'p.id = clienti.tecnico_preferito_id', 'left')
