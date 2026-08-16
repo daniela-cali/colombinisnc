@@ -89,10 +89,12 @@ prioritizzato.
 **Un manifest PWA è stato valutato e rimandato**: costo e beneficio non lo giustificavano
 al momento della valutazione. Andrà ripreso insieme al portale tecnici.
 
-**`docs/schema.html` va riallineato.** Le tre divergenze rilevate scrivendo questo manuale
-(capitolo 3) sono minori ma reali: `interventi.data_inizio_lavoro` e `data_completamento`
-mancanti, la tabella `settings` assente, `tipi_intervento.icona` descritta con la libreria
-di icone sbagliata.
+**La documentazione dello schema si disallinea da sola.** Le quattro divergenze rilevate
+scrivendo questo manuale sono state corrette in `docs/schema.html` con la v0.27.1, ma erano
+tutte dello stesso tipo: migrazione applicata, pagina non aggiornata. La regola di progetto
+c'è già — `docs/schema.html` si aggiorna nella stessa commit della migrazione — e nessuna
+verifica automatica la fa rispettare. Un controllo che confronti `information_schema` con la
+pagina sarebbe fattibile e non esiste.
 
 ## 10.4 Rischi
 

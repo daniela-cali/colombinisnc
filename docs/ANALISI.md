@@ -200,7 +200,7 @@ graph TD
 - CRUD personale
 
 #### ✅ v0.5.0 — Parametri generali
-- Tabella `impostazioni` (class / key / value)
+- Configurazione a runtime nella tabella `settings` di CodeIgniter Settings (class / key / value), sotto `class = 'Azienda'` — non è mai stata creata una tabella `impostazioni` dedicata
 - Sede aziendale: nome, indirizzo, CAP, città, telefono, sito, logo, lat/lng + geocodifica
 - Orari aziendali: inizio/fine giornata, pausa pranzo
 - Durate standard interventi per tipo (sale, filtri, piscine, addolcitori, acquedotti, commerciale)
@@ -624,6 +624,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Ri-caricamento idempotente (`UNIQUE` su `codice` + `upsertBatch`): l'export nasce da una query scritta a mano e verrà rifatto più volte
 - Corrette 3 foreign key con `ON DELETE CASCADE` al posto di `SET NULL` (argomenti di `addForeignKey()` invertiti): eliminare un dipendente cancellava a cascata i clienti che lo avevano come tecnico preferito
 - Vedi `docs/spec/import_clienti_legacy_spec.md`
+
+#### ✅ v0.27.1 — Manuale tecnico e riallineamento dello schema documentato
+- Manuale tecnico in dieci capitoli sotto `docs/manuale/`, generato in DOCX da `tools/manuale/genera_manuale.py`: unisce questo documento, il changelog e le spec **già implementate** (escluse `preventivi_impianti` e `centralino`, valutate ma mai avviate). In versione solo i sorgenti Markdown — il documento è un prodotto di build
+- `docs/schema.html` riallineato allo schema reale, verificato per introspezione da `information_schema`: quattro divergenze, tutte da migrazioni applicate senza aggiornare la pagina, nessuna modifica al database
+- Emerso che **non esiste nessuna tabella `impostazioni`** (voce v0.5.0 qui sopra corretta): quel ruolo lo svolge `settings`, dove le famiglie di configurazione sono distinte dal campo `class`
 
 #### 🔲 v1.0.0 — Release
 - Test e fix generali

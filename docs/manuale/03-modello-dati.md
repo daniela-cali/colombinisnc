@@ -4,8 +4,10 @@ Il database si chiama `colombinisnc` e contiene 25 tabelle più 3 view di consul
 Questo capitolo le descrive per aree funzionali: che cosa rappresenta ogni tabella, come
 viene usata e quali campi hanno un comportamento non ovvio.
 
-> I contenuti sono stati verificati interrogando direttamente il database di sviluppo. Dove
-> divergono da `docs/schema.html`, la divergenza è segnalata.
+> I contenuti sono stati verificati interrogando direttamente il database di sviluppo, non
+> leggendo la documentazione esistente. Le quattro divergenze emerse rispetto a
+> `docs/schema.html` sono state corrette lì nella v0.27.1: qui restano segnalate come nota,
+> perché ognuna nasconde un dettaglio di funzionamento che vale la pena conoscere.
 
 ## 3.1 Convenzioni valide per tutte le tabelle
 
@@ -68,10 +70,14 @@ tutta la configurazione modificabile a runtime, in particolare:
 | `Azienda.orario_inizio`, `orario_fine`, pausa pranzo | orari aziendali, usati per suggerire l'orario nel modal di pianificazione |
 | `Azienda.zona_lng_ovest`, `zona_lng_est` | le due soglie di longitudine che determinano la zona di un cliente |
 | `Interventi.seq_<PREFISSO>` | contatore progressivo dei codici intervento, uno per prefisso |
-| `Import.clienti_mapping` | l'ultima mappatura colonne usata nell'import dei clienti storici |
+| `Import.clienti_adhoc_mapping` | l'ultima mappatura colonne usata nell'import dei clienti storici, in JSON |
 
-> Questa tabella non compare in `docs/schema.html`, pur essendo tutt'altro che marginale:
-> ci vive anche il contatore atomico dei codici intervento (capitolo 5.2).
+> Fino alla v0.27.1 questa tabella non compariva affatto in `docs/schema.html`, pur essendo
+> tutt'altro che marginale: ci vive il contatore atomico dei codici intervento (capitolo
+> 5.2) e ogni parametro aziendale. Da notare che **non esiste nessuna tabella
+> `impostazioni`**, nonostante l'analisi di progetto la nomini: quel ruolo lo svolge
+> `settings`, dove la famiglia di configurazione è distinta dal solo campo `class`. Fino
+> alla v0.27.1 anche `ANALISI.md` §7.1 annunciava quella tabella alla v0.5.0.
 
 ## 3.3 Anagrafiche
 
@@ -201,9 +207,10 @@ prefisso del codice e il testo che precompila le operazioni di un abbonamento.
 | `operazioni_standard` | `TEXT NULL` | elenco puntato che precompila `abbonamenti.operazioni_incluse` |
 | `ordine` | `INT UNSIGNED` default `0`, indicizzato | |
 
-> `docs/schema.html` documenta `icona` come classe Bootstrap Icons. È un residuo: il fix
-> della v0.24.14 ha stabilito che sono classi Font Awesome, dopo che le icone non erano mai
-> comparse sul calendario proprio a causa del prefisso sbagliato.
+> `icona` contiene una classe **Font Awesome** senza prefisso (`fa-water`), resa dalla view
+> come `<i class="fas fa-water">`. Fino alla v0.27.1 `docs/schema.html` la documentava come
+> classe Bootstrap Icons: un residuo del fix della v0.24.14, quando si scoprì che le icone
+> non comparivano sul calendario proprio a causa del prefisso sbagliato.
 
 ### interventi
 
@@ -231,9 +238,11 @@ La tabella centrale. Ventisei colonne, di cui molte accumulate nel tempo.
 | `apertura`, `chiusura` | `TINYINT(1)` default `0` | fase stagionale della piscina, mutuamente esclusive |
 | `impianto_id` | `INT UNSIGNED NULL` | segnaposto senza chiave esterna, riservato a una futura tabella `impianti` |
 
-> `data_inizio_lavoro` e `data_completamento` (v0.24.29) non sono documentate in
-> `docs/schema.html`. Servono a tracciare i tempi reali di lavorazione, in vista di un
-> calcolo futuro della durata media per tipo.
+> `data_inizio_lavoro` e `data_completamento` (v0.24.29) tracciano i tempi reali di
+> lavorazione, in vista di un calcolo futuro della durata media per tipo: nessuna
+> funzionalità ne dipende oggi. Restano `NULL` se l'intervento salta la fase "in corso" —
+> un dato mancante è più onesto di un timestamp inventato. Erano assenti da
+> `docs/schema.html` fino alla v0.27.1.
 
 Le relazioni verso abbonamento e cantiere sono **una-a-molti dirette**, senza tabelle
 pivot: un intervento appartiene a un solo abbonamento e a un solo cantiere. Entrambe sono
@@ -262,9 +271,12 @@ La chiave di lettura è che `intervento_id` è nullable dalla v0.11.0: un materi
 quel campo vuoto è **sospeso**, cioè un promemoria legato al cliente e non ancora a una
 visita. Agganciarlo a un intervento non crea una riga nuova, sposta quella esistente.
 
-> Nel database `descrizione` è `NOT NULL`, mentre `docs/schema.html` la documenta come
-> nullable. Il model la valorizza sempre, copiandola dall'articolo quando l'utente sceglie
-> dal catalogo (`InterventiMaterialiModel::normalizza()`).
+> `descrizione` è `NOT NULL` e sempre valorizzata, anche scegliendo un articolo di
+> catalogo: `InterventiMaterialiModel::normalizza()` ce la copia dall'articolo se il campo
+> è vuoto. In lettura le query usano comunque `COALESCE(articoli.descrizione,
+> interventi_materiali.descrizione)`, così il testo segue il catalogo se l'articolo viene
+> rinominato e sopravvive alla sua eliminazione. Fino alla v0.27.1 `docs/schema.html` la
+> dava per nullable e "usata solo se `articolo_id` è NULL".
 
 ### interventi_note
 

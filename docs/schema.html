@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.21.6 · 2026-07-04</span></h1>
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.27.1 · 2026-08-16</span></h1>
 
 <div class="toc">
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
@@ -54,6 +54,7 @@
   <a href="#promemoria">promemoria</a>
   <a href="#promemoria_dismiss">promemoria_dismiss</a>
   <a href="#assenze">assenze</a>
+  <a href="#settings">settings</a>
   <a href="#relazioni">Relazioni</a>
   <a href="#view">View di consultazione</a>
   <a href="#log">Log modifiche DB</a>
@@ -163,7 +164,7 @@
   <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(50)</td><td></td><td></td><td></td></tr>
   <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td></td><td></td><td></td></tr>
   <tr><td><code>categoria</code></td><td>VARCHAR(30)</td><td></td><td>generale</td><td>Sezione operativa del tipo: <code>generale</code> · <code>piscine</code> · <code>addolcitori</code>. Pilota la suddivisione interventi per area · aggiunto WIP sezioni</td></tr>
-  <tr><td><code>icona</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td>Classe Bootstrap Icons</td></tr>
+  <tr><td><code>icona</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td>Classe <strong>Font Awesome</strong> senza prefisso (es. <code>fa-water</code>): la view la rende come <code>&lt;i class="fas fa-water"&gt;</code>. Scelta dal selettore icone in Impostazioni → Tipi intervento</td></tr>
   <tr><td><code>durata_default</code></td><td>INT UNSIGNED</td><td></td><td>60</td><td>Minuti — pre-compila il form intervento</td></tr>
   <tr><td><code>attivo</code></td><td>TINYINT(1)</td><td></td><td>1</td><td></td></tr>
   <tr><td><code>abbonabile</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = può essere usato negli abbonamenti · aggiunto v0.14.0</td></tr>
@@ -191,6 +192,8 @@
   <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ tipi_intervento.id · ON DELETE SET NULL</td></tr>
   <tr><td><code>stato</code></td><td>VARCHAR(30)</td><td></td><td>da_pianificare</td><td>Valori: <code>da_pianificare</code> · <code>pianificato</code> · <code>in_corso</code> · <code>completato</code> · <code>annullato</code> · <code>sospeso</code></td></tr>
   <tr><td><code>data_pianificata</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>data_inizio_lavoro</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Valorizzata dal bottone "Inizio lavoro" (<code>InterventiController::inizia()</code>, transizione solo da <code>pianificato</code>). Resta NULL se l'intervento passa direttamente a completato: dato onesto, non un timestamp fittizio · aggiunto v0.24.29</td></tr>
+  <tr><td><code>data_completamento</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Valorizzata da <code>chiudi()</code>. Nessuna funzionalità dipende oggi da questi due campi: servono a calcolare la durata media degli interventi quando ci sarà abbastanza storico · aggiunto v0.24.29</td></tr>
   <tr><td><code>data_scadenza</code></td><td>DATE</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>durata_stimata</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Minuti</td></tr>
   <tr><td><code>urgenza</code></td><td>TINYINT(1)</td><td></td><td>0</td><td>Flag indipendente dalla priorità</td></tr>
@@ -220,7 +223,7 @@
   <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE CASCADE · aggiunto v0.11.0</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>intervento_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ interventi.id · ON DELETE CASCADE · nullable da v0.11.0</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>articolo_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ articoli.id · ON DELETE SET NULL; NULL = testo libero</td></tr>
-  <tr><td><code>descrizione</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Usato solo se articolo_id è NULL</td></tr>
+  <tr><td><code>descrizione</code></td><td>VARCHAR(255)</td><td></td><td></td><td>Sempre valorizzata, anche con un articolo di catalogo scelto: se il campo è lasciato vuoto, <code>normalizza()</code> vi copia la descrizione dell'articolo. In lettura le query usano comunque <code>COALESCE(articoli.descrizione, interventi_materiali.descrizione)</code>, così il testo mostrato segue il catalogo se l'articolo viene rinominato, e sopravvive alla sua eliminazione (<code>articolo_id</code> va a NULL)</td></tr>
   <tr><td><code>quantita</code></td><td>INT UNSIGNED</td><td></td><td>1</td><td></td></tr>
   <tr><td><code>note</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>stato</code></td><td>VARCHAR(20)</td><td></td><td>da_portare</td><td>Valori: <code>da_portare</code> · <code>consegnato</code></td></tr>
@@ -419,6 +422,48 @@
 
 <hr class="section-sep">
 
+<!-- ═══════════════════════════════════════════════════════ settings -->
+<h2 id="settings">settings</h2>
+<p class="note">
+  Tabella di sistema di <strong>CodeIgniter Settings</strong> (creata dalla sua migrazione, non da una nostra):
+  archivio chiave/valore per le impostazioni salvate a runtime. Nessuna foreign key, nessun campo standard del
+  progetto — la struttura è quella della libreria e <strong>non va modificata</strong>.
+  Documentata qui perché ospita un dato tutt'altro che accessorio: il <strong>contatore progressivo dei codici
+  intervento</strong>.
+</p>
+<p class="note">
+  Una riga per prefisso — <code>class='Interventi'</code>, <code>key='seq_INT'</code> · <code>'seq_PIS'</code> ·
+  <code>'seq_ADD'</code>… — creata al primo utilizzo di quel prefisso, quindi un nuovo tipo abbonabile non
+  richiede nessuna migrazione. <code>InterventiModel::generaCodice()</code> la legge in transazione con
+  <code>SELECT … FOR UPDATE</code> e la incrementa: due utenti che salvano nello stesso istante non possono
+  ottenere lo stesso codice. È l'alternativa deliberata a <code>MAX(codice)</code>, che regredirebbe dopo una
+  cancellazione, e all'<code>AUTO_INCREMENT</code> letto da <code>information_schema</code>, che InnoDB aggiorna
+  in modo asincrono e può quindi essere stale.
+</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><code>class</code></td><td>VARCHAR(255)</td><td></td><td></td><td>Raggruppamento logico. Per i codici intervento vale <code>Interventi</code></td></tr>
+  <tr><td><code>key</code></td><td>VARCHAR(255)</td><td></td><td></td><td>Parola riservata SQL: va sempre citata con i backtick nelle query</td></tr>
+  <tr><td><code>value</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Valore serializzato secondo <code>type</code></td></tr>
+  <tr><td><code>type</code></td><td>VARCHAR(31)</td><td></td><td>string</td><td>Tipo PHP del valore</td></tr>
+  <tr><td><code>context</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Ambito facoltativo (es. per utente). Non usato dal progetto</td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td></td><td></td><td>NOT NULL — la libreria non segue la convenzione nullable del progetto</td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td></td><td></td><td>NOT NULL</td></tr>
+</table>
+<p class="note">
+  <strong>Non esiste nessuna tabella <code>impostazioni</code></strong>: tutto ciò che l'analisi chiamava così
+  vive qui dentro, distinto dal solo campo <code>class</code>. Le tre famiglie in uso:
+</p>
+<table>
+  <tr><th>class</th><th>Contenuto</th><th>Scritto da</th></tr>
+  <tr><td><code>Azienda</code></td><td>Sede (indirizzo, lat/lng, logo), orari di lavoro, durate standard per tipo, soglie di longitudine delle zone</td><td>Impostazioni → Generale (<code>setting()->set('Azienda.…')</code>)</td></tr>
+  <tr><td><code>Interventi</code></td><td>Contatori progressivi dei codici, una riga per prefisso</td><td><code>InterventiModel::generaCodice()</code></td></tr>
+  <tr><td><code>Import</code></td><td><code>clienti_adhoc_mapping</code>: associazione colonne CSV → campi, in JSON, così il caricamento successivo riparte dalla stessa mappatura</td><td>Impostazioni → Import Clienti</td></tr>
+</table>
+
+<hr class="section-sep">
+
 <!-- ═══════════════════════════════════════════════════════ relazioni -->
 <h2 id="relazioni">Relazioni principali</h2>
 <table class="rel-table">
@@ -476,6 +521,21 @@
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
   <tr>
+    <td>v0.27.1</td>
+    <td><em>nessuna migrazione</em></td>
+    <td>
+      <strong>Riallineamento della documentazione, il database non è stato toccato.</strong> Scrivendo il manuale
+      tecnico lo schema è stato riletto per introspezione da <code>information_schema</code> e confrontato con
+      questa pagina: quattro punti divergevano, tutti per una migrazione applicata senza aggiornare qui.
+      Corretti: le colonne <code>interventi.data_inizio_lavoro</code> e <code>data_completamento</code>, assenti
+      (v0.24.29, riga di log aggiunta sotto); la tabella <code>settings</code>, mai documentata pur ospitando i
+      contatori dei codici intervento e tutti i parametri aziendali; <code>tipi_intervento.icona</code>, descritta
+      come classe Bootstrap Icons quando i valori sono classi Font Awesome;
+      <code>interventi_materiali.descrizione</code>, indicata nullable e "usata solo se articolo_id è NULL"
+      mentre è <code>NOT NULL</code> e sempre valorizzata.
+    </td>
+  </tr>
+  <tr>
     <td>v0.27.0</td>
     <td><code>CreateClientiAdhoc</code><br><code>FixForeignKeyOnDeleteClienti</code><br><code>FixForeignKeyOnDeletePersonale</code></td>
     <td>
@@ -500,6 +560,16 @@
       <code>denominazione VARCHAR(255) GENERATED ALWAYS AS (...) STORED</code> (cognome+nome se persona_fisica, altrimenti ragsoc) — sostituisce il
       <code>CASE WHEN</code> duplicato in ogni query; le 3 view di <code>CreateViewsAbbonamentiInterventi</code> ricreate per usarla (migration separata,
       non quella originale del 6 luglio: <code>clienti.denominazione</code> non esisteva ancora a quella data nella sequenza delle migration).
+    </td>
+  </tr>
+  <tr>
+    <td>v0.24.29</td>
+    <td><code>AddTracciamentoTempiInterventi</code></td>
+    <td>
+      Su <code>interventi</code>: <code>data_inizio_lavoro DATETIME NULL</code> e <code>data_completamento DATETIME NULL</code>
+      (dopo <code>data_pianificata</code>), valorizzate dai bottoni "Inizio lavoro" e "Completa intervento".
+      Nessuna funzionalità ne dipende oggi: servono a calcolare la durata media degli interventi quando ci sarà
+      abbastanza storico. Restano NULL se l'intervento salta la fase "in corso".
     </td>
   </tr>
   <tr>
