@@ -40,6 +40,7 @@
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
   <a href="#personale">personale</a>
   <a href="#clienti">clienti</a>
+  <a href="#clienti_adhoc">clienti_adhoc</a>
   <a href="#tipi_intervento">tipi_intervento</a>
   <a href="#interventi">interventi</a>
   <a href="#interventi_materiali">interventi_materiali</a>
@@ -114,6 +115,42 @@
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ clienti_adhoc -->
+<h2 id="clienti_adhoc">clienti_adhoc</h2>
+<p class="note">
+  Parcheggio dell'anagrafica storica importata da CSV (gestionale contabile Ad Hoc). Non partecipa a nessun
+  flusso operativo: da qui i record vengono promossi a <code>clienti</code> uno alla volta, passando dal form
+  di inserimento. Dato <strong>grezzo</strong> — tutti i campi anagrafici sono nullable e più larghi degli
+  omologhi in <code>clienti</code>, così un valore fuori misura non fa fallire l'import ma emerge alla
+  promozione. Aggiunta v0.27.0.
+</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-uq">UQ</span> <code>codice</code></td><td>VARCHAR(30)</td><td></td><td></td><td>ANCODICE di Ad Hoc. UNIQUE: il ri-caricamento dello stesso export aggiorna invece di duplicare (<code>upsertBatch</code>)</td></tr>
+  <tr><td><code>tipo</code></td><td>VARCHAR(20)</td><td class="null">NULL</td><td></td><td>Grezzo: validato solo alla promozione</td></tr>
+  <tr><td><code>ragsoc</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Indicizzato — campo di ricerca principale</td></tr>
+  <tr><td><code>cognome</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>nome</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>piva</code></td><td>VARCHAR(20)</td><td class="null">NULL</td><td></td><td>Più largo di <code>clienti.piva</code> (15)</td></tr>
+  <tr><td><code>cfisc</code></td><td>VARCHAR(20)</td><td class="null">NULL</td><td></td><td>Più largo di <code>clienti.cfisc</code> (16)</td></tr>
+  <tr><td><code>indirizzo</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>citta</code></td><td>VARCHAR(100)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>cap</code></td><td>VARCHAR(15)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>provincia</code></td><td>VARCHAR(10)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>nazione</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>telefono</code></td><td>VARCHAR(50)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>email</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>importato</code></td><td>TINYINT</td><td></td><td>0</td><td>Indicizzato. Resta 1 anche se il cliente viene poi eliminato: "migrato e poi cancellato" ≠ "mai valutato"</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ clienti.id · ON DELETE SET NULL</td></tr>
+  <tr><td><code>imported_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Valorizzato alla promozione</td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Non riscritta dai ri-caricamenti</td></tr>
   <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
 </table>
 
@@ -438,6 +475,21 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.27.0</td>
+    <td><code>CreateClientiAdhoc</code><br><code>FixForeignKeyOnDeleteClienti</code><br><code>FixForeignKeyOnDeletePersonale</code></td>
+    <td>
+      Nuova tabella <code>clienti_adhoc</code>: parcheggio dell'anagrafica storica importata da CSV, con
+      <code>UNIQUE</code> su <code>codice</code> per rendere il ri-caricamento un aggiornamento invece di una
+      duplicazione. <strong>Correzione di 3 foreign key</strong> create con gli argomenti di
+      <code>addForeignKey()</code> invertiti (la firma è <code>$onUpdate</code> prima di <code>$onDelete</code>):
+      <code>clienti.tecnico_preferito_id</code>, <code>clienti.user_id</code> e <code>personale.user_id</code>
+      erano <code>ON DELETE CASCADE</code> invece di <code>SET NULL</code> — cancellare un dipendente cancellava
+      a cascata tutti i clienti che lo avevano come tecnico preferito, e cancellare un utente cancellava il
+      cliente e la scheda dipendente collegati. Lo schema documentato qui riportava già il comportamento
+      corretto: era il database a divergere.
+    </td>
+  </tr>
   <tr>
     <td>v0.26.0</td>
     <td><code>AddOperazioniStandardToTipiIntervento</code><br><code>AddStatoPropostaRifiutataAbbonamenti</code><br><code>AddDenominazioneToClienti</code><br><code>AddUniqueKeyAbbonamentoPrecedenteId</code><br><code>UpdateViewsAbbonamentiInterventiDenominazione</code></td>

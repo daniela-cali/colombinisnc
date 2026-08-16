@@ -1,8 +1,23 @@
 <?php
 /**
- * @var array $tecnici  Righe da PersonaleModel::elencoPerGruppi(['tecnico'])
+ * @var array      $tecnici  Righe da PersonaleModel::elencoPerGruppi(['tecnico'])
+ * @var array|null $adhoc    Record di `clienti_adhoc` da cui precompilare (import legacy), o null
  */
 $this->extend('layouts/admin');
+
+// I default di old() vengono dal record parcheggiato quando si sta promuovendo:
+// old() ha comunque la precedenza, così un errore di validazione ripopola il form
+// con quanto digitato e non torna a sovrascriverlo con i dati grezzi dell'import.
+$adhoc ??= null;
+
+// Il dato del parcheggio è grezzo per definizione: un `tipo` fuori dai due valori
+// ammessi lascerebbe entrambi i radio deselezionati e il JS nasconderebbe tutti i
+// campi anagrafici. Si accetta solo un valore valido, altrimenti si ricade su società.
+$tipiAmmessi = [\App\Models\ClientiModel::TIPO_SOCIETA, \App\Models\ClientiModel::TIPO_PERSONA_FISICA];
+$tipoDefault = ($adhoc && in_array($adhoc['tipo'] ?? '', $tipiAmmessi, true))
+    ? $adhoc['tipo']
+    : \App\Models\ClientiModel::TIPO_SOCIETA;
+$tipoAttuale = old('tipo', $tipoDefault);
 ?>
 <?= $this->section('title') ?>Nuovo cliente<?= $this->endSection() ?>
 
@@ -28,12 +43,27 @@ $this->extend('layouts/admin');
             </div>
         <?php endif ?>
 
+        <?php if ($adhoc): ?>
+            <div class="alert alert-info d-flex align-items-start">
+                <i class="bi bi-database-down me-2 mt-1"></i>
+                <div>
+                    Dati precompilati dall'anagrafica storica —
+                    codice <strong><?= esc($adhoc['codice']) ?></strong>.
+                    Controllarli e correggerli prima di salvare: il cliente viene creato con
+                    quanto compare qui, non con i dati originali.
+                </div>
+            </div>
+        <?php endif ?>
+
         <div class="card card-outline card-primary">
             <div class="card-header">
                 <h3 class="card-title mb-0"><i class="bi bi-person-plus me-2"></i>Nuovo cliente</h3>
             </div>
             <form action="<?= base_url('anagrafiche/clienti/store') ?>" method="post">
                 <?= csrf_field() ?>
+                <?php if ($adhoc): ?>
+                    <input type="hidden" name="adhoc_id" value="<?= (int) $adhoc['id'] ?>">
+                <?php endif ?>
 
                 <!-- Campi geocodifica — compilati dal JS prima del submit -->
                 <input type="hidden" name="lat"                  value="">
@@ -49,12 +79,12 @@ $this->extend('layouts/admin');
                         <div class="col-auto">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="tipo" id="tipo_societa"
-                                       value="societa" <?= old('tipo', 'societa') === 'societa' ? 'checked' : '' ?>>
+                                       value="societa" <?= $tipoAttuale === 'societa' ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="tipo_societa">Società / Ditta</label>
                             </div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="tipo" id="tipo_persona"
-                                       value="persona_fisica" <?= old('tipo') === 'persona_fisica' ? 'checked' : '' ?>>
+                                       value="persona_fisica" <?= $tipoAttuale === 'persona_fisica' ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="tipo_persona">Persona fisica</label>
                             </div>
                         </div>
@@ -64,16 +94,30 @@ $this->extend('layouts/admin');
                     <p class="text-muted section-header mb-3"><i class="bi bi-building me-1"></i> Anagrafica</p>
                     <div class="row g-3 mb-4">
 
-                        <div class="col-1">
-                            <label class="form-label">Codice <i class="bi bi-info-circle text-muted small" data-bs-toggle="tooltip" data-bs-title="Codice nel software di contabilità esterno"></i></label>
-                            <input type="text" name="codice_esterno" class="form-control"
-                                   value="<?= esc(old('codice_esterno')) ?>" maxlength="50">
-                        </div>
+                        <?php if ($adhoc): ?>
+                            <div class="col-2">
+                                <label class="form-label">
+                                    Codice
+                                    <i class="bi bi-info-circle text-muted small" data-bs-toggle="tooltip"
+                                       data-bs-title="Codice del software di contabilità, conservato così com'è"></i>
+                                </label>
+                                <input type="text" class="form-control-plaintext border rounded px-2 bg-body-secondary"
+                                       value="<?= esc($adhoc['codice']) ?>" readonly>
+                                <?php // Stesso valore anche in codice_esterno: i due devono coincidere ?>
+                                <input type="hidden" name="codice_esterno" value="<?= esc($adhoc['codice'], 'attr') ?>">
+                            </div>
+                        <?php else: ?>
+                            <div class="col-1">
+                                <label class="form-label">Codice <i class="bi bi-info-circle text-muted small" data-bs-toggle="tooltip" data-bs-title="Codice nel software di contabilità esterno"></i></label>
+                                <input type="text" name="codice_esterno" class="form-control"
+                                       value="<?= esc(old('codice_esterno')) ?>" maxlength="50">
+                            </div>
+                        <?php endif ?>
 
-                        <div id="campi-societa" class="col-11">
+                        <div id="campi-societa" class="<?= $adhoc ? 'col-10' : 'col-11' ?>">
                             <label class="form-label">Ragione sociale <span class="text-danger">*</span></label>
                             <input type="text" name="ragsoc" class="form-control"
-                                   value="<?= esc(old('ragsoc')) ?>">
+                                   value="<?= esc(old('ragsoc', $adhoc['ragsoc'] ?? '')) ?>">
                         </div>
 
                         <div id="campi-persona" class="col-8" style="display:none">
@@ -81,12 +125,12 @@ $this->extend('layouts/admin');
                                 <div class="col-6">
                                     <label class="form-label">Cognome <span class="text-danger">*</span></label>
                                     <input type="text" name="cognome" class="form-control"
-                                           value="<?= esc(old('cognome')) ?>">
+                                           value="<?= esc(old('cognome', $adhoc['cognome'] ?? '')) ?>">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label">Nome <span class="text-danger">*</span></label>
                                     <input type="text" name="nome" class="form-control"
-                                           value="<?= esc(old('nome')) ?>">
+                                           value="<?= esc(old('nome', $adhoc['nome'] ?? '')) ?>">
                                 </div>
                             </div>
                         </div>
@@ -94,12 +138,12 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">P.IVA</label>
                             <input type="text" name="piva" class="form-control"
-                                   value="<?= esc(old('piva')) ?>" maxlength="15">
+                                   value="<?= esc(old('piva', $adhoc['piva'] ?? '')) ?>" maxlength="15">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Codice fiscale</label>
                             <input type="text" name="cfisc" class="form-control"
-                                   value="<?= esc(old('cfisc')) ?>" maxlength="16">
+                                   value="<?= esc(old('cfisc', $adhoc['cfisc'] ?? '')) ?>" maxlength="16">
                         </div>
                     </div>
 
@@ -109,22 +153,22 @@ $this->extend('layouts/admin');
                         <div class="col-12">
                             <label class="form-label">Indirizzo</label>
                             <input type="text" name="indirizzo" class="form-control"
-                                   value="<?= esc(old('indirizzo')) ?>" placeholder="es. Via Aurelia, 296">
+                                   value="<?= esc(old('indirizzo', $adhoc['indirizzo'] ?? '')) ?>" placeholder="es. Via Aurelia, 296">
                         </div>
                         <div class="col-3">
                             <label class="form-label">CAP</label>
                             <input type="text" name="cap" class="form-control"
-                                   value="<?= esc(old('cap')) ?>" maxlength="10" placeholder="00000">
+                                   value="<?= esc(old('cap', $adhoc['cap'] ?? '')) ?>" maxlength="10" placeholder="00000">
                         </div>
                         <div class="col-5">
                             <label class="form-label">Città</label>
                             <input type="text" name="citta" class="form-control"
-                                   value="<?= esc(old('citta')) ?>">
+                                   value="<?= esc(old('citta', $adhoc['citta'] ?? '')) ?>">
                         </div>
                         <div class="col-2">
                             <label class="form-label">Prov.</label>
                             <input type="text" name="provincia" class="form-control"
-                                   value="<?= esc(old('provincia')) ?>" maxlength="5">
+                                   value="<?= esc(old('provincia', $adhoc['provincia'] ?? '')) ?>" maxlength="5">
                         </div>
                         <div class="col-2 d-flex align-items-end">
                             <button type="button" class="btn btn-outline-secondary w-100"
@@ -136,7 +180,7 @@ $this->extend('layouts/admin');
                     </div>
                     <div id="geo-result" class="small mb-3 mt-1"></div>
                     <?php
-                        $nazioneAttuale = old('nazione', 'ITALIA');
+                        $nazioneAttuale = old('nazione', $adhoc['nazione'] ?? 'ITALIA');
                         $nazioneAltra   = in_array($nazioneAttuale, \App\Models\ClientiModel::NAZIONI_PREDEFINITE, true) ? '' : $nazioneAttuale;
                     ?>
                     <div class="row g-3 mb-4">
@@ -163,12 +207,12 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">Telefono</label>
                             <input type="tel" name="telefono" class="form-control"
-                                   value="<?= esc(old('telefono')) ?>">
+                                   value="<?= esc(old('telefono', $adhoc['telefono'] ?? '')) ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control"
-                                   value="<?= esc(old('email')) ?>">
+                                   value="<?= esc(old('email', $adhoc['email'] ?? '')) ?>">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Contatti aggiuntivi <small class="text-muted">— testo libero</small></label>
@@ -207,7 +251,7 @@ $this->extend('layouts/admin');
                     <p class="text-muted section-header mb-3"><i class="bi bi-sticky me-1"></i> Note</p>
                     <div class="row g-3">
                         <div class="col-12">
-                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note')) ?></textarea>
+                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', $adhoc['note'] ?? '')) ?></textarea>
                         </div>
                     </div>
 

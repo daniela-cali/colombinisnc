@@ -618,6 +618,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `generaInterventi()` passato a `insertBatch()`; `UNIQUE KEY` su `abbonamento_precedente_id` per l'integrità della catena rinnovi; colonna generata `clienti.denominazione` sostituisce il `CASE WHEN` duplicato in tutte le query, convenzione `cliente_denominazione` fissata in `CLAUDE.md`
 - Vedi `docs/spec/abbonamenti_proposte_spec.md`
 
+#### ✅ v0.27.0 — Import clienti dall'anagrafica storica
+- Nuova sezione Impostazioni → Import Clienti: caricamento CSV con mappatura colonne guidata e memorizzata, verso la tabella di parcheggio `clienti_adhoc` invece che direttamente in anagrafica — l'archivio storico conta migliaia di nominativi in gran parte inattivi, riversarli in `clienti` renderebbe inutilizzabili ricerche e tendine
+- Elenco "Clienti da migrare" con ricerca full-text e promozione uno alla volta attraverso il normale form di inserimento, precompilato e interamente modificabile: la revisione umana è il presidio contro le imprecisioni del dato legacy, e fa scattare la geocodifica come per qualsiasi cliente nuovo
+- Ri-caricamento idempotente (`UNIQUE` su `codice` + `upsertBatch`): l'export nasce da una query scritta a mano e verrà rifatto più volte
+- Corrette 3 foreign key con `ON DELETE CASCADE` al posto di `SET NULL` (argomenti di `addForeignKey()` invertiti): eliminare un dipendente cancellava a cascata i clienti che lo avevano come tecnico preferito
+- Vedi `docs/spec/import_clienti_legacy_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

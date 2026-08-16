@@ -8,6 +8,7 @@ use App\Models\AbbonamentiPeriodiModel;
 use App\Models\ArticoliModel;
 use App\Models\CantieriModel;
 use App\Models\CantieriNoteModel;
+use App\Models\ClientiAdhocModel;
 use App\Models\ClientiModel;
 use App\Models\InterventiMaterialiModel;
 use App\Models\InterventiModel;
@@ -188,10 +189,42 @@ class ClientiController extends BaseController
     /**
      * Form creazione nuovo cliente.
      */
-    public function nuovo(): string
+    /**
+     * Form nuovo cliente. Con `?adhoc=<id>` i campi arrivano precompilati da un record
+     * della tabella di parcheggio dell'import legacy (Impostazioni → Import Clienti).
+     */
+    public function nuovo(): string|\CodeIgniter\HTTP\RedirectResponse
     {
+        $adhoc   = null;
+        $adhocId = (int) ($this->request->getGet('adhoc') ?? 0);
+
+        // Il parcheggio è materiale di Impostazioni: senza quel permesso il parametro
+        // viene ignorato, altrimenti basterebbe un id nell'URL per leggerne i dati.
+        if ($adhocId > 0 && auth()->user()->can('impostazioni.manage')) {
+            $adhoc = (new ClientiAdhocModel())->trovaConDenominazione($adhocId);
+
+            if (! $adhoc) {
+                return redirect()->to('impostazioni/import-clienti/elenco')
+                    ->with('error', 'Record da migrare non trovato.');
+            }
+
+            if ((int) $adhoc['importato'] === 1) {
+                return redirect()->to('impostazioni/import-clienti/elenco')
+                    ->with('error', $this->messaggioGiaPromosso($adhoc));
+            }
+
+            // Ad Hoc scrive la nazione come sigla (IT, FR): tradotta qui e non in fase di
+            // import, così il parcheggio resta fedele all'export e la tendina del form
+            // seleziona comunque la voce giusta invece di ricadere su "Altra…".
+            $sigla = strtoupper(trim((string) ($adhoc['nazione'] ?? '')));
+            if (isset(ClientiAdhocModel::NAZIONI_ADHOC[$sigla])) {
+                $adhoc['nazione'] = ClientiAdhocModel::NAZIONI_ADHOC[$sigla];
+            }
+        }
+
         return view('anagrafiche/clienti/nuovo', [
             'tecnici' => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
+            'adhoc'   => $adhoc,
         ]);
     }
 
@@ -211,10 +244,29 @@ class ClientiController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $model->insert(array_merge($this->request->getPost(), [
-            'codice' => $model->generaCodice(),
-            'attivo' => 1,
-        ]));
+        $adhoc = $this->recordDaPromuovere();
+
+        // Un cliente promosso dall'import conserva il codice del gestionale contabile;
+        // i nuovi ricevono il progressivo INT-xxx. generaCodice() cerca il massimo fra i
+        // soli 'INT-%', quindi i codici numerici legacy non ne alterano la numerazione.
+        $codice = $adhoc !== null ? $adhoc['codice'] : $model->generaCodice();
+
+        if ($adhoc !== null && $model->where('codice', $codice)->countAllResults() > 0) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Esiste già un cliente con il codice ' . esc($codice) . '.');
+        }
+
+        $campiExtra = ['codice' => $codice, 'attivo' => 1];
+
+        if ($adhoc !== null) {
+            $campiExtra['dt_import'] = date('Y-m-d');
+        }
+
+        $clienteId = $model->insert(array_merge($this->request->getPost(), $campiExtra));
+
+        if ($adhoc !== null && $clienteId) {
+            (new ClientiAdhocModel())->marcaImportato((int) $adhoc['id'], (int) $clienteId);
+        }
 
         return redirect()->to('anagrafiche/clienti')
             ->with('success', esc($this->denominazioneDaPost()) . ' aggiunto/a con successo.');
@@ -363,6 +415,47 @@ class ClientiController extends BaseController
         }
 
         return $rules;
+    }
+
+    /**
+     * Record di parcheggio indicato dal form, se la promozione è legittima.
+     *
+     * L'`adhoc_id` arriva dal client e va rivalidato: restituisce null quando il form
+     * non viene dall'import, quando l'utente non ha il permesso di Impostazioni, o
+     * quando il record non è più promuovibile (inesistente o già promosso).
+     *
+     * @return array<string,mixed>|null
+     */
+    private function recordDaPromuovere(): ?array
+    {
+        $id = (int) ($this->request->getPost('adhoc_id') ?? 0);
+
+        if ($id <= 0 || ! auth()->user()->can('impostazioni.manage')) {
+            return null;
+        }
+
+        $adhoc = (new ClientiAdhocModel())->find($id);
+
+        return ($adhoc !== null && (int) $adhoc['importato'] === 0) ? $adhoc : null;
+    }
+
+    /**
+     * Messaggio per un record di parcheggio già promosso: indica a quale cliente,
+     * distinguendo il caso in cui quel cliente sia stato eliminato nel frattempo
+     * (la FK azzera cliente_id ma il flag `importato` resta a 1).
+     *
+     * @param array<string,mixed> $adhoc
+     */
+    private function messaggioGiaPromosso(array $adhoc): string
+    {
+        $clienteId = $adhoc['cliente_id'] ?? null;
+        $cliente   = $clienteId ? (new ClientiModel())->find((int) $clienteId) : null;
+
+        if ($cliente) {
+            return 'Questo record è già stato promosso a cliente con codice ' . esc($cliente['codice']) . '.';
+        }
+
+        return 'Questo record risulta già promosso, ma il cliente collegato è stato eliminato.';
     }
 
     /**

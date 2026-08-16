@@ -33,13 +33,13 @@
     </div>
 
     <div class="col-md-4 mb-4">
-        <a href="<?= base_url('impostazioni/geocodifica') ?>" class="text-decoration-none">
+        <a href="<?= base_url('impostazioni/import-clienti') ?>" class="text-decoration-none">
             <div class="card card-outline card-primary h-100 settings-card">
                 <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
-                    <i class="bi bi-map settings-icon"></i>
-                    <h5 class="card-title mt-3">Geocodifica Clienti</h5>
+                    <i class="bi bi-database-down settings-icon"></i>
+                    <h5 class="card-title mt-3">Import Clienti</h5>
                     <p class="text-muted small mb-0">
-                        Verifica e aggiorna le coordinate geografiche dei clienti.
+                        Carica l'anagrafica storica e creane i clienti uno alla volta.
                     </p>
                 </div>
             </div>

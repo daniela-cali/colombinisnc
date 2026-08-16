@@ -64,9 +64,13 @@ class ClientiModel extends Model
             }
         }
 
-        // Campi nullable che arrivano come "" dal form quando non compilati:
-        // MySQL rifiuterebbe "" su colonne INT, DECIMAL e DATETIME dichiarate NULL.
-        $nullabili = ['tecnico_preferito_id', 'user_id', 'zona', 'lat', 'lng', 'distanza_sede', 'geocoded_at'];
+        // Campi nullable che arrivano come "" dal form quando non compilati.
+        // Per INT, DECIMAL e DATETIME è un obbligo: MySQL rifiuterebbe "" su quelle colonne.
+        // `codice_esterno` è invece un VARCHAR, dove "" passerebbe liscio: sta in elenco per
+        // un motivo semantico. L'assenza di codice contabile è il criterio per riconoscere i
+        // clienti non presenti nel gestionale contabile (`codice_esterno IS NULL`), e una
+        // stringa vuota falserebbe quella lettura facendoli sembrare valorizzati.
+        $nullabili = ['tecnico_preferito_id', 'user_id', 'zona', 'lat', 'lng', 'distanza_sede', 'geocoded_at', 'codice_esterno'];
         foreach ($nullabili as $campo) {
             if (isset($data['data'][$campo]) && $data['data'][$campo] === '') {
                 $data['data'][$campo] = null;
@@ -142,8 +146,17 @@ class ClientiModel extends Model
             ->findAll();
     }
 
-    /**Creata per non passare l'elenco completo dei clienti in fase di creazione intervento */
-    public function trovaConDettagli(int $id): ?array
+    /**
+     * Un solo cliente con gli stessi campi calcolati di elencoCompleto(), per non
+     * passare l'elenco intero alla tendina del form intervento quando il cliente è
+     * già noto.
+     *
+     * Restituisce una **lista di una riga** (non la riga singola), proprio per essere
+     * intercambiabile con elencoCompleto() nella view che la consuma.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function trovaConDettagli(int $id): array
     {
         return $this->select("clienti.*,
             clienti.denominazione AS cliente_denominazione,

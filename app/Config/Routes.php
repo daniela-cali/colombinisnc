@@ -36,6 +36,15 @@ $routes->group('impostazioni', ['filter' => 'permission:impostazioni.manage'], f
         $routes->post('(:num)/delete', 'Impostazioni\CategorieArticoliController::delete/$1');
     });
 
+    $routes->group('import-clienti', function ($routes) {
+        $routes->get('/',          'Impostazioni\ImportClientiController::index');
+        $routes->post('analizza',  'Impostazioni\ImportClientiController::analizza');
+        $routes->get('mappa',      'Impostazioni\ImportClientiController::mappa');
+        $routes->post('esegui',    'Impostazioni\ImportClientiController::esegui');
+        $routes->get('risultato',  'Impostazioni\ImportClientiController::risultato');
+        $routes->get('elenco',     'Impostazioni\ImportClientiController::elenco');
+    });
+
     $routes->group('utenti-app', function ($routes) {
         $routes->get('/',               'Impostazioni\UtentiController::utentiApp');
         $routes->get('nuovo',           'Impostazioni\UtentiController::creaUtenteApp');

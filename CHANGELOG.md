@@ -1,5 +1,25 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.27.0] - 2026-08-16
+
+### Import clienti dall'anagrafica storica
+
+- [APP] Nuova sezione **Impostazioni → Import Clienti**: si carica un export CSV dell'anagrafica del software di contabilità e si associano le colonne ai campi del gestionale in un passaggio guidato. La mappatura viene ricordata per i caricamenti successivi
+- [APP] I dati importati **non entrano subito in anagrafica**: restano in un parcheggio consultabile, da cui si crea il cliente vero solo quando serve. Evita di riversare in anagrafica migliaia di nominativi storici, rendendo lente e confuse ricerche e tendine
+- [APP] Elenco **Clienti da migrare** con ricerca su tutte le colonne e pulsante "Crea cliente": apre il normale form di inserimento già precompilato, con i dati liberamente modificabili prima del salvataggio (la geocodifica dell'indirizzo funziona come sempre)
+- [APP] Ricaricare lo stesso export è sicuro e previsto: le righe con un codice già presente vengono aggiornate anziché duplicate, e i clienti già creati non vengono toccati
+- [APP] In promozione le sigle nazione del software di contabilità (`IT`, `FR`) diventano "Italia" e "Francia", così la tendina arriva già sulla voce giusta invece di ricadere su "Altra…"
+- [APP] Contatori di avanzamento della migrazione (in parcheggio / già promossi / da migrare) con barra di progresso
+- [APP] Rimossa dalla pagina Impostazioni la card "Geocodifica Clienti", che puntava a una pagina inesistente (errore 404): la geocodifica avviene nei form di cliente e cantiere
+- [DEV] **Fix di 3 foreign key con perdita di dati**: `clienti.tecnico_preferito_id`, `clienti.user_id` e `personale.user_id` erano `ON DELETE CASCADE` invece di `SET NULL`, perché `addForeignKey()` vuole `$onUpdate` **prima** di `$onDelete` e gli argomenti erano invertiti. Conseguenza reale: eliminare un dipendente cancellava a cascata tutti i clienti che lo avevano come tecnico preferito, ed eliminare un utente cancellava il cliente e la scheda dipendente collegati. `docs/schema.html` documentava già il comportamento corretto — era il database a divergere. Una migration per tabella, entrambe reversibili
+- [DEV] Nuova tabella `clienti_adhoc` (dato grezzo, campi nullable e più larghi degli omologhi in `clienti`) con `UNIQUE` su `codice`; la scrittura usa `upsertBatch()` con `onConstraint`/`updateFields`, così il ri-caricamento aggiorna i soli campi anagrafici e lascia intatti `created_at` e le colonne di stato della migrazione
+- [DEV] Nuovi `App\Models\ClientiAdhocModel` e `App\Libraries\ClientiAdhocImporter` (prima classe in `app/Libraries/`), porting ripulito del `ClientiImportService` del vecchio progetto: si conservano rilevamento del separatore e conversione ISO-8859-1 → UTF-8, si abbandonano le euristiche di pulizia del dato (split cognome/nome, inferenza del tipo) che sui dati reali producevano errori. Aggiunta la rimozione del BOM UTF-8, che altrimenti impedisce il riconoscimento automatico della prima colonna
+- [DEV] `ClientiController::nuovo()`/`store()` accettano `?adhoc=<id>` e `adhoc_id`, entrambi subordinati al permesso `impostazioni.manage` e rivalidati lato server: il form nuovo cliente è accessibile anche ai tecnici, il parcheggio no
+- [DEV] `ClientiModel::normalizza()` converte in `NULL` anche `codice_esterno` lasciato in bianco, che finora veniva salvato come stringa vuota. L'assenza di codice contabile è il criterio per riconoscere i clienti non presenti nel gestionale contabile (`codice_esterno IS NULL`), e la stringa vuota lo falsava facendoli sembrare valorizzati. Il `DEFAULT NULL` della colonna non poteva bastare: entra in gioco solo se l'INSERT non menziona la colonna, mentre il form la invia sempre
+- [DEV] Promozione: il form mostra il codice del gestionale contabile in sola lettura e lo scrive sia in `codice` sia in `codice_esterno`, che devono coincidere. I due campi rispondono a domande diverse — `codice` registra come il cliente è entrato nel gestionale (storico, non modificabile), `codice_esterno` se oggi è presente in contabilità (aggiornabile in qualsiasi momento dalla scheda cliente)
+- [DEV] Fix: `ClientiModel::trovaConDettagli()` dichiarava `?array` ma restituisce una lista di una riga (comportamento voluto, per essere intercambiabile con `elencoCompleto()` nella tendina del form intervento) — firma e docblock corretti, nessun cambio di comportamento
+- [DEV] Vedi `docs/spec/import_clienti_legacy_spec.md`
+
 ## [0.26.0] - 2026-08-15
 
 ### Abbonamenti: proposta e accettazione
