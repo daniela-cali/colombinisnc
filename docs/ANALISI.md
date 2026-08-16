@@ -628,7 +628,7 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
-- Deploy su Nginx (dominio colombini-snc.it)
+- Deploy su Nginx, VPS dedicata (dominio colombini.metesoftware.it — colombini-snc.it resta il sito aziendale)
 
 ### 7.1.1 Funzionalità post v1.0.0
 

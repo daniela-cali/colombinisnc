@@ -148,3 +148,10 @@ __*
 #-------------------------
 /docs/storico_ics
 *.ics
+
+#-------------------------
+# Manuale tecnico generato
+#-------------------------
+# Si versionano solo i capitoli sorgente in docs/manuale/*.md.
+# Il .docx si rigenera con: python tools/manuale/genera_manuale.py
+/docs/Manuale_Tecnico_Colombini.docx

@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.27.1] - 2026-08-16
+
+### Manuale tecnico
+
+- [DEV] Nuovo **manuale tecnico** in dieci capitoli sotto `docs/manuale/`: architettura, modello dati, anagrafiche, operatività, contratti, dashboard e magazzino, sicurezza e permessi, storico versioni, stato e prospettive. Unisce `docs/ANALISI.md`, il changelog e le spec **già implementate** — escluse `preventivi_impianti_spec.md` e `centralino_spec.md`, valutate ma mai avviate
+- [DEV] Il capitolo sul modello dati è stato scritto verificando lo schema per introspezione diretta del database, non sulla documentazione esistente. Sono emerse quattro divergenze in `docs/schema.html`, elencate nel capitolo 3 e ancora da riallineare: `interventi.data_inizio_lavoro` e `data_completamento` mancanti, tabella `settings` assente, `tipi_intervento.icona` descritta con la libreria di icone sbagliata, `interventi_materiali.descrizione` documentata nullable ma `NOT NULL` nel database
+- [DEV] Nuovo generatore `tools/manuale/genera_manuale.py` (richiede `python-docx`): converte i capitoli in `docs/Manuale_Tecnico_Colombini.docx` leggendo la versione di copertina dall'intestazione più recente di questo file. In versione sono solo i sorgenti `.md`; il `.docx` è un prodotto di build ed è escluso dal repository
+- [DEV] Chiarita la distinzione fra i due domini in `CLAUDE.md` e `ANALISI.md`: `colombini-snc.it` è il sito aziendale, il gestionale sarà su `colombini.metesoftware.it`
+
 ## [0.27.0] - 2026-08-16
 
 ### Import clienti dall'anagrafica storica
