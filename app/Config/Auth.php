@@ -180,8 +180,14 @@ class Auth extends ShieldAuth
      * By default, this is used in place of a password reset flow, but
      * could be modified as the only method of login once an account
      * has been set up.
+     *
+     * Disattivato: Config\Email non e' configurato (mittente vuoto, protocollo 'mail',
+     * nessun SMTP in .env), quindi il collegamento portava a un errore o a un messaggio
+     * con mittente vuoto destinato allo spam. Meglio non mostrare una funzione che non
+     * funziona. Da riattivare in produzione insieme alla configurazione SMTP: vedi punto 7
+     * di docs/review/2026-08-16-review-progetto.md e la checklist di go-live (punto 20).
      */
-    public bool $allowMagicLinkLogins = true;
+    public bool $allowMagicLinkLogins = false;
 
     /**
      * --------------------------------------------------------------------

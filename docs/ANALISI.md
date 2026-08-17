@@ -630,6 +630,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `docs/schema.html` riallineato allo schema reale, verificato per introspezione da `information_schema`: quattro divergenze, tutte da migrazioni applicate senza aggiornare la pagina, nessuna modifica al database
 - Emerso che **non esiste nessuna tabella `impostazioni`** (voce v0.5.0 qui sopra corretta): quel ruolo lo svolge `settings`, dove le famiglie di configurazione sono distinte dal campo `class`
 
+#### ✅ v0.27.2 — Protezione CSRF attiva e review del progetto
+- Filtro `csrf` attivato nei filtri globali: era commentato, quindi il token veniva generato in ogni form e non verificato mai. L'infrastruttura era già completa (63 `csrf_field()`, header `X-CSRF-TOKEN` nel calendario e nella cell promemoria)
+- `Security::$regenerate = false` per non invalidare i form aperti in altre tab a ogni POST; `Security::$tokenRandomize = true` contro l'estrazione del token via BREACH
+- Magic link disattivato finché la posta non è configurata (`Auth::$allowMagicLinkLogins`) — da riattivare in produzione con l'SMTP
+- Nuova cartella `docs/review/`: review completa del progetto alla v0.27.1 (19 voci con file, riga e correzione proposta) e mappa di test del CSRF con gli esiti del collaudo. Le voci restanti della review sono da affrontare, in testa upload del logo senza validazione e `InterventiController::update()` senza controllo del tecnico proprietario
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

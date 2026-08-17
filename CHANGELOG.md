@@ -1,5 +1,16 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.27.2] - 2026-08-17
+
+### Protezione CSRF attiva e review del progetto
+
+- [APP] Rimosso dalla pagina di login il collegamento per **accedere via email** (magic link): la posta non è ancora configurata, quindi chi lo usava otteneva un errore o un messaggio con mittente vuoto destinato allo spam. Finché non si recupera la password da soli, il ripristino resta a carico di un amministratore. Da riattivare in produzione insieme all'SMTP
+- [DEV] **Protezione CSRF attivata** (`Config\Filters`, filtro globale `before`). Era commentata: il token veniva generato in ogni form e **non verificato mai**. Tutta l'infrastruttura era già a posto e inutilizzata — 63 `csrf_field()` nelle view, header `X-CSRF-TOKEN` con rinnovo dell'hash nel calendario e nella cell promemoria, `csrf_hash()` nelle risposte AJAX
+- [DEV] `Config\Security::$regenerate` portato a `false`. Con la rotazione a ogni POST, un salvataggio in una tab invalida i form già aperti nelle altre — e una chiamata AJAX invalida i form della propria pagina, cosa che avrebbe colpito il modal novità, i promemoria di oggi e il calendario. Il token resta valido per la sessione: non è una rinuncia, perché la rotazione protegge solo dal riuso di un token già catturato, e i canali da cui un token può uscire sono gli stessi da cui esce il cookie di sessione
+- [DEV] `Config\Security::$tokenRandomize` portato a `true`: maschera il token in modo diverso a ogni risposta, chiudendo l'estrazione via side-channel di compressione (BREACH). È la modifica che aggiunge sicurezza reale, e non ha costo funzionale
+- [DEV] Collaudo eseguito sull'applicazione in esecuzione: POST reali accettate su login, clienti (creazione, modifica, posizione, eliminazione), personale, cantieri, abbonamenti, interventi, materiali, articoli, parametri, tipi intervento e categorie articoli; POST **senza** token e con token **fasullo** correttamente respinte con 403; verificato che il campo CSRF sia renderizzato anche in tutti i form di cambio stato ed eliminazione
+- [DEV] Nuova cartella `docs/review/` con la **review completa del progetto alla v0.27.1** (19 voci con file, riga e correzione proposta, ordinate per priorità) e la mappa di test del CSRF con gli esiti del collaudo. Le altre voci della review — upload del logo senza validazione, `InterventiController::update()` senza controllo del tecnico, generatore del codice cliente, transazioni mancanti, backup del database — restano da affrontare
+
 ## [0.27.1] - 2026-08-16
 
 ### Manuale tecnico

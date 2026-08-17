@@ -23,8 +23,12 @@ class Security extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * Randomize the CSRF Token for added security.
+     *
+     * Attivo: maschera il token in modo diverso a ogni risposta, chiudendo il vettore
+     * di estrazione via side-channel di compressione (BREACH). Nessun costo funzionale,
+     * perche' tutti i form della pagina smascherano allo stesso token.
      */
-    public bool $tokenRandomize = false;
+    public bool $tokenRandomize = true;
 
     /**
      * --------------------------------------------------------------------------
@@ -70,8 +74,14 @@ class Security extends BaseConfig
      * --------------------------------------------------------------------------
      *
      * Regenerate CSRF Token on every submission.
+     *
+     * Disattivato: con la rotazione a ogni POST, un salvataggio in una tab invalida i
+     * form gia' renderizzati nelle altre (e quelli della stessa pagina dopo una chiamata
+     * AJAX). Il token resta valido per tutta la sessione. La rotazione proteggerebbe solo
+     * dal riuso di un token gia' catturato, ma i canali da cui un token puo' uscire sono
+     * gli stessi da cui esce il cookie di sessione: vedi docs/review/csrf-mappa-test.md.
      */
-    public bool $regenerate = true;
+    public bool $regenerate = false;
 
     /**
      * --------------------------------------------------------------------------
