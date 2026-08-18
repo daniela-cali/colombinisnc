@@ -49,23 +49,56 @@ class GeneraleController extends BaseController
 
     /**
      * Carica o sostituisce il logo aziendale, indipendentemente dagli altri parametri.
+     *
+     * La destinazione e' public/uploads/, servita direttamente dal web server: il logo
+     * deve essere raggiungibile via URL (layout e stampe PDF), quindi non puo' stare in
+     * WRITEPATH come il CSV dell'import. Tutta la difesa sta percio' nella validazione e
+     * nel nome del file, mai nell'estensione dichiarata dal client.
+     *
+     * L'SVG non e' ammesso di proposito: e' un documento XML che puo' contenere <script>,
+     * e servito dallo stesso dominio diventa XSS persistente per chi apre il file diretto.
+     * Nota che is_image da solo non lo escluderebbe, perche' image/svg+xml inizia per
+     * "image/" — serve mime_in. Vedi punto 2 di docs/review/2026-08-16-review-progetto.md.
      */
     public function cambiaLogo()
     {
-        $logo = $this->request->getFile('sede_logo');
+        $regole = [
+            'sede_logo' => [
+                'rules'  => 'uploaded[sede_logo]|is_image[sede_logo]|mime_in[sede_logo,image/png,image/jpeg,image/webp]|max_size[sede_logo,1024]',
+                'errors' => [
+                    'uploaded' => 'Selezionare un file da caricare.',
+                    'is_image' => 'Il file caricato non e\' un\'immagine.',
+                    'mime_in'  => 'Sono ammessi solo file PNG, JPG o WEBP.',
+                    'max_size' => 'Il logo supera 1 MB.',
+                ],
+            ],
+        ];
 
-        if (! $logo || ! $logo->isValid() || $logo->hasMoved()) {
-            return redirect()->to('impostazioni/parametri')->with('error', 'Nessun file selezionato o file non valido.');
+        if (! $this->validate($regole)) {
+            return redirect()->back()->with('errors', $this->validator->getErrors());
         }
+
+        $logo = $this->request->getFile('sede_logo');
 
         $dir = FCPATH . 'uploads' . DIRECTORY_SEPARATOR;
         if (! is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
 
-        $filename = 'logo_azienda.' . $logo->getClientExtension();
+        // Estensione dal MIME rilevato dal server ispezionando il contenuto, non da
+        // getClientExtension() che riporta il nome scelto dal browser (cioe' dall'utente).
+        // mime_in garantisce gia' che la chiave esista.
+        $estensioni = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'];
+        $filename   = 'logo_azienda.' . $estensioni[$logo->getMimeType()];
+
+        $precedente = setting('Azienda.sede_logo_path');
         $logo->move($dir, $filename, true);
         setting()->set('Azienda.sede_logo_path', 'uploads/' . $filename);
+
+        // Cambiando formato il file vecchio resterebbe orfano e comunque servito dal web
+        if ($precedente && $precedente !== 'uploads/' . $filename && is_file(FCPATH . $precedente)) {
+            unlink(FCPATH . $precedente);
+        }
 
         return redirect()->to('impostazioni/parametri')->with('success', 'Logo aggiornato.');
     }

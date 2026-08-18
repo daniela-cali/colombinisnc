@@ -330,6 +330,20 @@ class InterventiController extends BaseController
             return redirect()->to('operativo/interventi')->with('error', 'Intervento non trovato.');
         }
 
+        // Gli stessi due vincoli applicati da edit(): negare il form non basta, senza questi
+        // una POST diretta a questa rotta aggira entrambi. Il tecnico viene letto dal record
+        // gia' salvato e non dal POST, altrimenti sarebbe la richiesta a decidere se e'
+        // autorizzata. Vedi punto 3 di docs/review/2026-08-16-review-progetto.md.
+        if (! $this->accessoConsentito($intervento['tecnico_id'])) {
+            return redirect()->to('operativo/interventi')
+                ->with('error', 'Impossibile modificare l\'intervento di un altro tecnico.');
+        }
+
+        if ($intervento['stato'] === InterventiModel::STATO_ANNULLATO) {
+            return redirect()->to('operativo/interventi/' . $id)
+                ->with('error', 'Un intervento annullato non può essere modificato.');
+        }
+
         if (! $this->validate($this->regolaValidazione())) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }

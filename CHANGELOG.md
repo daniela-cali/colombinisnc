@@ -1,5 +1,17 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.27.3] - 2026-08-18
+
+### Upload del logo validato e modifica intervento protetta lato server
+
+- [APP] Il logo aziendale accetta ora solo **PNG, JPG o WEBP** fino a 1 MB, con messaggio chiaro se il file non va bene. **L'SVG non è più ammesso**: è un formato che può contenere codice eseguibile, e serviva a poco visto che le stampe PDF lo rendevano in modo inaffidabile
+- [APP] Caricando un logo in un formato diverso dal precedente, il vecchio file viene ora rimosso invece di restare nella cartella
+- [APP] La pagina Parametri mostra gli errori di validazione, che prima non comparivano: un file rifiutato non produceva nessun messaggio
+- [DEV] **Upload del logo: chiusa la scrittura di file eseguibili in `public/uploads/`.** `cambiaLogo()` non validava nulla e costruiva il nome da `getClientExtension()`, cioè dall'estensione dichiarata dal browser: bastava rinominare un file per caricare `logo_azienda.php` in una cartella servita dal web. Ora la validazione è `uploaded|is_image|mime_in|max_size` e l'estensione deriva dal MIME rilevato dal server. Nota che `is_image` da solo non basterebbe a escludere l'SVG, perché `image/svg+xml` inizia comunque per `image/`. Rimosso il controllo manuale `isValid()`/`hasMoved()`, ridondante con la regola `uploaded`
+- [DEV] **`InterventiController::update()` applica ora i due vincoli che finora erano solo in `edit()`**: tecnico proprietario e intervento non annullato. Tutte le altre azioni sull'intervento chiamavano già `accessoConsentito()` — `update()` era l'unica scoperta, quindi un tecnico a cui il form era negato poteva comunque modificare l'intervento di un collega inviando la POST direttamente alla rotta. I controlli stanno prima della validazione, e leggono il tecnico dal record salvato e non dal POST: altrimenti sarebbe la richiesta stessa a stabilire se è autorizzata
+- [DEV] Verificato in esecuzione con un account tecnico reale: POST sull'intervento di un collega respinta con messaggio, POST sul proprio intervento regolarmente processata
+- [DEV] Punti 2 e 3 di `docs/review/2026-08-16-review-progetto.md`
+
 ## [0.27.2] - 2026-08-17
 
 ### Protezione CSRF attiva e review del progetto

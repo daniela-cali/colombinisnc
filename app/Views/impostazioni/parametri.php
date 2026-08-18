@@ -12,6 +12,15 @@ $this->extend('layouts/admin');
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
+<?php if ($errors = session()->getFlashdata('errors')): ?>
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            <?php foreach ($errors as $e): ?>
+                <li><?= esc($e) ?></li>
+            <?php endforeach ?>
+        </ul>
+    </div>
+<?php endif ?>
 <form id="form-parametri" method="post" action="<?= base_url('impostazioni/parametri') ?>">
     <?= csrf_field() ?>
     <div class="row g-4 align-items-start">
@@ -96,7 +105,7 @@ $this->extend('layouts/admin');
                         </div>
                     </div>
                     <div>
-                        <label class="form-label">Logo aziendale <small class="text-muted">— PNG, JPG o SVG, max 1 MB</small></label>
+                        <label class="form-label">Logo aziendale <small class="text-muted">— PNG, JPG o WEBP, max 1 MB</small></label>
                         <?php $logoPath = setting('Azienda.sede_logo_path'); ?>
                         <?php if ($logoPath): ?>
                             <div class="mb-2 d-flex align-items-center gap-2">
@@ -108,7 +117,7 @@ $this->extend('layouts/admin');
                         <div class="input-group input-group-sm">
                             <input type="file" name="sede_logo" class="form-control"
                                    form="form-logo"
-                                   accept="image/png,image/jpeg,image/svg+xml">
+                                   accept="image/png,image/jpeg,image/webp">
                             <button type="submit" class="btn btn-outline-secondary" form="form-logo">
                                 <i class="bi bi-upload me-1"></i>Carica
                             </button>

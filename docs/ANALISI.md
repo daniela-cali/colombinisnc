@@ -636,6 +636,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Magic link disattivato finché la posta non è configurata (`Auth::$allowMagicLinkLogins`) — da riattivare in produzione con l'SMTP
 - Nuova cartella `docs/review/`: review completa del progetto alla v0.27.1 (19 voci con file, riga e correzione proposta) e mappa di test del CSRF con gli esiti del collaudo. Le voci restanti della review sono da affrontare, in testa upload del logo senza validazione e `InterventiController::update()` senza controllo del tecnico proprietario
 
+#### ✅ v0.27.3 — Upload del logo validato e modifica intervento protetta lato server
+- `cambiaLogo()` non validava nulla e prendeva l'estensione da `getClientExtension()` (scelta dal client): si poteva scrivere un `.php` eseguibile in `public/uploads/`. Ora validazione `uploaded|is_image|mime_in|max_size` ed estensione derivata dal MIME rilevato dal server
+- SVG escluso dai formati ammessi (può contenere `<script>`, e `is_image` non lo filtra perché `image/svg+xml` inizia per `image/`); al suo posto WEBP. Il logo precedente viene rimosso se cambia formato
+- `InterventiController::update()` applica i due vincoli finora presenti solo in `edit()` — tecnico proprietario e intervento non annullato — prima della validazione e leggendo il tecnico dal record salvato, non dal POST. Era l'unico metodo dell'intervento senza `accessoConsentito()`
+- Punti 2 e 3 di `docs/review/2026-08-16-review-progetto.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
