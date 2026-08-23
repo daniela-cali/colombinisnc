@@ -103,21 +103,11 @@
                     <i class="bi bi-person-gear settings-icon"></i>
                     <h5 class="card-title mt-3">Utenti</h5>
                     <p class="text-muted small mb-0">
-                        Tutti gli account con accesso alla piattaforma e gestione gruppi.
+                        Chi ha accesso alla piattaforma, personale e clienti, con i suoi ruoli.
                     </p>
                 </div>
             </div>
         </a>
-    </div>
-
-    <div class="col-md-4 mb-4">
-        <div class="card card-outline card-secondary h-100 settings-card">
-            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4 text-muted">
-                <i class="bi bi-people settings-icon text-muted"></i>
-                <h5 class="card-title mt-3">Utenti Portale</h5>
-                <p class="small mb-0">In costruzione.</p>
-            </div>
-        </div>
     </div>
 
 </div>

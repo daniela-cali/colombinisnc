@@ -1,5 +1,11 @@
-<?= $this->extend('layouts/admin') ?>
+<?php
 
+/**
+ * @var array $personale
+ * @var bool  $puoCreare
+ */
+$this->extend('layouts/admin');
+?>
 <?= $this->section('title') ?>Personale<?= $this->endSection() ?>
 
 <?= $this->section('breadcrumb') ?>
@@ -17,11 +23,13 @@
                 <h3 class="card-title mb-0">
                     <i class="bi bi-people me-2"></i>Personale
                 </h3>
-                <div class="card-tools ms-auto">
-                    <a href="<?= base_url('anagrafiche/personale/nuovo') ?>" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus-lg me-1"></i>Nuovo dipendente
-                    </a>
-                </div>
+                <?php if ($puoCreare): ?>
+                    <div class="card-tools ms-auto">
+                        <a href="<?= base_url('anagrafiche/personale/nuovo') ?>" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>Nuovo dipendente
+                        </a>
+                    </div>
+                <?php endif ?>
             </div>
             <div class="card-body p-0">
                 <?php if (empty($personale)): ?>

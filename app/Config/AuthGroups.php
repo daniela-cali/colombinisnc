@@ -23,7 +23,7 @@ class AuthGroups extends ShieldAuthGroups
      * --------------------------------------------------------------------
      * The group that a newly registered user is added to.
      */
-    public string $defaultGroup = 'ufficio';
+    public string $defaultGroup = 'cliente';
 
     /**
      * --------------------------------------------------------------------
@@ -72,7 +72,9 @@ class AuthGroups extends ShieldAuthGroups
      * If a permission is not listed here it cannot be used.
      */
     public array $permissions = [
-        'personale.manage'    => 'Può gestire anagrafica personale e account',
+        'personale.manage'    => 'Può gestire l\'anagrafica del personale e le assenze',
+        'personale.account'   => 'Può creare account, assegnare ruoli e cambiare le password altrui',
+        'personale.elimina'   => 'Può eliminare dipendenti e account',
         'impostazioni.manage' => 'Può accedere alle impostazioni applicative',
         'abbonamenti.manage'  => 'Può creare, modificare e cambiare stato agli abbonamenti',
         'cantieri.manage'     => 'Può creare, modificare, cambiare stato ed eliminare i cantieri',
@@ -94,9 +96,16 @@ class AuthGroups extends ShieldAuthGroups
         'personale.*', 'impostazioni.*', 'abbonamenti.*',
         'cantieri.*', 'magazzino.*', 'clienti.*', 'interventi.*',
     ];
+    // Elencati uno per uno di proposito: con le wildcard (`personale.*`) ogni permesso
+    // aggiunto in futuro finirebbe in silenzio anche a ufficio. È così che ufficio poteva
+    // promuoversi ad admin — vedi docs/spec/gestione_account_spec.md §1.1.
     private const PERMESSI_UFFICIO = [
-        'personale.*', 'abbonamenti.*',
-        'cantieri.*', 'magazzino.*', 'clienti.*', 'interventi.*',
+        'personale.manage',
+        'abbonamenti.manage',
+        'cantieri.manage',
+        'magazzino.elimina',
+        'clienti.elimina',
+        'interventi.elimina',
     ];
    
     

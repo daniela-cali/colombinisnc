@@ -12,35 +12,46 @@ inviti a fare meglio quando capita.
 > a te — è scritto esplicitamente. Nessuna modifica è stata applicata: questo documento è
 > solo una lista di proposte.
 
+> **Stato dei lavori — aggiornato al 23 agosto 2026.** La colonna *Stato* del sommario dice
+> dove sta ogni voce. I punti 5, 6, 12 e 16 sono confluiti in
+> `docs/spec/gestione_account_spec.md`, che li ha affrontati insieme perché hanno la stessa causa
+> — la logica degli account duplicata in tre controller — e perché durante la stesura è emerso
+> un buco di sicurezza che questa review non aveva individuato: un utente `ufficio` poteva
+> promuoversi ad amministratore dalla scheda dipendente (§1.1 dello spec). Tutti e quattro sono
+> **chiusi nella v0.28.0**.
+
 ## Sommario
 
-| # | Titolo | Tipo | Priorità |
-|---|---|---|---|
-| 1 | Protezione CSRF disattivata | sicurezza | **alta** |
-| 2 | Upload del logo senza validazione, estensione presa dal client | sicurezza | **alta** |
-| 3 | `InterventiController::update()` non verifica il tecnico proprietario | sicurezza | **alta** |
-| 4 | `ClientiModel::generaCodice()` si rompe a INT-999 e non è atomico | bug | media |
-| 5 | Un admin può eliminare o declassare sé stesso | sicurezza | media |
-| 6 | Creazione dipendente: email non verificata, nessuna transazione | bug | media |
-| 7 | Magic link attivo ma posta non configurata | bug | media |
-| 8 | `CURDATE()` e fuso orario del server MySQL | bug latente | media |
-| 9 | Periodi abbonamento sostituiti senza transazione | bug | media |
-| 10 | Assenze per malattia visibili a tutti | privacy | media |
-| 11 | Font Awesome: ~570 KB per un solo utilizzo | performance | media |
-| 12 | Due rotte puntano a metodi inesistenti | pulizia | bassa |
-| 13 | Accesso ai record non verificato in alcune azioni minori | sicurezza | bassa |
-| 14 | Mass assignment: `codice` e `user_id` scrivibili dal POST | sicurezza | bassa |
-| 15 | Errori non gestiti su record inesistenti | bug | bassa |
-| 16 | `defaultGroup` è `ufficio` | sicurezza | bassa |
-| 17 | Il sistema `from` è ripetuto in venti punti | manutenibilità | bassa |
-| 18 | Nessun backup del database | processo | media |
-| 19 | jQuery 4.0.0 da verificare | rischio | bassa |
-| 19-bis | Una deroga alla convenzione `cliente_denominazione` | coerenza | bassa |
-| 20 | Checklist di go-live | processo | — |
+| # | Titolo | Tipo | Priorità | Stato |
+|---|---|---|---|---|
+| 1 | Protezione CSRF disattivata | sicurezza | **alta** | ✅ chiuso in v0.27.2 |
+| 2 | Upload del logo senza validazione, estensione presa dal client | sicurezza | **alta** | ✅ chiuso in v0.27.3 |
+| 3 | `InterventiController::update()` non verifica il tecnico proprietario | sicurezza | **alta** | ✅ chiuso in v0.27.3 |
+| 4 | `ClientiModel::generaCodice()` si rompe a INT-999 e non è atomico | bug | media | aperto |
+| 5 | Un admin può eliminare o declassare sé stesso | sicurezza | media | ✅ chiuso in v0.28.0 |
+| 6 | Creazione dipendente: email non verificata, nessuna transazione | bug | media | ✅ chiuso in v0.28.0 |
+| 7 | Magic link attivo ma posta non configurata | bug | media | ◐ mitigato in v0.27.2 (link rimosso); SMTP da configurare |
+| 8 | `CURDATE()` e fuso orario del server MySQL | bug latente | media | aperto |
+| 9 | Periodi abbonamento sostituiti senza transazione | bug | media | aperto |
+| 10 | Assenze per malattia visibili a tutti | privacy | media | aperto — richiede una decisione |
+| 11 | Font Awesome: ~570 KB per un solo utilizzo | performance | media | aperto |
+| 12 | Due rotte puntano a metodi inesistenti | pulizia | bassa | ✅ chiuso in v0.28.0 |
+| 13 | Accesso ai record non verificato in alcune azioni minori | sicurezza | bassa | aperto |
+| 14 | Mass assignment: `codice` e `user_id` scrivibili dal POST | sicurezza | bassa | aperto |
+| 15 | Errori non gestiti su record inesistenti | bug | bassa | aperto |
+| 16 | `defaultGroup` è `ufficio` | sicurezza | bassa | ✅ chiuso in v0.28.0 |
+| 17 | Il sistema `from` è ripetuto in venti punti | manutenibilità | bassa | aperto |
+| 18 | Nessun backup del database | processo | media | aperto — prima del go-live |
+| 19 | jQuery 4.0.0 da verificare | rischio | bassa | aperto |
+| 19-bis | Una deroga alla convenzione `cliente_denominazione` | coerenza | bassa | aperto |
+| 20 | Checklist di go-live | processo | — | da eseguire al deploy |
 
 ---
 
 ## 1. Protezione CSRF disattivata
+
+> ✅ **Chiuso in v0.27.2.** Filtro `csrf` attivo nei globali, `regenerate` a `false` e
+> `tokenRandomize` a `true`. Collaudato su tutte le POST reali dell'applicazione.
 
 **Dove:** `app/Config/Filters.php:78`
 
@@ -69,6 +80,9 @@ cliccando. Attenzione ai punti in cui una POST è generata da JS senza header (n
 trovati, ma vanno confermati sul campo).
 
 ## 2. Upload del logo senza validazione, estensione presa dal client
+
+> ✅ **Chiuso in v0.27.3.** Validazione `uploaded|is_image|mime_in|max_size`, estensione
+> derivata dal MIME rilevato dal server, SVG escluso di proposito.
 
 **Dove:** `app/Controllers/Impostazioni/GeneraleController.php:53-71`
 
@@ -102,6 +116,9 @@ e costruire il nome dall'estensione derivata dal MIME (`getExtension()`), non da
 client. In alternativa, salvare con `getRandomName()`.
 
 ## 3. `InterventiController::update()` non verifica il tecnico proprietario
+
+> ✅ **Chiuso in v0.27.3.** `accessoConsentito()` applicato in `update()` prima della
+> validazione, leggendo il tecnico dal record salvato e non dal POST.
 
 **Dove:** `app/Controllers/Operativo/InterventiController.php:324-364`
 
@@ -162,6 +179,11 @@ quindi la numerazione `INT-` cresce solo con i clienti nuovi non fiscali. Non è
 
 ## 5. Un admin può eliminare o declassare sé stesso
 
+> ✅ **Chiuso in v0.28.0** — `docs/spec/gestione_account_spec.md` (§1.2 e §5). Lo spec estende il
+> perimetro: gli stessi difetti sono anche in `PersonaleController::update()` e `delete()`,
+> che questa voce non aveva considerato. Il conteggio degli amministratori superstiti qui
+> proposto si è rivelato non necessario — vedi §5 dello spec.
+
 **Dove:** `app/Controllers/Impostazioni/UtentiController.php:52-116`
 
 Nessuna delle due azioni ha una guardia:
@@ -180,6 +202,9 @@ messaggio all'utente vale più del controllo stesso: "non puoi rimuovere l'ultim
 amministratore".
 
 ## 6. Creazione dipendente: email non verificata, nessuna transazione
+
+> ✅ **Chiuso in v0.28.0** — `docs/spec/gestione_account_spec.md` (§1.3 e §3). La transazione sta in
+> `UserModel::creaAccount()`, insieme al resto della logica di creazione.
 
 **Dove:** `app/Controllers/Anagrafiche/PersonaleController.php:84-138`
 
@@ -206,6 +231,10 @@ fallisce anche `is_unique`, e l'utente si trova bloccato senza capire perché.
 racchiudere i quattro passi in una transazione (`$db->transStart()` / `transComplete()`).
 
 ## 7. Magic link attivo ma posta non configurata
+
+> ◐ **Mitigato in v0.27.2**: `allowMagicLinkLogins` è ora `false`, quindi la pagina di login
+> non mostra più una funzione che non funziona. La configurazione SMTP resta da fare prima
+> del go-live: finché non c'è, il recupero password è a carico di un amministratore.
 
 **Dove:** `app/Config/Auth.php:184` e `app/Config/Email.php:9-31`
 
@@ -325,6 +354,11 @@ Font Awesome. Qualunque strada scegli, quella sezione va allineata.
 
 ## 12. Due rotte puntano a metodi inesistenti
 
+> → **Confluito in `docs/spec/gestione_account_spec.md`** (§7): le due rotte vengono rimosse.
+> L'ipotesi avanzata qui sotto — scriverle per creare account senza scheda dipendente — è
+> stata scartata: l'account di un futuro cliente nascerà dalla scheda cliente, dove esiste
+> già `clienti.user_id`.
+
 **Dove:** `app/Config/Routes.php:50-51`
 
 ```
@@ -393,6 +427,9 @@ Tre casi in cui un identificativo sbagliato non produce un messaggio ma un error
   completato o annullato.
 
 ## 16. `defaultGroup` è `ufficio`
+
+> → **Confluito in `docs/spec/gestione_account_spec.md`** (§4): passa a `cliente`, insieme
+> alle altre modifiche della matrice dei permessi.
 
 **Dove:** `app/Config/AuthGroups.php:26`
 
@@ -522,6 +559,12 @@ Vale la pena scriverlo, perché in una lista di difetti si perde di vista il res
   scrivere questa review senza doverti chiedere niente.
 
 ## Come leggerei questa lista
+
+> **Aggiornamento 22 agosto.** I primi tre della lista qui sotto sono fatti (v0.27.2 e
+> v0.27.3), e il punto 4 di questo elenco — le voci 5, 6, 7 — è in corso: la 7 è mitigata, la
+> 5 e la 6 sono nello spec sulla gestione account. L'ordine con cui proseguire, deciso il 22
+> agosto, è: gestione account (questo spec), poi punto 9, punto 4, punto 8, quindi il backup
+> del punto 18 e la checklist del punto 20 prima del go-live.
 
 Se dovessi scegliere cosa fare per primo, in ordine:
 

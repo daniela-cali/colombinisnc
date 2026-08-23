@@ -38,6 +38,7 @@ Ogni riga ha introdotto un modulo o un cambiamento strutturale.
 | 0.25.0 | 05/08/2026 | creazione di un intervento da una nota di cantiere |
 | 0.26.0 | 15/08/2026 | abbonamenti: proposta e accettazione |
 | 0.27.0 | 16/08/2026 | import dei clienti dall'anagrafica storica |
+| 0.28.0 | 23/08/2026 | **gestione account, ruoli e profilo**: logica unificata nel model, escalation dell'ufficio chiusa, sospensione al posto dell'eliminazione |
 
 ## 9.2 Il ramo 0.24.x
 

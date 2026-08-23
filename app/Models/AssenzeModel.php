@@ -71,6 +71,17 @@ class AssenzeModel extends Model
     }
 
     /**
+     * Quante assenze sono registrate per un dipendente.
+     *
+     * Serve prima di eliminarne la scheda: assenze.personale_id ha ON DELETE CASCADE,
+     * quindi la cancellazione porterebbe via anche tutto il suo diario.
+     */
+    public function contaPerPersonale(int $personaleId): int
+    {
+        return $this->where('personale_id', $personaleId)->countAllResults();
+    }
+
+    /**
      * Assenze dello stesso dipendente che si sovrappongono all'intervallo indicato.
      * $escludiId esclude il record stesso durante una modifica.
      */

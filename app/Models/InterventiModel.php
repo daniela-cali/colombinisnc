@@ -201,6 +201,39 @@ class InterventiModel extends Model
     }
 
     /**
+     * Quanti interventi risultano assegnati a un tecnico, di qualunque epoca e stato.
+     *
+     * Serve a decidere se la sua scheda può essere eliminata: interventi.tecnico_id ha
+     * ON DELETE SET NULL, quindi cancellare un dipendente che ha lavorato azzererebbe
+     * in silenzio il tecnico su tutto il suo storico.
+     */
+    public function contaPerTecnico(int $tecnicoId): int
+    {
+        return $this->where('tecnico_id', $tecnicoId)->countAllResults();
+    }
+
+    /**
+     * Interventi ancora da fare (non completati né annullati) assegnati a un tecnico.
+     * Serve ad avvisare chi ne sospende l'account che quel lavoro va riassegnato: è un
+     * avviso, non un blocco — chi se ne va va escluso subito, la riassegnazione viene dopo.
+     *
+     * Restituisce le righe e non un conteggio perché servono entrambi: il numero è
+     * count() e l'elenco diventa i link su cui andare a riassegnare, in una query sola.
+     * I completati restano fuori per definizione: quelli restano assegnati per sempre
+     * a chi li ha fatti.
+     */
+    public function apertiPerTecnico(int $tecnicoId): array
+    {
+        return $this->select("interventi.id, interventi.data_pianificata,
+                clienti.denominazione AS cliente_denominazione")
+            ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->where('interventi.tecnico_id', $tecnicoId)
+            ->whereNotIn('interventi.stato', [self::STATO_COMPLETATO, self::STATO_ANNULLATO])
+            ->orderBy('interventi.data_pianificata', 'ASC')
+            ->findAll();
+    }
+
+    /**
      * Interventi collegati a un cantiere, con tipo lavoro e tecnico, ordinati per data decrescente.
      */
     public function perCantiere(int $cantiereId): array
@@ -507,12 +540,38 @@ class InterventiModel extends Model
     }
 
     /**
+     * Pianificazioni che non stanno più in piedi, per la card "Interventi in conflitto"
+     * della dashboard: il tecnico assegnato risulta assente in quel giorno, oppure il suo
+     * account è stato sospeso. In entrambi i casi è un fatto registrato *dopo* la
+     * pianificazione a invalidarla, e finché resta lì l'intervento va riassegnato.
+     *
+     * L'unione avviene qui e non nel controller perché la dashboard fa una domanda sola.
+     * Un intervento che cade in tutt'e due i casi compare una volta, come "sospensione":
+     * è il fatto più forte, perché non si esaurisce a fine ferie.
+     */
+    public function inConflitto(): array
+    {
+        $righe = [];
+
+        foreach ($this->inConflittoConAssenze() as $r) {
+            $righe[$r['id']] = $r;
+        }
+        foreach ($this->inConflittoPerSospensione() as $r) {
+            $righe[$r['id']] = $r;
+        }
+
+        usort($righe, static fn (array $a, array $b) => $a['data_pianificata'] <=> $b['data_pianificata']);
+
+        return $righe;
+    }
+
+    /**
      * Interventi pianificati/in corso il cui tecnico risulta assente nella data pianificata —
      * nascono quando un'assenza viene inserita dopo che l'intervento era già stato pianificato.
      */
     public function inConflittoConAssenze(): array
     {
-        return $this->select("interventi.id, interventi.data_pianificata,
+        $righe = $this->select("interventi.id, interventi.data_pianificata,
                 clienti.denominazione AS cliente_denominazione,
                 TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico,
                 assenze.tipo AS assenza_tipo")
@@ -524,6 +583,40 @@ class InterventiModel extends Model
             ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])
             ->orderBy('interventi.data_pianificata', 'ASC')
             ->findAll();
+
+        // Il motivo è un discriminante per chi legge l'elenco, non un dato del database:
+        // aggiungerlo qui evita di infilare un letterale nella select, dove il Query Builder
+        // lo tratterebbe come nome di colonna.
+        return array_map(static fn (array $r): array => $r + ['motivo' => 'assenza'], $righe);
+    }
+
+    /**
+     * Interventi pianificati/in corso assegnati a un tecnico il cui account è stato sospeso:
+     * non entrerà più nel gestionale e non compare più fra gli assegnabili, quindi quel lavoro
+     * resta senza nessuno che lo prenda in carico finché non lo si sposta a mano.
+     *
+     * L'assegnazione non viene toccata dalla sospensione — sarebbe una perdita di informazione
+     * irreversibile, mentre la sospensione si annulla riattivando l'account (spec §2.2).
+     * `assenza_tipo` resta null: il motivo qui non è un'assenza.
+     */
+    public function inConflittoPerSospensione(): array
+    {
+        $righe = $this->select("interventi.id, interventi.data_pianificata,
+                clienti.denominazione AS cliente_denominazione,
+                TRIM(CONCAT_WS(' ', personale.cognome, personale.nome)) AS tecnico")
+            ->join('clienti', 'clienti.id = interventi.cliente_id')
+            ->join('personale', 'personale.id = interventi.tecnico_id')
+            ->join('users', 'users.id = personale.user_id')
+            ->where('users.status', 'banned')
+            ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])
+            ->orderBy('interventi.data_pianificata', 'ASC')
+            ->findAll();
+
+        // Stessa forma di riga dell'altro caso, così la card ne stampa una sola.
+        return array_map(
+            static fn (array $r): array => $r + ['assenza_tipo' => null, 'motivo' => 'sospensione'],
+            $righe
+        );
     }
 
     /**

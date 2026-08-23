@@ -110,9 +110,10 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                             <select name="tecnico_id" class="form-select">
                                 <option value="">— nessuno —</option>
                                 <?php foreach ($tecnici as $t): ?>
+                                    <?php // I sospesi compaiono solo se già assegnati qui, marcati per non sceglierli per sbaglio ?>
                                     <option value="<?= $t['id'] ?>"
                                             <?= old('tecnico_id', $intervento['tecnico_id']) == $t['id'] ? 'selected' : '' ?>>
-                                        <?= esc($t['cognome'] . ' ' . $t['nome']) ?>
+                                        <?= esc($t['cognome'] . ' ' . $t['nome']) ?><?= ($t['status'] ?? '') === 'banned' ? ' (sospeso)' : '' ?>
                                     </option>
                                 <?php endforeach ?>
                             </select>

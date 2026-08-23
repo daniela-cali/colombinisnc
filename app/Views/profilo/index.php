@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @var array                                  $persona
+ * @var array|null                             $persona scheda dipendente, assente per gli account senza (spec §2.3)
  * @var string                                 $email
  * @var array                                  $pastelli
  * @var array                                  $colori_usati
@@ -50,28 +50,34 @@ $this->extend('layouts/admin');
                 <?= csrf_field() ?>
                 <div class="card-body">
 
-                    <p class="text-muted section-header mb-3"><i class="bi bi-person me-1"></i> Anagrafica</p>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label">Nome <span class="text-danger">*</span></label>
-                            <input type="text" name="nome" class="form-control"
-                                value="<?= esc(old('nome', $persona['nome'])) ?>" required>
+                    <?php // Chi non ha una scheda dipendente — oggi nessuno, domani gli account
+                          // cliente — vede solo il blocco account. ?>
+                    <?php if ($persona): ?>
+
+                        <p class="text-muted section-header mb-3"><i class="bi bi-person me-1"></i> Anagrafica</p>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">Nome <span class="text-danger">*</span></label>
+                                <input type="text" name="nome" class="form-control"
+                                    value="<?= esc(old('nome', $persona['nome'])) ?>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Cognome <span class="text-danger">*</span></label>
+                                <input type="text" name="cognome" class="form-control"
+                                    value="<?= esc(old('cognome', $persona['cognome'])) ?>" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Telefono</label>
+                                <input type="text" name="telefono" class="form-control"
+                                    value="<?= esc(old('telefono', $persona['telefono'] ?? '')) ?>">
+                            </div>
+                            <div class="col-12">
+                                <?php $this->setData(['coloreCorrente' => old('colore', $persona['colore'] ?? '')]); ?>
+                                <?= $this->include('anagrafiche/personale/_colore_picker') ?>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Cognome <span class="text-danger">*</span></label>
-                            <input type="text" name="cognome" class="form-control"
-                                value="<?= esc(old('cognome', $persona['cognome'])) ?>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Telefono</label>
-                            <input type="text" name="telefono" class="form-control"
-                                value="<?= esc(old('telefono', $persona['telefono'] ?? '')) ?>">
-                        </div>
-                        <div class="col-12">
-                            <?php $this->setData(['coloreCorrente' => old('colore', $persona['colore'] ?? '')]); ?>
-                            <?= $this->include('anagrafiche/personale/_colore_picker') ?>
-                        </div>
-                    </div>
+
+                    <?php endif ?>
 
                     <?php if ($user): ?>
 

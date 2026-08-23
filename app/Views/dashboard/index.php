@@ -263,12 +263,25 @@ $mostratiProm = count($capOggi) + count($capDopo);
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     <?php foreach ($conflitti as $c): ?>
+                    <?php
+                    // Due motivi diversi nello stesso elenco: il tecnico è assente quel giorno,
+                    // oppure il suo account è stato sospeso. Il colore distingue il caso —
+                    // l'assenza finisce da sola, la sospensione no.
+                    $sospeso      = $c['motivo'] === 'sospensione';
+                    $motivoLabel  = $sospeso
+                        ? 'Account sospeso'
+                        : ($tipiAssenzaLabel[$c['assenza_tipo']] ?? ucfirst((string) $c['assenza_tipo']));
+                    $motivoClasse = $sospeso
+                        ? 'bg-danger-subtle text-danger-emphasis'
+                        : 'bg-warning-subtle text-warning-emphasis';
+                    ?>
                     <li class="list-group-item py-2">
                         <a href="<?= base_url('operativo/interventi/' . $c['id'] . '/edit') ?>" class="fw-semibold text-decoration-none d-block">
                             <?= esc($c['cliente_denominazione']) ?>
                         </a>
                         <small class="text-muted">
-                            <?= esc($c['tecnico']) ?> · <?= esc($tipiAssenzaLabel[$c['assenza_tipo']] ?? ucfirst($c['assenza_tipo'])) ?>
+                            <?= esc($c['tecnico']) ?>
+                            · <span class="badge <?= $motivoClasse ?>"><?= esc($motivoLabel) ?></span>
                             · <?= date('d/m/Y', strtotime($c['data_pianificata'])) ?>
                         </small>
                     </li>

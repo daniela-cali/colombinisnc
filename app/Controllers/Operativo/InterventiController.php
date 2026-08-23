@@ -306,7 +306,9 @@ class InterventiController extends BaseController
             'intervento'    => $intervento,
             'cliente'       => $cliente,
             'cantiere'      => $cantiere,
-            'tecnici'       => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
+            // Il tecnico già assegnato resta fra le opzioni anche se sospeso, altrimenti
+            // salvare una qualunque altra modifica lo azzererebbe in silenzio.
+            'tecnici'       => (new PersonaleModel())->elencoPerGruppi(['tecnico'], $intervento['tecnico_id'] ? (int) $intervento['tecnico_id'] : null),
             'tipi'          => (new TipiInterventoModel())->attivi(),
             'prioritaLabel' => InterventiModel::PRIORITA_LABEL,
             'statiLabel'    => InterventiModel::STATI_LABEL,

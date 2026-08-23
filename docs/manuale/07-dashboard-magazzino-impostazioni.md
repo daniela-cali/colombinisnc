@@ -109,8 +109,16 @@ intervento.
 
 ### Utenti applicativi
 
-`Impostazioni\UtentiController` — creazione e gestione degli account Shield e della loro
-appartenenza ai gruppi, distinta dall'anagrafica del personale (capitolo 4.2).
+`Impostazioni\UtentiController` — **vista d'insieme in sola consultazione** di tutti gli account
+Shield: username, nominativo, email, gruppi e stato dell'accesso, divisa nelle due schede
+Personale e Clienti. Risponde a una domanda che l'elenco del personale non sa rispondere — *chi
+ha accesso, con quali ruoli, e chi è ancora abilitato* — ed è l'unico posto da cui vedere gli
+account **senza scheda dipendente**, oggi nessuno e domani quelli del portale clienti.
+
+Dalla v0.28.0 non è più un secondo form di modifica: email, ruoli e password si toccano solo
+dalla scheda del dipendente (capitolo 4.2) o dal proprio profilo. L'unica azione rimasta qui è
+**sospendere e riaprire l'accesso**, che è l'unica che non appartiene a una scheda persona.
+Gli account non si eliminano: vedi il capitolo 8.4.
 
 ### Import clienti
 

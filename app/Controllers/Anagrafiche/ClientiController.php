@@ -285,7 +285,9 @@ class ClientiController extends BaseController
 
         return view('anagrafiche/clienti/edit', [
             'cliente' => $cliente,
-            'tecnici' => (new PersonaleModel())->elencoPerGruppi(['tecnico']),
+            // Il tecnico preferito già impostato resta fra le opzioni anche se sospeso,
+            // altrimenti salvare una qualunque altra modifica lo azzererebbe in silenzio.
+            'tecnici' => (new PersonaleModel())->elencoPerGruppi(['tecnico'], $cliente['tecnico_preferito_id'] ? (int) $cliente['tecnico_preferito_id'] : null),
         ]);
     }
 

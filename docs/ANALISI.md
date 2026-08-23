@@ -642,6 +642,15 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `InterventiController::update()` applica i due vincoli finora presenti solo in `edit()` — tecnico proprietario e intervento non annullato — prima della validazione e leggendo il tecnico dal record salvato, non dal POST. Era l'unico metodo dell'intervento senza `accessoConsentito()`
 - Punti 2 e 3 di `docs/review/2026-08-16-review-progetto.md`
 
+#### ✅ v0.28.0 — Gestione account, ruoli e profilo
+- Tre controller scrivevano sullo stesso account Shield con lo stesso codice copiato parola per parola: la logica si concentra in `UserModel::creaAccount()` e `aggiornaAccount()`, con il filtro sui gruppi assegnabili applicato sia in aggiunta sia in rimozione
+- Chiusa un'escalation di privilegi che la review non aveva individuato: un utente `ufficio` poteva promuoversi ad amministratore dalla propria scheda dipendente. Causa strutturale la wildcard `personale.*` in `PERMESSI_UFFICIO`, che rendeva la matrice incapace di distinguere «gestire i dipendenti» da «nominare amministratori»; ora elenco esplicito più i permessi `personale.account` e `personale.elimina`
+- Tre sedi con responsabilità distinte: Personale (la persona, blocco account riservato a chi ha `personale.account`), Impostazioni → Utenti (vista d'insieme di sola consultazione in due schede, Personale e Clienti, con l'unica azione di sospendere e riaprire l'accesso), Profilo (self-service, funzionante anche senza scheda dipendente per i futuri account cliente)
+- **Un account non si elimina mai, si sospende**: `interventi.tecnico_id` ha `ON DELETE SET NULL` e `assenze.personale_id` `ON DELETE CASCADE`, quindi eliminare chi ha lavorato azzererebbe il tecnico su tutto lo storico e ne cancellerebbe il diario delle assenze. L'eliminazione resta solo per le schede mai usate. La sospensione usa `ban()`/`unban()` e non il campo `active`, che in questo progetto non impedisce l'accesso
+- Il lavoro di un tecnico sospeso finisce nella card *Interventi in conflitto* della dashboard, insieme al caso già esistente dell'assenza retroattiva, con un'etichetta che distingue i due motivi
+- `AdminSeeder` crea l'account reale con la sua scheda dipendente leggendo l'identità dal `.env`, al posto dell'account di servizio `admin` con password prevedibile; i gruppi restano nel codice perché sono permessi e non identità
+- Chiusi i punti 5, 6, 12 e 16 di `docs\review\2026-08-16-review-progetto.md`. Vedi `docs\spec\gestione_account_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

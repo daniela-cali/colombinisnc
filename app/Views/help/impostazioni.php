@@ -38,9 +38,11 @@
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-person-gear me-1"></i>Utenti</h6>
 <p>
-    Vista di tutti gli <strong>account</strong> con accesso alla piattaforma e dei loro gruppi.
-    La creazione di un nuovo dipendente con account avviene però dalla sezione
-    <em>Personale</em>.
+    Vista di <strong>tutti gli account</strong> con accesso alla piattaforma, dei loro gruppi e
+    del loro stato, divisa nelle due schede <strong>Personale</strong> e <strong>Clienti</strong>.
+    È di sola consultazione: l'unica azione è <strong>sospendere o riaprire l'accesso</strong>.
+    Email, ruoli e password si modificano dalla scheda del dipendente in <em>Personale</em>, da
+    dove si crea anche un nuovo dipendente con il suo account.
 </p>
 
 <div class="alert alert-info py-2 mb-0 mt-3">

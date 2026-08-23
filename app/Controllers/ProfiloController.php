@@ -9,26 +9,24 @@ use App\Models\UserModel;
 class ProfiloController extends BaseController
 {
     /**
-     * Form di modifica del proprio profilo: solo anagrafica ed account,
+     * Form di modifica del proprio profilo: anagrafica ed account,
      * niente gruppi (a differenza del form admin di Anagrafiche\PersonaleController).
+     *
+     * La scheda personale è facoltativa: un account senza dipendente collegato — oggi
+     * nessuno, domani quelli del portale clienti — deve comunque poter cambiare la
+     * propria email e la propria password.
      */
     public function index()
     {
         $persona = (new PersonaleModel())->perUtente(user_id());
-
-        if (! $persona) {
-            return redirect()->to('/')->with('error', 'Nessuna scheda personale associata al tuo account.');
-        }
-
-        $user  = $persona['user_id'] ? (new UserModel())->findById($persona['user_id']) : null;
-        $email = $user?->getEmailIdentity()?->secret ?? '';
+        $user    = (new UserModel())->findById(user_id());
 
         return view('profilo/index', [
             'persona'      => $persona,
             'user'         => $user,
-            'email'        => $email,
+            'email'        => $user?->getEmailIdentity()?->secret ?? '',
             'pastelli'     => PersonaleController::PASTELLI,
-            'colori_usati' => (new PersonaleModel())->coloriUsati($persona['id']),
+            'colori_usati' => $persona ? (new PersonaleModel())->coloriUsati($persona['id']) : [],
         ]);
     }
 
@@ -41,55 +39,42 @@ class ProfiloController extends BaseController
     {
         $persona = (new PersonaleModel())->perUtente(user_id());
 
-        if (! $persona) {
-            return redirect()->to('/')->with('error', 'Nessuna scheda personale associata al tuo account.');
-        }
-
         $rules = [
-            'nome'     => 'required|max_length[100]',
-            'cognome'  => 'required|max_length[100]',
-            'telefono' => 'permit_empty|max_length[20]',
-            'colore'   => 'permit_empty|max_length[7]',
+            'email' => 'required|valid_email|max_length[254]|is_unique[auth_identities.secret,user_id,' . user_id() . ']',
         ];
 
-        if ($persona['user_id']) {
-            $rules['email'] = 'required|valid_email|max_length[254]';
-            $password        = $this->request->getPost('password');
-            if ($password) {
-                $rules['password']         = 'min_length[8]';
-                $rules['password_confirm'] = 'matches[password]';
-            }
+        if ($persona) {
+            $rules['nome']     = 'required|max_length[100]';
+            $rules['cognome']  = 'required|max_length[100]';
+            $rules['telefono'] = 'permit_empty|max_length[20]';
+            $rules['colore']   = 'permit_empty|max_length[7]';
+        }
+
+        if ($this->request->getPost('password')) {
+            $rules['password']         = 'min_length[8]';
+            $rules['password_confirm'] = 'matches[password]';
         }
 
         if (! $this->validate($rules, [
-            'password_confirm' => ['matches' => 'Le password non coincidono.'],
+            'email'            => ['is_unique' => 'Questa email è già associata a un altro account.'],
+            'password_confirm' => ['matches'   => 'Le password non coincidono.'],
         ])) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        (new PersonaleModel())->update($persona['id'], [
-            'nome'     => $this->request->getPost('nome'),
-            'cognome'  => $this->request->getPost('cognome'),
-            'telefono' => $this->request->getPost('telefono') ?: null,
-            'colore'   => $this->request->getPost('colore') ?: null,
-        ]);
-
-        if ($persona['user_id']) {
-            $users = new UserModel();
-            $user  = $users->findById($persona['user_id']);
-
-            $identity   = $user->getEmailIdentity();
-            $nuovaEmail = $this->request->getPost('email');
-            if ($identity && $identity->secret !== $nuovaEmail) {
-                $identity->secret = $nuovaEmail;
-                model(\CodeIgniter\Shield\Models\UserIdentityModel::class)->save($identity);
-            }
-
-            if (! empty($password)) {
-                $user->setPassword($password);
-                $users->save($user);
-            }
+        if ($persona) {
+            (new PersonaleModel())->update($persona['id'], [
+                'nome'     => $this->request->getPost('nome'),
+                'cognome'  => $this->request->getPost('cognome'),
+                'telefono' => $this->request->getPost('telefono') ?: null,
+                'colore'   => $this->request->getPost('colore') ?: null,
+            ]);
         }
+
+        // Elenco dei gruppi assegnabili vuoto: dal proprio profilo non si cambiano i ruoli,
+        // e il model ignora i gruppi anche se la richiesta prova a includerli.
+        $users = new UserModel();
+        $users->aggiornaAccount($users->findById(user_id()), $this->request->getPost(), []);
 
         return redirect()->to('profilo')->with('success', 'Profilo aggiornato.');
     }

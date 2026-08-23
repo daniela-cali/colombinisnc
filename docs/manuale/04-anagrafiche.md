@@ -129,13 +129,35 @@ developer e ufficio. Prima della v0.24.23 era protetta solo dal menu, che nascon
 voce ai tecnici: un tecnico che digitava l'URL entrava comunque, e da lì poteva assegnarsi
 il gruppo `admin`. Il capitolo 8.4 racconta il problema per esteso.
 
+**Dentro la sezione i diritti non sono però tutti uguali** (v0.28.0). Il blocco *Account di
+accesso* — email, ruoli, password — richiede `personale.account`, che hanno solo admin e
+developer: chi non ce l'ha modifica l'anagrafica e le assenze, e non vede nemmeno le caselle
+dei gruppi. Anche **creare** un dipendente richiede quel permesso, perché creare una persona
+significa creare le sue credenziali. Il controller non si fida della view: senza il permesso
+non passa proprio dal model, quindi inviare i campi a mano non serve a niente.
+
+L'**eliminazione** richiede `personale.elimina` ed è consentita solo sulle schede senza nessun
+intervento e nessuna assenza, cioè in pratica per rimediare a un inserimento sbagliato:
+`interventi.tecnico_id` ha `ON DELETE SET NULL` e `assenze.personale_id` `ON DELETE CASCADE`,
+quindi eliminare chi ha lavorato azzererebbe il tecnico su tutto il suo storico e ne
+cancellerebbe il diario delle assenze, dopo una sola conferma del browser. Per escludere dal
+gestionale chi ha lavorato si **sospende l'account** da Impostazioni → Utenti (capitolo 7.4).
+
 ### Il mio profilo
 
 `ProfiloController` · rotte `profilo/*`
 
 Pagina separata, accessibile a chiunque sia autenticato. Mostra i propri dati anagrafici e
 le proprie credenziali, **senza la sezione gruppi** — rimossa dalla view, non nascosta —
-e senza il bottone di eliminazione.
+e senza il bottone di eliminazione. Dalla v0.28.0 la garanzia non è più solo nella view: il
+controller passa al model un elenco di gruppi assegnabili **vuoto**, e il model tocca solo i
+gruppi compresi in quell'elenco, quindi i ruoli restano intatti anche se la richiesta prova a
+includerli.
+
+La scheda dipendente è inoltre **facoltativa**: un account che non ne ha — oggi nessuno, domani
+quelli del portale clienti — vede e salva comunque email e password, saltando il blocco
+anagrafico. È ciò che rende il Profilo la sede naturale del self-service dei clienti senza
+doverne costruire una separata.
 
 Il punto chiave è che `ProfiloController::update()` non riceve né si fida di alcun `id`:
 risolve sempre il proprio dipendente lato server con `PersonaleModel::perUtente(user_id())`.
@@ -179,8 +201,16 @@ assegnati. Due punti di visibilità, stesso meccanismo sotto:
 **Nessuna tabella per i conflitti.** Nascono e spariscono da soli in base allo stato
 corrente di `interventi` e `assenze`: si risolvono riassegnando il tecnico, spostando la
 data o cancellando l'assenza. Un flag salvato andrebbe tenuto sincronizzato a mano a ogni
-cambiamento, con il rischio di disallinearsi; `InterventiModel::inConflittoConAssenze()` è
+cambiamento, con il rischio di disallinearsi; `InterventiModel::inConflitto()` è
 una query che è sempre vera adesso.
+
+Dalla v0.28.0 quella card ospita un **secondo motivo** oltre all'assenza: il tecnico assegnato
+il cui **account è stato sospeso**, che non entrerà più nel gestionale e non compare più fra gli
+assegnabili. È lo stesso problema — un fatto registrato dopo la pianificazione la invalida — e
+quindi lo stesso posto. Un'etichetta colorata distingue i due casi, e un intervento che ricade
+in entrambi compare una volta sola come sospensione: l'assenza finisce a fine ferie, la
+sospensione no. `inConflitto()` unisce le due query e deduplica; il motivo è aggiunto in PHP e
+non selezionato come letterale SQL, dove il Query Builder lo tratterebbe da nome di colonna.
 
 ## 4.4 Import dei clienti storici
 

@@ -8,7 +8,6 @@ use App\Models\InterventiModel;
 use App\Models\PersonaleModel;
 use App\Models\UserModel;
 use CodeIgniter\HTTP\RedirectResponse;
-use CodeIgniter\Shield\Entities\User;
 
 class PersonaleController extends BaseController
 {
@@ -34,6 +33,7 @@ class PersonaleController extends BaseController
     {
         return view('anagrafiche/personale/index', [
             'personale'    => (new PersonaleModel())->elencoCompleto(),
+            'puoCreare'    => auth()->user()->can('personale.account'),
             'help_sezione' => 'personale',
         ]);
     }
@@ -89,7 +89,7 @@ class PersonaleController extends BaseController
             'telefono'         => 'permit_empty|max_length[20]',
             'colore'           => 'permit_empty|max_length[7]',
             'username'         => 'required|min_length[3]|max_length[30]|is_unique[users.username]',
-            'email'            => 'required|valid_email|max_length[254]',
+            'email'            => 'required|valid_email|max_length[254]|is_unique[auth_identities.secret]',
             'gruppi'           => 'required',
             'password'         => 'required|min_length[8]',
             'password_confirm' => 'required|matches[password]',
@@ -97,6 +97,7 @@ class PersonaleController extends BaseController
 
         $messages = [
             'username'         => ['is_unique' => 'Questo nome utente è già in uso.'],
+            'email'            => ['is_unique' => 'Questa email è già associata a un altro account.'],
             'gruppi'           => ['required'  => 'Seleziona almeno un gruppo.'],
             'password_confirm' => ['matches'   => 'Le password non coincidono.'],
         ];
@@ -105,25 +106,12 @@ class PersonaleController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $users = new UserModel();
-        $user  = new User([
-            'username' => $this->request->getPost('username'),
-            'active'   => true,
-        ]);
+        // Account e scheda nella stessa transazione: sono una cosa sola per chi la usa,
+        // e un account creato a metà occuperebbe lo username senza permettere di rientrare.
+        $db = db_connect();
+        $db->transStart();
 
-        $users->save($user);
-        $user = $users->findById($users->getInsertID());
-
-        $user->createEmailIdentity([
-            'email'    => $this->request->getPost('email'),
-            'password' => $this->request->getPost('password'),
-        ]);
-
-        foreach ((array) $this->request->getPost('gruppi') as $gruppo) {
-            if (isset($this->gruppi[$gruppo])) {
-                $user->addGroup($gruppo);
-            }
-        }
+        $user = (new UserModel())->creaAccount($this->request->getPost(), array_keys($this->gruppi));
 
         (new PersonaleModel())->insert([
             'user_id'  => $user->id,
@@ -132,6 +120,13 @@ class PersonaleController extends BaseController
             'telefono' => $this->request->getPost('telefono') ?: null,
             'colore'   => $this->request->getPost('colore') ?: null,
         ]);
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Creazione non riuscita: nessun dato è stato salvato. Riprova.');
+        }
 
         return redirect()->to('anagrafiche/personale')
             ->with('success', esc($this->request->getPost('cognome') . ' ' . $this->request->getPost('nome')) . ' aggiunto con successo.');
@@ -153,18 +148,24 @@ class PersonaleController extends BaseController
         $email          = $user?->getEmailIdentity()?->secret ?? '';
 
         return view('anagrafiche/personale/edit', [
-            'persona'         => $persona,
-            'user'            => $user,
-            'email'           => $email,
-            'gruppi'          => $this->gruppi,
-            'gruppi_correnti' => $gruppiCorrenti,
-            'pastelli'        => self::PASTELLI,
-            'colori_usati'    => (new PersonaleModel())->coloriUsati($id),
+            'persona'           => $persona,
+            'user'              => $user,
+            'email'             => $email,
+            'puoGestireAccount' => auth()->user()->can('personale.account'),
+            'puoEliminare'      => auth()->user()->can('personale.elimina'),
+            'gruppi'            => $this->gruppi,
+            'gruppi_correnti'   => $gruppiCorrenti,
+            'pastelli'          => self::PASTELLI,
+            'colori_usati'      => (new PersonaleModel())->coloriUsati($id),
         ]);
     }
 
     /**
-     * Aggiorna anagrafica, email, gruppi e password opzionale del dipendente.
+     * Aggiorna anagrafica del dipendente e, per chi ha personale.account,
+     * anche email, ruoli e password del suo account.
+     *
+     * Chi non ha quel permesso (l'ufficio) non vede il blocco account nel form e non lo
+     * tocca nemmeno inviando i campi a mano: il controller non passa proprio dal model.
      */
     public function update(int $id)
     {
@@ -174,16 +175,21 @@ class PersonaleController extends BaseController
             return redirect()->to('anagrafiche/personale')->with('error', 'Dipendente non trovato.');
         }
 
+        $gestisceAccount = $persona['user_id'] && auth()->user()->can('personale.account');
+
         $rules = [
             'nome'     => 'required|max_length[100]',
             'cognome'  => 'required|max_length[100]',
             'telefono' => 'permit_empty|max_length[20]',
             'colore'   => 'permit_empty|max_length[7]',
-            'gruppi'   => 'required',
         ];
 
-        if ($persona['user_id']) {
-            $rules['email'] = 'required|valid_email|max_length[254]';
+        if ($gestisceAccount) {
+            // L'unicità ignora le identità dell'utente stesso, altrimenti risalvare il
+            // form senza cambiare l'email fallirebbe contro sé stessa.
+            $rules['email']  = 'required|valid_email|max_length[254]|is_unique[auth_identities.secret,user_id,' . $persona['user_id'] . ']';
+            $rules['gruppi'] = 'required';
+
             $password = $this->request->getPost('password');
             if ($password) {
                 $rules['password']         = 'min_length[8]';
@@ -192,10 +198,15 @@ class PersonaleController extends BaseController
         }
 
         if (! $this->validate($rules, [
-            'gruppi'           => ['required' => 'Seleziona almeno un gruppo.'],
-            'password_confirm' => ['matches'  => 'Le password non coincidono.'],
+            'email'            => ['is_unique' => 'Questa email è già associata a un altro account.'],
+            'gruppi'           => ['required'  => 'Seleziona almeno un gruppo.'],
+            'password_confirm' => ['matches'   => 'Le password non coincidono.'],
         ])) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        if ($gestisceAccount && ($r = $this->bloccaAutoDeclassamento((int) $persona['user_id']))) {
+            return $r;
         }
 
         (new PersonaleModel())->update($id, [
@@ -205,34 +216,13 @@ class PersonaleController extends BaseController
             'colore'   => $this->request->getPost('colore') ?: null,
         ]);
 
-        if ($persona['user_id']) {
+        if ($gestisceAccount) {
             $users = new UserModel();
-            $user  = $users->findById($persona['user_id']);
-
-            $identity   = $user->getEmailIdentity();
-            $nuovaEmail = $this->request->getPost('email');
-            if ($identity && $identity->secret !== $nuovaEmail) {
-                $identity->secret = $nuovaEmail;
-                model(\CodeIgniter\Shield\Models\UserIdentityModel::class)->save($identity);
-            }
-
-            $gruppiNuovi    = (array) $this->request->getPost('gruppi');
-            $gruppiCorrenti = $user->getGroups();
-
-            foreach (array_diff($gruppiCorrenti, $gruppiNuovi) as $g) {
-                $user->removeGroup($g);
-            }
-            foreach (array_diff($gruppiNuovi, $gruppiCorrenti) as $g) {
-                if (isset($this->gruppi[$g])) {
-                    $user->addGroup($g);
-                }
-            }
-
-            if (! empty($password)) {
-                $user = $users->findById($persona['user_id']);
-                $user->setPassword($password);
-                $users->save($user);
-            }
+            $users->aggiornaAccount(
+                $users->findById($persona['user_id']),
+                $this->request->getPost(),
+                array_keys($this->gruppi)
+            );
         }
 
         return redirect()->to('anagrafiche/personale')
@@ -240,8 +230,42 @@ class PersonaleController extends BaseController
     }
 
     /**
+     * Impedisce di togliersi da soli ogni ruolo amministrativo, restando fuori dalle
+     * sezioni che si stavano usando: è un errore da cui si esce solo dal database.
+     *
+     * Vale solo su sé stessi e solo se si perdono entrambi i ruoli: passare da admin a
+     * developer, o togliere admin a un collega, restano operazioni legittime.
+     *
+     * @return RedirectResponse|null il redirect di rifiuto, oppure null se si può procedere
+     */
+    private function bloccaAutoDeclassamento(int $utenteModificato): ?RedirectResponse
+    {
+        if ($utenteModificato !== user_id()) {
+            return null;
+        }
+
+        $amministrativi = ['admin', 'developer'];
+        $richiesti      = (array) $this->request->getPost('gruppi');
+
+        if (array_intersect(auth()->user()->getGroups(), $amministrativi)
+            && ! array_intersect($richiesti, $amministrativi)) {
+            return redirect()->back()->withInput()->with(
+                'error',
+                'Non puoi rimuovere a te stesso il ruolo di amministratore: chiedi a un altro amministratore di farlo.'
+            );
+        }
+
+        return null;
+    }
+
+    /**
      * Elimina il dipendente e il relativo account Shield (hard delete).
-     * Da implementare: verificare assenza di interventi collegati prima di eliminare.
+     *
+     * Consentito solo a chi non ha lasciato tracce, cioè in pratica ai record inseriti
+     * per errore: interventi.tecnico_id ha ON DELETE SET NULL e assenze.personale_id ha
+     * ON DELETE CASCADE, quindi eliminare chi ha lavorato azzererebbe il tecnico su tutto
+     * il suo storico e cancellerebbe il suo diario delle assenze, senza avvisare nessuno.
+     * Per escludere dal gestionale una persona che ha lavorato si sospende l'accesso.
      */
     public function delete(int $id)
     {
@@ -249,6 +273,32 @@ class PersonaleController extends BaseController
 
         if (! $persona) {
             return redirect()->to('anagrafiche/personale')->with('error', 'Dipendente non trovato.');
+        }
+
+        // Elimina anche l'account Shield: senza questo controllo ci si cancellerebbe
+        // l'accesso mentre lo si sta usando, e si rientrerebbe solo dal database.
+        if ((int) $persona['user_id'] === user_id()) {
+            return redirect()->to('anagrafiche/personale')
+                ->with('error', 'Non puoi eliminare la tua scheda: cancelleresti l\'account con cui stai lavorando.');
+        }
+
+        $interventi = (new InterventiModel())->contaPerTecnico($id);
+        $assenze    = (new AssenzeModel())->contaPerPersonale($id);
+
+        if ($interventi > 0 || $assenze > 0) {
+            $tracce = [];
+            if ($interventi > 0) {
+                $tracce[] = $interventi . ' intervent' . ($interventi === 1 ? 'o' : 'i');
+            }
+            if ($assenze > 0) {
+                $tracce[] = $assenze . ' assenz' . ($assenze === 1 ? 'a' : 'e');
+            }
+
+            return redirect()->to('anagrafiche/personale')->with(
+                'error',
+                esc($persona['cognome'] . ' ' . $persona['nome']) . ' ha ' . implode(' e ', $tracce)
+                . ' in archivio e non può essere eliminato: si perderebbe lo storico. Per togliergli l\'accesso, sospendi il suo account da Impostazioni → Utenti.'
+            );
         }
 
         if ($persona['user_id']) {

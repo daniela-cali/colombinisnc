@@ -47,11 +47,7 @@ $routes->group('impostazioni', ['filter' => 'permission:impostazioni.manage'], f
 
     $routes->group('utenti-app', function ($routes) {
         $routes->get('/',               'Impostazioni\UtentiController::utentiApp');
-        $routes->get('nuovo',           'Impostazioni\UtentiController::creaUtenteApp');
-        $routes->post('store',          'Impostazioni\UtentiController::storeUtenteApp');
-        $routes->get('(:num)/edit',     'Impostazioni\UtentiController::editUtenteApp/$1');
-        $routes->post('(:num)/update',  'Impostazioni\UtentiController::updateUtenteApp/$1');
-        $routes->post('(:num)/delete',  'Impostazioni\UtentiController::deleteUtenteApp/$1');
+        $routes->post('(:num)/stato',   'Impostazioni\UtentiController::cambiaStatoUtenteApp/$1');
     });
 });
 
@@ -59,12 +55,12 @@ $routes->group('impostazioni', ['filter' => 'permission:impostazioni.manage'], f
 $routes->group('anagrafiche', function ($routes) {
     $routes->group('personale', ['filter' => 'permission:personale.manage'], function ($routes) {
         $routes->get('/',              'Anagrafiche\PersonaleController::index');
-        $routes->get('nuovo',          'Anagrafiche\PersonaleController::nuovo');
-        $routes->post('store',         'Anagrafiche\PersonaleController::store');
+        $routes->get('nuovo',          'Anagrafiche\PersonaleController::nuovo',  ['filter' => 'permission:personale.account']);
+        $routes->post('store',         'Anagrafiche\PersonaleController::store',  ['filter' => 'permission:personale.account']);
         $routes->get('(:num)',         'Anagrafiche\PersonaleController::show/$1');
         $routes->get('(:num)/edit',    'Anagrafiche\PersonaleController::edit/$1');
         $routes->post('(:num)/update', 'Anagrafiche\PersonaleController::update/$1');
-        $routes->post('(:num)/delete', 'Anagrafiche\PersonaleController::delete/$1');
+        $routes->post('(:num)/delete', 'Anagrafiche\PersonaleController::delete/$1', ['filter' => 'permission:personale.elimina']);
         $routes->post('assenze/aggiungi',       'Anagrafiche\PersonaleController::aggiungiAssenza');
         $routes->post('assenze/(:num)/elimina', 'Anagrafiche\PersonaleController::eliminaAssenza/$1');
     });

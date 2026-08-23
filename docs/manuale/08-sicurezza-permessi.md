@@ -18,13 +18,17 @@ login. È applicato **sia** al `GET` sia al `POST` — vedi il caso descritto al
 
 Gruppi e permessi **non stanno nel database**: sono dichiarati in
 `app/Config/AuthGroups.php`. Il gruppo assegnato per impostazione predefinita a un nuovo
-utente è `ufficio`.
+utente è `cliente`, il meno potente: fino alla v0.28.0 era `ufficio`, cioè il secondo più
+potente. Oggi il valore è inerte perché la registrazione autonoma è disattivata, ma diventerà
+rilevante il giorno in cui si aprirà il portale clienti.
 
-I sette permessi esistenti:
+I nove permessi esistenti:
 
 | Permesso | Cosa protegge |
 |---|---|
-| `personale.manage` | anagrafica del personale e gestione degli account |
+| `personale.manage` | anagrafica del personale e assenze |
+| `personale.account` | creare account, assegnare ruoli, cambiare le password altrui |
+| `personale.elimina` | eliminare dipendenti e account |
 | `impostazioni.manage` | l'intera sezione Impostazioni |
 | `abbonamenti.manage` | creazione, modifica e cambio di stato degli abbonamenti |
 | `cantieri.manage` | creazione, modifica, cambio di stato ed eliminazione dei cantieri |
@@ -36,12 +40,18 @@ La matrice che li assegna ai gruppi:
 
 | Gruppo | Permessi |
 |---|---|
-| `admin`, `developer` | tutti e sette |
-| `ufficio` | tutti tranne `impostazioni.manage` |
+| `admin`, `developer` | tutti e nove |
+| `ufficio` | `personale.manage`, `abbonamenti.manage`, `cantieri.manage`, `clienti.elimina`, `interventi.elimina`, `magazzino.elimina` |
 | `tecnico`, `cliente` | nessuno |
 
 I permessi si applicano alle rotte con il filtro `permission:<nome>`, e i due insiemi sono
 raccolti in due costanti (`PERMESSI_ADMIN` e `PERMESSI_UFFICIO`) invece di essere ripetuti.
+
+**Le due costanti sono scritte in modo deliberatamente diverso.** `PERMESSI_ADMIN` usa le
+wildcard (`personale.*`), perché admin e developer devono ereditare qualunque permesso futuro.
+`PERMESSI_UFFICIO` elenca invece i permessi uno per uno: con una wildcard, ogni permesso nuovo
+chiamato `personale.qualcosa` sarebbe finito **in silenzio** anche all'ufficio. Non è teoria —
+è esattamente così che un utente ufficio poteva promuoversi ad amministratore (§8.4).
 
 **Perché permessi e non gruppi direttamente sulle rotte.** Un filtro
 `group:admin,developer,ufficio` funzionerebbe, ma l'elenco dei gruppi andrebbe ripetuto e
@@ -124,10 +134,11 @@ l'eliminazione** ("il tecnico può eliminare i propri") è stata scartata: l'eli
 distruttiva e senza recupero facile, diversamente dall'annullamento che lascia comunque il
 record.
 
-## 8.4 I due problemi di sicurezza già chiusi
+## 8.4 I problemi di sicurezza già chiusi
 
-Vale la pena conoscerli, perché sono lo stesso errore in due punti diversi: **la
-protezione esisteva solo nel menu**.
+Vale la pena conoscerli, perché i primi due sono lo stesso errore in due punti diversi — **la
+protezione esisteva solo nel menu** — e il terzo mostra che chiudere l'accesso a una sezione
+non dice ancora niente su cosa ci si può fare **da dentro**.
 
 ### Privilege escalation e IDOR sul profilo (v0.24.23)
 
@@ -157,6 +168,37 @@ eliminare abbonamenti, cantieri, articoli di magazzino e interventi di chiunque,
 eliminare clienti — quest'ultimo caso senza nemmeno la protezione visiva, perché la voce di
 menu era visibile a tutti. Da qui i cinque permessi rimanenti e il controllo di proprietà
 descritti sopra.
+
+### Un utente ufficio poteva promuoversi ad amministratore (v0.28.0)
+
+È lo stesso schema visto in v0.24.23, ma un livello più in profondità: lì la sezione era
+protetta solo dal menu, qui la sezione era protetta davvero — e **dentro** non c'era nessun
+limite a quali ruoli si potessero assegnare.
+
+Le rotte `anagrafiche/personale/*` richiedono `personale.manage`, permesso che l'ufficio ha
+legittimamente: gli serve per l'anagrafica e le assenze. Ma il form della scheda dipendente
+mostrava tutte le caselle dei gruppi, "Amministratore" compresa. Un utente ufficio apriva la
+propria scheda, spuntava la casella, salvava e otteneva `impostazioni.*`. Non serviva costruire
+richieste a mano: bastava l'interfaccia normale.
+
+La causa **strutturale** era la wildcard `personale.*` in `PERMESSI_UFFICIO`: finché c'era, la
+matrice non era in grado di *esprimere* la differenza fra «gestire i dipendenti» e «nominare
+amministratori». La correzione è quindi cominciata da lì — elenco esplicito e due permessi
+nuovi, `personale.account` e `personale.elimina` — e non da un controllo nel controller.
+
+Un secondo difetto amplificava il primo, in direzione opposta: nel ciclo che **rimuove** i
+gruppi mancava il filtro presente in quello che li aggiunge, quindi un utente ufficio che
+salvava la scheda di un amministratore gli **toglieva** il ruolo, solo perché quella casella non
+era nel suo form. Oggi il filtro sui gruppi assegnabili vive in un punto solo
+(`UserModel::aggiornaAccount()`) e vale in aggiunta e in rimozione.
+
+Restano tre guardie che nessuna matrice può esprimere, perché dipendono da *chi sei tu* e non
+dal ruolo: non elimini la tua scheda, non sospendi il tuo accesso, non ti togli l'ultimo ruolo
+amministrativo. Il conteggio degli amministratori superstiti proposto in fase di review si è
+rivelato non necessario: ogni operazione sugli account la compie un amministratore, che non può
+né declassare né cancellare sé stesso, quindi lo zero è irraggiungibile per costruzione.
+
+Dettagli e alternative scartate in `docs/spec/gestione_account_spec.md`.
 
 ## 8.5 Cosa resta scoperto
 

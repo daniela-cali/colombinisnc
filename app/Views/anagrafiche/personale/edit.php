@@ -7,6 +7,8 @@
  * @var array                                  $gruppi_correnti
  * @var array                                  $pastelli
  * @var array                                  $colori_usati
+ * @var bool                                   $puoGestireAccount
+ * @var bool                                   $puoEliminare
  * @var \CodeIgniter\Shield\Entities\User|null $user
  */
 $this->extend('layouts/admin');
@@ -47,14 +49,16 @@ $nomeCognome = $persona['cognome'] . ' ' . $persona['nome'];
                        class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-lg me-1"></i>Annulla
                     </a>
-                    <form action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/delete') ?>"
-                          method="post" class="d-inline"
-                          onsubmit="return confirm('Eliminare definitivamente questo dipendente e il suo account?')">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i>Elimina
-                        </button>
-                    </form>
+                    <?php if ($puoEliminare): ?>
+                        <form action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/delete') ?>"
+                              method="post" class="d-inline"
+                              onsubmit="return confirm('Eliminare definitivamente questo dipendente e il suo account? Possibile solo se non ha interventi né assenze in archivio.')">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash me-1"></i>Elimina
+                            </button>
+                        </form>
+                    <?php endif ?>
                     <button type="submit" form="form-update" class="btn btn-sm btn-primary">
                         <i class="bi bi-check-lg me-1"></i>Salva
                     </button>
@@ -87,7 +91,9 @@ $nomeCognome = $persona['cognome'] . ' ' . $persona['nome'];
                         </div>
                     </div>
 
-                    <?php if ($user): ?>
+                    <?php // Email, ruoli e password solo a chi ha personale.account: l'ufficio
+                          // modifica l'anagrafica e le assenze, non i ruoli (spec §2.1). ?>
+                    <?php if ($user && $puoGestireAccount): ?>
 
                         <p class="text-muted section-header mb-3"><i class="bi bi-key me-1"></i> Account di accesso</p>
                         <div class="row g-3 mb-4">

@@ -70,7 +70,7 @@ class DashboardController extends BaseController
 
         $data['urgenti']     = model(InterventiModel::class)->urgentiDaPianificare(null, 10);
         $data['assentiOggi'] = model(AssenzeModel::class)->oggi();
-        $data['conflitti']   = model(InterventiModel::class)->inConflittoConAssenze();
+        $data['conflitti']   = model(InterventiModel::class)->inConflitto();
 
         if (! $includiAbbonamenti) {
             return;
