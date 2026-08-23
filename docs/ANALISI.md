@@ -651,6 +651,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `AdminSeeder` crea l'account reale con la sua scheda dipendente leggendo l'identità dal `.env`, al posto dell'account di servizio `admin` con password prevedibile; i gruppi restano nel codice perché sono permessi e non identità
 - Chiusi i punti 5, 6, 12 e 16 di `docs\review\2026-08-16-review-progetto.md`. Vedi `docs\spec\gestione_account_spec.md`
 
+#### ✅ v0.28.1 — Periodi di abbonamento salvati in transazione
+- `AbbonamentiController::update()` cancellava e reinseriva i periodi fuori da qualsiasi transazione: un errore a metà lasciava l'abbonamento con periodi parziali o senza, cioè senza la frequenza che ne definisce le visite. Ora in `transStart()` / `transComplete()` come già faceva `store()`
+- I periodi non erano validati lato server — l'unico controllo sulla frequenza era il `required` del `<select>`, quindi nel browser. Aggiunte le regole `periodi.*.*`, con la lista delle frequenze presa dalle costanti del model; tolto di conseguenza lo scarto silenzioso in `salvaPeriodi()`, che è ciò che rendeva il danno invisibile
+- Punto 9 di `docs\review\2026-08-16-review-progetto.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

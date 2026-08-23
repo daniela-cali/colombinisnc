@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.28.1] - 2026-08-23
+
+### Periodi di abbonamento salvati in transazione
+
+- [APP] Salvando un abbonamento con un periodo **incompleto**, ora compare un messaggio che dice cosa manca ("Ogni periodo deve avere una frequenza"). Prima quel periodo veniva scartato senza dirlo, e l'abbonamento risultava «aggiornato» pur restando senza la frequenza che ne definisce le visite
+- [DEV] **`AbbonamentiController::update()` sostituiva i periodi fuori da qualsiasi transazione** (punto 9 della review): cancellava tutte le righe e le reinseriva, quindi un errore a metà lasciava l'abbonamento con periodi parziali o senza. Le tre operazioni sono ora in `transStart()` / `transComplete()`, come già faceva `store()`
+- [DEV] I periodi non erano validati lato server: `regolaValidazione()` non li nominava affatto, e l'unico controllo sulla frequenza era l'attributo `required` del `<select>`, cioè nel browser. Aggiunte le regole `periodi.*.data_inizio`, `periodi.*.data_fine` e `periodi.*.frequenza`, con la lista delle frequenze presa da `AbbonamentiModel::FREQUENZE_LABEL` invece che riscritta a mano. Il controllo `empty($periodi)` passa prima della validazione, così ogni caso conserva il suo messaggio
+- [DEV] Tolto da `salvaPeriodi()` lo scarto silenzioso delle righe incomplete: ora che la validazione le rifiuta a monte era codice irraggiungibile, e se una riga incompleta ci arrivasse comunque le colonne `NOT NULL` della tabella farebbero fallire l'`INSERT` con rollback della transazione
+
 ## [0.28.0] - 2026-08-23
 
 ### Gestione account, ruoli e profilo

@@ -32,7 +32,7 @@ inviti a fare meglio quando capita.
 | 6 | Creazione dipendente: email non verificata, nessuna transazione | bug | media | ✅ chiuso in v0.28.0 |
 | 7 | Magic link attivo ma posta non configurata | bug | media | ◐ mitigato in v0.27.2 (link rimosso); SMTP da configurare |
 | 8 | `CURDATE()` e fuso orario del server MySQL | bug latente | media | aperto |
-| 9 | Periodi abbonamento sostituiti senza transazione | bug | media | aperto |
+| 9 | Periodi abbonamento sostituiti senza transazione | bug | media | ✅ chiuso in v0.28.1 |
 | 10 | Assenze per malattia visibili a tutti | privacy | media | aperto — richiede una decisione |
 | 11 | Font Awesome: ~570 KB per un solo utilizzo | performance | media | aperto |
 | 12 | Due rotte puntano a metodi inesistenti | pulizia | bassa | ✅ chiuso in v0.28.0 |
@@ -276,6 +276,13 @@ come parametro al posto di `CURDATE()`. Da verificare comunque sul server di pro
 un semplice `SELECT NOW(), CURDATE();` appena disponibile.
 
 ## 9. Periodi abbonamento sostituiti senza transazione
+
+> ✅ **Chiuso in v0.28.1** — le tre operazioni sono in `transStart()` / `transComplete()`.
+> Durante il lavoro è emersa una seconda via allo stesso danno, che la transazione da sola non
+> copriva: i periodi non erano validati lato server, e `salvaPeriodi()` scartava in silenzio le
+> righe incomplete. Con frequenza vuota — cosa che solo il `required` del `<select>` impediva,
+> quindi solo nel browser — i periodi venivano cancellati, nessuno reinserito, e la transazione
+> si chiudeva con successo. Aggiunte le regole `periodi.*.*` e rimosso lo scarto silenzioso.
 
 **Dove:** `app/Controllers/AbbonamentiController.php:172-176`
 

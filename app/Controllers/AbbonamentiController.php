@@ -61,15 +61,18 @@ class AbbonamentiController extends BaseController
     {
         $model = new AbbonamentiModel();
 
-        if (! $this->validate($this->regolaValidazione())) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
+        // Prima della validazione: le regole su periodi.*.* danno per scontato che almeno
+        // una riga esista, e senza questo controllo il messaggio dedicato andrebbe perso.
         $periodi = $this->request->getPost('periodi') ?? [];
         if (empty($periodi)) {
             return redirect()->back()->withInput()
                 ->with('errors', ['periodi' => 'Aggiungere almeno un periodo di frequenza.']);
         }
+
+        if (! $this->validate($this->regolaValidazione())) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
         if (! $this->periodiCoprono($periodi, $this->request->getPost('data_inizio'), $this->request->getPost('data_fine'))) {
             return redirect()->back()->withInput()
                 ->with('errors', ['periodi' => 'I periodi devono coprire l\'intero arco dell\'abbonamento: il primo deve iniziare e l\'ultimo deve finire alle date del periodo di validità.']);
@@ -155,25 +158,39 @@ class AbbonamentiController extends BaseController
             return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
         }
 
-        if (! $this->validate($this->regolaValidazione())) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
-
+        // Prima della validazione: le regole su periodi.*.* danno per scontato che almeno
+        // una riga esista, e senza questo controllo il messaggio dedicato andrebbe perso.
         $periodi = $this->request->getPost('periodi') ?? [];
         if (empty($periodi)) {
             return redirect()->back()->withInput()
                 ->with('errors', ['periodi' => 'Aggiungere almeno un periodo di frequenza.']);
         }
+
+        if (! $this->validate($this->regolaValidazione())) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
         if (! $this->periodiCoprono($periodi, $this->request->getPost('data_inizio'), $this->request->getPost('data_fine'))) {
             return redirect()->back()->withInput()
                 ->with('errors', ['periodi' => 'I periodi devono coprire l\'intero arco dell\'abbonamento: il primo deve iniziare e l\'ultimo deve finire alle date del periodo di validità.']);
         }
 
-        $model->update($id, $this->request->getPost());
+        // I periodi si sostituiscono in blocco: la cancellazione e il reinserimento devono
+        // stare nella stessa transazione, altrimenti un errore a metà lascerebbe
+        // l'abbonamento con periodi parziali o senza — cioè senza frequenza delle visite.
+        $db = db_connect();
+        $db->transStart();
 
-        // Sostituisce i periodi esistenti con i nuovi
+        $model->update($id, $this->request->getPost());
         (new AbbonamentiPeriodiModel())->where('abbonamento_id', $id)->delete();
         $this->salvaPeriodi($id, $periodi);
+
+        $db->transComplete();
+
+        if (! $db->transStatus()) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Errore durante l\'aggiornamento dell\'abbonamento: nessuna modifica è stata salvata.');
+        }
 
         $from = $this->request->getPost('from');
         $dest = ($from && str_starts_with($from, base_url())) ? $from : base_url('abbonamenti/' . $id);
@@ -290,16 +307,17 @@ class AbbonamentiController extends BaseController
 
     /**
      * Inserisce i periodi per un abbonamento, assegnando ordine progressivo.
-     * Righe con campi obbligatori mancanti vengono ignorate silenziosamente.
+     *
+     * Presuppone righe complete: le regole periodi.*.* di regolaValidazione() girano in
+     * entrambi i chiamanti prima del salvataggio. Nessuno scarto silenzioso quindi — e se
+     * una riga incompleta ci arrivasse comunque, le colonne NOT NULL della tabella fanno
+     * fallire l'INSERT, la transazione va in rollback e l'utente vede l'errore.
      */
     private function salvaPeriodi(int $abbonamentoId, array $periodi): void
     {
         $model  = new AbbonamentiPeriodiModel();
         $ordine = 1;
         foreach ($periodi as $periodo) {
-            if (empty($periodo['data_inizio']) || empty($periodo['data_fine']) || empty($periodo['frequenza'])) {
-                continue;
-            }
             $model->insert([
                 'abbonamento_id'    => $abbonamentoId,
                 'data_inizio'       => $periodo['data_inizio'],
@@ -421,6 +439,32 @@ class AbbonamentiController extends BaseController
             'data_inizio'        => 'required|valid_date[Y-m-d]',
             'data_fine'          => 'required|valid_date[Y-m-d]',
             'prezzo'             => 'permit_empty|decimal',
+
+            // Le regole con il jolly valgono per ogni riga di periodi[]. Il "required" sul
+            // <select> della frequenza vive solo nel browser: senza queste regole una riga
+            // incompleta arriverebbe fino al salvataggio e verrebbe scartata in silenzio,
+            // lasciando l'abbonamento senza la frequenza che ne definisce le visite.
+            'periodi.*.data_inizio' => [
+                'rules'  => 'required|valid_date[Y-m-d]',
+                'errors' => [
+                    'required'   => 'Ogni periodo deve avere una data di inizio.',
+                    'valid_date' => 'La data di inizio di un periodo non è valida.',
+                ],
+            ],
+            'periodi.*.data_fine' => [
+                'rules'  => 'required|valid_date[Y-m-d]',
+                'errors' => [
+                    'required'   => 'Ogni periodo deve avere una data di fine.',
+                    'valid_date' => 'La data di fine di un periodo non è valida.',
+                ],
+            ],
+            'periodi.*.frequenza' => [
+                'rules'  => 'required|in_list[' . implode(',', array_keys(AbbonamentiModel::FREQUENZE_LABEL)) . ']',
+                'errors' => [
+                    'required' => 'Ogni periodo deve avere una frequenza.',
+                    'in_list'  => 'La frequenza di un periodo non è tra quelle previste.',
+                ],
+            ],
         ];
     }
 }
