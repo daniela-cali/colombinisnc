@@ -295,7 +295,7 @@
   <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>cliente_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ clienti.id · ON DELETE RESTRICT</td></tr>
   <tr><td><span class="badge badge-fk">FK</span> <code>tipo_intervento_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ tipi_intervento.id · ON DELETE RESTRICT · stesso tipo per tutti gli interventi generati</td></tr>
-  <tr><td><span class="badge badge-fk">FK</span> <span class="badge badge-uq">UQ</span> <code>abbonamento_precedente_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE SET NULL · catena storica rinnovi 1-a-1 (UNIQUE impedisce due rinnovi dello stesso abbonamento) · CTE ricorsiva MySQL 8+ per ricostruirla · UQ aggiunto v0.26.0</td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <span class="badge badge-uq">UQ</span> <code>abbonamento_precedente_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ abbonamenti.id · ON DELETE RESTRICT · catena storica rinnovi 1-a-1 (UNIQUE impedisce due rinnovi dello stesso abbonamento) · CTE ricorsiva MySQL 8+ per ricostruirla · UQ aggiunto v0.26.0 · RESTRICT dalla v0.29.0</td></tr>
   <tr><td><code>data_inizio</code></td><td>DATE</td><td></td><td></td><td>Tipicamente 01/01 — primo giorno di validità</td></tr>
   <tr><td><code>data_fine</code></td><td>DATE</td><td></td><td></td><td>Tipicamente 31/12 — ultimo giorno di validità</td></tr>
   <tr><td><code>durata_mesi</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Calcolato automaticamente dal model al salvataggio</td></tr>
@@ -489,7 +489,7 @@
   <tr><td>articoli</td><td>categoria_id</td><td>categorie_articoli.id</td><td>SET NULL</td></tr>
   <tr><td>abbonamenti</td><td>cliente_id</td><td>clienti.id</td><td>RESTRICT</td></tr>
   <tr><td>abbonamenti</td><td>tipo_intervento_id</td><td>tipi_intervento.id</td><td>RESTRICT</td></tr>
-  <tr><td>abbonamenti</td><td>abbonamento_precedente_id</td><td>abbonamenti.id</td><td>SET NULL</td></tr>
+  <tr><td>abbonamenti</td><td>abbonamento_precedente_id</td><td>abbonamenti.id</td><td>RESTRICT</td></tr>
   <tr><td>abbonamenti_periodi</td><td>abbonamento_id</td><td>abbonamenti.id</td><td>CASCADE</td></tr>
 </table>
 
@@ -520,6 +520,19 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.29.0</td>
+    <td><code>AbbonamentoPrecedenteRestrict</code></td>
+    <td>
+      <code>abbonamenti.abbonamento_precedente_id</code> passa da <code>ON DELETE SET NULL</code> a
+      <code>ON DELETE RESTRICT</code> (<code>ON UPDATE</code> invariato). Era l'unica foreign key del progetto
+      configurata per cedere: tutte le altre rifiutano e lasciano all'applicazione il compito di spiegare.
+      La regola diventa rilevante proprio in questa versione, che introduce l'eliminazione di un abbonamento:
+      con <code>SET NULL</code>, eliminarne uno già rinnovato sarebbe riuscito azzerando in silenzio il
+      collegamento sul successore, e il rinnovo sarebbe rimasto come un contratto senza passato.
+      Vedi <code>docs/spec/abbonamenti_annulla_accettazione_spec.md</code>, decisione 9.
+    </td>
+  </tr>
   <tr>
     <td>v0.27.1</td>
     <td><em>nessuna migrazione</em></td>

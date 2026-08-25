@@ -2,6 +2,7 @@
 /**
  * @var string $title
  * @var array  $abbonamento          Da AbbonamentiModel::trovaConDettagli() — include stato_calcolato, successore_id
+ * @var bool   $rinnovabile          Da AbbonamentiModel::rinnovabile() — decide il bottone Rinnova
  * @var array  $periodi              Da AbbonamentiPeriodiModel::perAbbonamento()
  * @var array  $interventi           Interventi figli: id, codice, data_scadenza, data_pianificata, stato
  * @var array  $statiLabel           AbbonamentiModel::STATI_LABEL
@@ -13,6 +14,18 @@
 $this->extend('layouts/admin');
 
 $stato = $abbonamento['stato_calcolato'];
+
+// I due confirm() delle azioni distruttive dichiarano le conseguenze in numeri. Il testo
+// dinamico si compone qui e non dentro l'attributo onclick: per la convenzione CLAUDE.md
+// niente accessi ad array dentro gli attributi onXXX, e queste stringhe non contengono
+// apostrofi, così non collidono con gli apici del confirm().
+$nInterventi = count($interventi);
+$avvisoInterventi = $nInterventi === 0
+    ? 'Non ci sono interventi da cancellare.'
+    : 'Verranno cancellati ' . $nInterventi . ' intervent' . ($nInterventi === 1 ? 'o' : 'i') . '.';
+
+$nPeriodi      = count($periodi);
+$avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
 ?>
 <?= $this->section('title') ?><?= esc($title) ?><?= $this->endSection() ?>
 
@@ -139,6 +152,13 @@ $stato = $abbonamento['stato_calcolato'];
                                 <i class="bi bi-clipboard-x-fill me-1"></i>Rifiuta proposta
                             </button>
                         </form>
+                        <form action="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/elimina') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                                    onclick="return confirm('Eliminare definitivamente questo abbonamento e i suoi <?= $avvisoPeriodi ?>? L\'operazione non è reversibile.')">
+                                <i class="bi bi-trash me-1"></i>Elimina abbonamento
+                            </button>
+                        </form>
                     </div>
                 </div>
             <?php endif ?>
@@ -170,8 +190,19 @@ $stato = $abbonamento['stato_calcolato'];
                             <?= csrf_field() ?>
                             <input type="hidden" name="stato" value="disdetto">
                             <button type="submit" class="btn btn-danger btn-sm w-100"
-                                    onclick="return confirm('Disdire l\'abbonamento? Gli interventi futuri verranno annullati. L\'operazione non è reversibile.')">
+                                    onclick="return confirm('Disdire l\'abbonamento? Verranno annullate tutte le visite successive a oggi, comprese quelle già pianificate in calendario. L\'operazione non è reversibile.')">
                                 <i class="bi bi-x-circle me-1"></i>Disdici
+                            </button>
+                        </form>
+
+                        <!-- Correzione di un errore, non parte del ciclo di vita del contratto -->
+                        <hr class="my-1">
+
+                        <form action="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/annulla-accettazione') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100"
+                                    onclick="return confirm('Annullare l\'accettazione? <?= $avvisoInterventi ?> L\'abbonamento tornerà in proposta e potrà essere modificato o eliminato.')">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Annulla accettazione
                             </button>
                         </form>
 
@@ -179,20 +210,21 @@ $stato = $abbonamento['stato_calcolato'];
                 </div>
             <?php endif ?>
 
-            <!-- Rinnova -->
-            <?php if (in_array($stato, ['scaduto', 'disdetto'], true)): ?>
+            <!-- Rinnova — quando si può rinnovare lo dice solo rinnovabile(), la stessa
+                 regola che applica il controller: qui nessuna condizione sullo stato -->
+            <?php if ($abbonamento['successore_id']): ?>
                 <div class="card-footer">
-                    <?php if ($abbonamento['successore_id']): ?>
-                        <a href="<?= base_url('abbonamenti/' . $abbonamento['successore_id']) ?>"
-                           class="btn btn-outline-secondary btn-sm w-100">
-                            <i class="bi bi-arrow-right-circle me-1"></i>Vai al rinnovo
-                        </a>
-                    <?php else: ?>
-                        <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/rinnova') ?>"
-                           class="btn btn-primary btn-sm w-100">
-                            <i class="bi bi-arrow-repeat me-1"></i>Rinnova abbonamento
-                        </a>
-                    <?php endif ?>
+                    <a href="<?= base_url('abbonamenti/' . $abbonamento['successore_id']) ?>"
+                       class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="bi bi-arrow-right-circle me-1"></i>Vai al rinnovo
+                    </a>
+                </div>
+            <?php elseif ($rinnovabile): ?>
+                <div class="card-footer">
+                    <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/rinnova') ?>"
+                       class="btn btn-primary btn-sm w-100">
+                        <i class="bi bi-arrow-repeat me-1"></i>Rinnova abbonamento
+                    </a>
                 </div>
             <?php endif ?>
 

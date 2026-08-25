@@ -49,6 +49,16 @@ class AbbonamentiModel extends Model
     const STATO_PROPOSTA  = 'proposta';  // nuovo — stato di partenza
     const STATO_RIFIUTATA = 'rifiutata'; // nuovo — terminale, il cliente non ha accettato
 
+    /**
+     * Stati che diventano 'scaduto' quando data_fine è passata.
+     *
+     * Punto unico della regola: la usano il frammento SQL di selectStatoCalcolato() e la
+     * query del batch notturno leggiScaduti(). Un abbonamento sospeso scade come uno attivo —
+     * la sospensione mette in pausa le visite, non allunga il contratto, e la sua data di fine
+     * è per costruzione quella dell'ultimo periodo (vedi periodiCoprono() nel controller).
+     */
+    const STATI_SCADIBILI = [self::STATO_ATTIVO, self::STATO_SOSPESO];
+
     const STATI_LABEL = [
         'attivo'   => 'Attivo',
         'sospeso'  => 'Sospeso',
@@ -102,6 +112,80 @@ class AbbonamentiModel extends Model
     }
 
     /**
+     * Frammento SELECT che calcola lo stato effettivo dell'abbonamento.
+     *
+     * 'scaduto' non è memorizzato nel momento in cui matura: il batch notturno
+     * (batch:abbonamenti-scaduti) lo scrive una volta al giorno, quindi fra la data di fine e
+     * l'esecuzione del batch lo stato salvato è ancora quello vecchio. Questo CASE colma la
+     * finestra, e dal giorno dopo i due valori coincidono.
+     *
+     * Esisteva in quattro copie identiche sparse fra le query: qui in un punto solo, così la
+     * regola e l'elenco STATI_SCADIBILI si modificano una volta sola.
+     */
+    private function selectStatoCalcolato(): string
+    {
+        $scadibili = implode(', ', array_map(fn (string $s) => $this->db->escape($s), self::STATI_SCADIBILI));
+        $scaduto   = $this->db->escape(self::STATO_SCADUTO);
+
+        return "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato IN ({$scadibili})
+                      THEN {$scaduto} ELSE abbonamenti.stato END AS stato_calcolato";
+    }
+
+    /**
+     * Un abbonamento è rinnovabile solo se tutte e quattro le condizioni valgono.
+     *
+     * Riceve una riga già letta da trovaConDettagli() o elencoConDettagli(), che portano
+     * stato_calcolato e successore_id; non tocca il database. Serve alle due view per
+     * decidere se mostrare il bottone e a rinnova() per rifiutare la richiesta, così bottone
+     * e rotta non possono dire cose diverse — che è il difetto che index e scheda avevano
+     * prima, offrendo il rinnovo su insiemi di stati differenti.
+     */
+    public function rinnovabile(array $abbonamento): bool
+    {
+        return $this->motivoNonRinnovabile($abbonamento) === null;
+    }
+
+    /**
+     * Perché questo abbonamento non è rinnovabile, o null se lo è.
+     *
+     * Decisione e spiegazione stanno nello stesso metodo di proposito: se il controller
+     * ricostruisse le condizioni per comporre il messaggio, prima o poi direbbe all'utente
+     * un motivo diverso da quello per cui ha davvero rifiutato. Le frasi sono pensate per
+     * essere incastrate dopo "Questo abbonamento ...".
+     */
+    public function motivoNonRinnovabile(array $abbonamento): ?string
+    {
+        $stato = $abbonamento['stato_calcolato'] ?? $abbonamento['stato'] ?? '';
+
+        // Un contratto in pausa non è una base da cui proiettare l'anno successivo.
+        if ($stato === self::STATO_SOSPESO) {
+            return 'è sospeso: va riattivato prima di poterlo rinnovare';
+        }
+
+        // proposta e rifiutata: non è mai stato un contratto, non c'è niente da rinnovare.
+        if (! in_array($stato, [self::STATO_ATTIVO, self::STATO_SCADUTO, self::STATO_DISDETTO], true)) {
+            return 'non è mai stato accettato';
+        }
+
+        // Un solo rinnovo per abbonamento; il vincolo è anche strutturale
+        // (uq_abbonamenti_abbonamento_precedente_id).
+        if (! empty($abbonamento['successore_id'])) {
+            return 'è già stato rinnovato';
+        }
+
+        // Il rinnovo va sempre fatto sul contratto in corso, che proietta all'anno dopo: si
+        // prepara quanto si vuole in anticipo. Rinnovare uno che non è ancora cominciato
+        // significherebbe invece saltare avanti di due anni — creato il 2028 nel 2027, lo si
+        // rinnoverebbe subito ottenendo il 2029 con i suoi interventi già nel pool.
+        // Creare un abbonamento con date future resta libero: il vincolo è solo sul rinnovo.
+        if ($abbonamento['data_inizio'] > date('Y-m-d')) {
+            return 'non è ancora cominciato: rinnova l\'abbonamento attualmente in corso, non quello futuro';
+        }
+
+        return null;
+    }
+
+    /**
      * Restituisce tutti gli abbonamenti di un cliente ordinati per data_inizio DESC.
      * Aggiunge num_periodi e prima_frequenza per la visualizzazione nelle liste.
      */
@@ -110,8 +194,7 @@ class AbbonamentiModel extends Model
         return $this->select([
                 'abbonamenti.*',
                 'ti.nome AS tipo_nome',
-                "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato = 'attivo'
-                      THEN 'scaduto' ELSE abbonamenti.stato END AS stato_calcolato",
+                $this->selectStatoCalcolato(),
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
             ])
@@ -131,8 +214,7 @@ class AbbonamentiModel extends Model
                 'abbonamenti.*',
                 "c.denominazione AS cliente_denominazione",
                 'ti.nome AS tipo_nome',
-                "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato = 'attivo'
-                      THEN 'scaduto' ELSE abbonamenti.stato END AS stato_calcolato",
+                $this->selectStatoCalcolato(),
                 '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
@@ -155,8 +237,7 @@ class AbbonamentiModel extends Model
                 'abbonamenti.*',
                 "c.denominazione AS cliente_denominazione",
                 'ti.nome AS tipo_nome',
-                "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato = 'attivo'
-                      THEN 'scaduto' ELSE abbonamenti.stato END AS stato_calcolato",
+                $this->selectStatoCalcolato(),
                 '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
@@ -169,27 +250,31 @@ class AbbonamentiModel extends Model
     }
 
     /**
-     * Marca come scaduti gli abbonamenti attivi la cui data_fine è già passata.
-     * Chiamato dal batch notturno (comando batch:abbonamenti-scaduti).
+     * Abbonamenti la cui data_fine è passata ma il cui stato è ancora fra gli STATI_SCADIBILI.
+     *
+     * Alimenta il batch notturno (comando batch:abbonamenti-scaduti), che li mostra e poi li
+     * aggiorna con updateScaduti(). Confronta con la data calcolata da PHP e non con CURDATE(),
+     * quindi non dipende dal fuso orario del server MySQL.
      */
- 
-     public function leggiScaduti(): array
-     {
-        $abbonamenti = $this->select('abbonamenti.id, c.denominazione,ti.nome, abbonamenti.stato, abbonamenti.data_fine')
+    public function leggiScaduti(): array
+    {
+        return $this->select('abbonamenti.id, c.denominazione AS cliente_denominazione, ti.nome, abbonamenti.stato, abbonamenti.data_fine')
             ->join('tipi_intervento ti', 'abbonamenti.tipo_intervento_id = ti.id')
             ->join('clienti c', 'abbonamenti.cliente_id = c.id')
-            ->where('data_fine <', date('Y-m-d'))
-            ->where('stato', 'attivo')
-          ->get()->getResultArray();
-          
-         return $abbonamenti;
-     }
+            ->where('abbonamenti.data_fine <', date('Y-m-d'))
+            ->whereIn('abbonamenti.stato', self::STATI_SCADIBILI)
+            ->findAll();
+    }
 
-     public function updateScaduti(array $ids): int
-     {
-         $this->whereIn('id', $ids)->update(null, ['stato'=>self::STATO_SCADUTO]);
-         return $this->db->affectedRows();
-     }
+    /**
+     * Scrive stato = 'scaduto' sugli id passati e restituisce quante righe ha aggiornato.
+     */
+    public function updateScaduti(array $ids): int
+    {
+        $this->whereIn('id', $ids)->update(null, ['stato' => self::STATO_SCADUTO]);
+
+        return $this->db->affectedRows();
+    }
 
     /**
      * Abbonamenti attivi in scadenza entro $giorni giorni, con denominazione cliente,
@@ -296,12 +381,17 @@ class AbbonamentiModel extends Model
     }
 
     /**
-     * Annulla definitivamente gli interventi futuri da_pianificare e sospesi.
-     * Chiamato su disdetta, o quando l'utente rifiuta il ripristino dopo una sospensione.
+     * Annulla definitivamente gli interventi futuri dell'abbonamento.
+     *
+     * Su disdetta si passa $inclusiPianificati = true, così cadono anche le visite già in
+     * calendario; sul rifiuto del ripristino dopo una sospensione no. Restituisce i conteggi
+     * che servono al messaggio di ritorno — vedi InterventiModel::annullaPerAbbonamento().
+     *
+     * @return array{totale: int, pianificati: int}
      */
-    public function annullaInterventi(int $abbonamentoId): void
+    public function annullaInterventi(int $abbonamentoId, bool $inclusiPianificati = false): array
     {
-        (new InterventiModel())->annullaPerAbbonamento($abbonamentoId);
+        return (new InterventiModel())->annullaPerAbbonamento($abbonamentoId, $inclusiPianificati);
     }
 
     /**

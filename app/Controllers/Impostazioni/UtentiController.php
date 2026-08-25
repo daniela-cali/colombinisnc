@@ -84,38 +84,18 @@ class UtentiController extends BaseController
         $quanti  = count($aperti);
 
         if ($quanti > 0) {
+            helper('interventi');
+
+            // Etichetta col cliente: sono interventi sparsi, il codice direbbe poco.
+            $etichetta = static fn (array $i): string => $i['cliente_denominazione']
+                . ($i['data_pianificata'] ? ' (' . date('d/m/Y', strtotime($i['data_pianificata'])) . ')' : '');
+
             $redirect->with('warning', 'Attenzione: ha ancora ' . $quanti . ' intervent' . ($quanti === 1 ? 'o' : 'i')
-                . ' da completare, da riassegnare a un altro tecnico — ' . $this->elencoInterventi($aperti)
+                . ' da completare, da riassegnare a un altro tecnico — ' . elenco_interventi_link($aperti, $etichetta)
                 . ' Li ritrovi nella card "Interventi in conflitto" della dashboard.');
         }
 
         return $redirect;
     }
 
-    /**
-     * Rende gli interventi da riassegnare come link alla loro modifica, per poterci andare
-     * direttamente dall'avviso. Si ferma ai primi cinque: oltre, un messaggio flash lungo
-     * una pagina nasconderebbe l'avviso invece di darlo — il resto sta nella dashboard.
-     *
-     * L'escape è qui perché il layout stampa i flash senza filtrarli (deve poterci mettere
-     * i link): tutto ciò che arriva dal database va escapato prima di entrarci.
-     */
-    private function elencoInterventi(array $interventi): string
-    {
-        $primi = array_slice($interventi, 0, 5);
-
-        $voci = array_map(static function (array $i): string {
-            $etichetta = esc($i['cliente_denominazione']);
-            if ($i['data_pianificata']) {
-                $etichetta .= ' (' . date('d/m/Y', strtotime($i['data_pianificata'])) . ')';
-            }
-
-            return '<a href="' . base_url('operativo/interventi/' . $i['id'] . '/edit') . '">' . $etichetta . '</a>';
-        }, $primi);
-
-        $elenco = implode(', ', $voci);
-        $altri  = count($interventi) - count($primi);
-
-        return $altri > 0 ? $elenco . ' e altri ' . $altri . '.' : $elenco . '.';
-    }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  * @var string $title
- * @var array  $abbonamenti  Da AbbonamentiModel::elencoConDettagli() — include stato_calcolato, successore_id, anno_inizio, num_periodi, prima_frequenza
+ * @var array  $abbonamenti  Da AbbonamentiModel::elencoConDettagli() — include stato_calcolato, successore_id, anno_inizio, num_periodi, prima_frequenza, più il flag rinnovabile aggiunto dal controller
  * @var array  $tipiPresenti Nomi distinti dei tipi intervento presenti in $abbonamenti, ordinati alfabeticamente
  * @var array  $anniPresenti Anni distinti (da data_inizio) presenti in $abbonamenti, ordinati decrescenti
  * @var array  $statiLabel   AbbonamentiModel::STATI_LABEL
@@ -192,18 +192,16 @@ $this->extend('layouts/admin');
                                            class="btn btn-sm btn-outline-secondary" title="Scheda">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <?php if (in_array($a['stato_calcolato'], ['scaduto'], true)): ?>
-                                            <?php if ($a['successore_id']): ?>
-                                                <a href="<?= base_url('abbonamenti/' . $a['successore_id']) ?>"
-                                                   class="btn btn-sm btn-outline-secondary" title="Vai al rinnovo">
-                                                    <i class="bi bi-arrow-right-circle"></i>
-                                                </a>
-                                            <?php else: ?>
-                                                <a href="<?= base_url('abbonamenti/' . $a['id'] . '/rinnova') ?>"
-                                                   class="btn btn-sm btn-outline-primary" title="Rinnova">
-                                                    <i class="bi bi-arrow-repeat"></i>
-                                                </a>
-                                            <?php endif ?>
+                                        <?php if ($a['successore_id']): ?>
+                                            <a href="<?= base_url('abbonamenti/' . $a['successore_id']) ?>"
+                                               class="btn btn-sm btn-outline-secondary" title="Vai al rinnovo">
+                                                <i class="bi bi-arrow-right-circle"></i>
+                                            </a>
+                                        <?php elseif ($a['rinnovabile']): ?>
+                                            <a href="<?= base_url('abbonamenti/' . $a['id'] . '/rinnova') ?>"
+                                               class="btn btn-sm btn-outline-primary" title="Rinnova">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </a>
                                         <?php endif ?>
                                         <?php if (in_array($a['stato_calcolato'], ['proposta'], true)): ?>
                                             <form action="<?= base_url('abbonamenti/' . $a['id'] . '/accetta') ?>" method="post" class="d-inline">

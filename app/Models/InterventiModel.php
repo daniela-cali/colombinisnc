@@ -399,16 +399,54 @@ class InterventiModel extends Model
     }
 
     /**
-     * Annulla definitivamente gli interventi futuri da_pianificare e sospesi di un abbonamento.
-     * Chiamato su disdetta, o quando l'utente rifiuta il ripristino dopo una sospensione.
+     * Annulla definitivamente gli interventi futuri di un abbonamento, dalla data odierna in poi.
+     *
+     * Con $inclusiPianificati annulla anche quelli a cui è già stata assegnata una data: è il
+     * caso della disdetta, dove il contratto finisce e nessuna visita successiva a oggi si farà
+     * più, calendario o no. Senza, tocca solo da_pianificare e sospeso — è il rifiuto del
+     * ripristino dopo una sospensione, dove si sta decidendo di non recuperare le visite rimaste
+     * in pausa, non di svuotare il calendario.
+     *
+     * Le visite arretrate (data_scadenza già passata) restano fuori in entrambi i casi: sono
+     * poche e si annullano a mano, mentre un filtro automatico all'indietro toccherebbe anche
+     * mesi di storia mai lavorata.
+     *
+     * @return array{totale: int, pianificati: int} righe annullate, e quante avevano già una
+     *               data comunicata al cliente. Il conteggio si legge prima dell'UPDATE, dopo
+     *               il quale lo stato di partenza non è più ricostruibile.
      */
-    public function annullaPerAbbonamento(int $abbonamentoId): void
+    public function annullaPerAbbonamento(int $abbonamentoId, bool $inclusiPianificati = false): array
     {
-        $this->whereIn('stato', [self::STATO_DA_PIANIFICARE, self::STATO_SOSPESO])
-             ->where('abbonamento_id', $abbonamentoId)
-             ->where('data_scadenza >', date('Y-m-d'))
+        $stati = [self::STATO_DA_PIANIFICARE, self::STATO_SOSPESO];
+        if ($inclusiPianificati) {
+            $stati[] = self::STATO_PIANIFICATO;
+        }
+
+        $oggi = date('Y-m-d');
+
+        $coinvolti = $this->select('stato')
+            ->where('abbonamento_id', $abbonamentoId)
+            ->whereIn('stato', $stati)
+            ->where('data_scadenza >', $oggi)
+            ->findAll();
+
+        if ($coinvolti === []) {
+            return ['totale' => 0, 'pianificati' => 0];
+        }
+
+        $this->where('abbonamento_id', $abbonamentoId)
+             ->whereIn('stato', $stati)
+             ->where('data_scadenza >', $oggi)
              ->set('stato', self::STATO_ANNULLATO)
              ->update();
+
+        return [
+            'totale'      => count($coinvolti),
+            'pianificati' => count(array_filter(
+                $coinvolti,
+                static fn (array $i): bool => $i['stato'] === self::STATO_PIANIFICATO
+            )),
+        ];
     }
 
     /**
@@ -683,6 +721,47 @@ class InterventiModel extends Model
             ->where('abbonamento_id', $abbonamentoId)
             ->orderBy('data_scadenza', 'ASC')
             ->findAll();
+    }
+
+    /**
+     * Cancella tutti gli interventi generati da un abbonamento, con le loro note e materiali,
+     * e restituisce quanti ne ha cancellati.
+     *
+     * Le foreign key di interventi_note e interventi_materiali verso interventi sono ON DELETE
+     * CASCADE: cancellando l'intervento, quelle righe sparirebbero da sole. Le due delete qui
+     * sopra sono quindi una ridondanza voluta — questo è l'unico punto del progetto in cui gli
+     * interventi vengono distrutti, e deve dichiarare per intero cosa porta via senza costringere
+     * a controllare lo schema; se una migration futura cambiasse quelle regole, la pulizia
+     * continuerebbe a funzionare. I materiali "sospesi" di un cliente hanno intervento_id NULL
+     * e restano fuori dalla whereIn, quindi non vengono toccati.
+     *
+     * La transazione interna tiene insieme le tre cancellazioni, che toccano tre tabelle
+     * distinte: senza, un errore sulla seconda lascerebbe le note già cancellate. Il chiamante
+     * ne apre comunque una propria più larga, perché queste cancellazioni e il ritorno
+     * dell'abbonamento allo stato proposta devono riuscire o fallire insieme — CI4 conta la
+     * profondità, quindi il transComplete() qui dentro non conferma nulla finché non si chiude
+     * quella esterna. Il valore restituito va letto solo dopo aver verificato transStatus().
+     */
+    public function eliminaPerAbbonamento(int $abbonamentoId): int
+    {
+        $ids = array_column(
+            $this->select('id')->where('abbonamento_id', $abbonamentoId)->findAll(),
+            'id'
+        );
+
+        if ($ids === []) {
+            return 0;
+        }
+
+        $this->db->transStart();
+
+        (new InterventiNoteModel())->whereIn('intervento_id', $ids)->delete();
+        (new InterventiMaterialiModel())->whereIn('intervento_id', $ids)->delete();
+        $this->whereIn('id', $ids)->delete();
+
+        $this->db->transComplete();
+
+        return count($ids);
     }
 
     /**

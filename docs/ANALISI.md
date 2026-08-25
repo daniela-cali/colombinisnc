@@ -656,6 +656,15 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - I periodi non erano validati lato server — l'unico controllo sulla frequenza era il `required` del `<select>`, quindi nel browser. Aggiunte le regole `periodi.*.*`, con la lista delle frequenze presa dalle costanti del model; tolto di conseguenza lo scarto silenzioso in `salvaPeriodi()`, che è ciò che rendeva il danno invisibile
 - Punto 9 di `docs\review\2026-08-16-review-progetto.md`
 
+#### ✅ v0.29.0 — Annullare l'accettazione di un abbonamento
+- Un abbonamento accettato per errore si riporta in **Proposta** con *Annulla accettazione*, che cancella le visite generate: si corregge, si riaccetta, e le visite si rigenerano dai periodi corretti. Scartata l'alternativa di un pulsante "Rigenera interventi", che avrebbe aperto un secondo percorso di distruzione delle visite accanto a questo, con una guardia da tenere allineata
+- Ne discende l'invariante che regge il resto: **una proposta non ha mai interventi collegati**, perché nascono all'accettazione e muoiono con l'annullamento. Per questo l'eliminazione, ammessa solo da `proposta`, non ha bisogno di controlli sui figli
+- L'annullamento è rifiutato se una visita è già pianificata, in corso o completata — il confine oltre il quale l'informazione è uscita dall'azienda o il lavoro è stato fatto — e il messaggio elenca le visite bloccanti con il link per aprirle
+- La disdetta annulla ora anche le visite **già pianificate**: prima sopravvivevano alla chiusura del contratto e restavano in calendario. Il messaggio dice quante erano, perché quelle date il cliente le conosce già. Le arretrate mai lavorate restano fuori, si annullano a mano
+- Il rinnovo si prepara in qualsiasi momento, anche a contratto in corso (gli annuali si preparano a dicembre), ma non da `sospeso` né da un abbonamento non ancora cominciato, che porterebbe a saltare avanti di due anni. Anche un abbonamento sospeso ora scade: la pausa ferma le visite, non allunga il contratto
+- `abbonamento_precedente_id` passa a `ON DELETE RESTRICT`, unica FK del progetto configurata per cedere in silenzio; due regole duplicate consolidate sul model — la condizione di scadenza (quattro copie) e la rinnovabilità (due view già divergenti tra loro, ora `rinnovabile()`, usata anche da `rinnova()` per rifiutare lato server)
+- Vedi `docs\spec\abbonamenti_annulla_accettazione_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

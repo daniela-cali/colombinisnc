@@ -12,11 +12,34 @@ use CodeIgniter\HTTP\RedirectResponse;
 class AbbonamentiController extends BaseController
 {
     /**
+     * Stati degli interventi che impediscono di annullare l'accettazione di un abbonamento.
+     *
+     * Non è una lista di "interventi importanti": è il confine oltre il quale l'informazione
+     * è uscita dall'azienda o il lavoro è stato fatto. Un intervento pianificato ha una data
+     * che il cliente conosce già; uno completato è storico, con i suoi materiali. Restano
+     * ammessi da_pianificare, sospeso e annullato, che nessuno ha ancora toccato.
+     */
+    private const STATI_BLOCCANO_ANNULLAMENTO = [
+        InterventiModel::STATO_PIANIFICATO,
+        InterventiModel::STATO_IN_CORSO,
+        InterventiModel::STATO_COMPLETATO,
+    ];
+
+    /**
      * Index globale: tutti gli abbonamenti con cliente, tipo e stato calcolato.
      */
     public function index(): string
     {
-        $abbonamenti  = (new AbbonamentiModel())->elencoConDettagli();
+        $model = new AbbonamentiModel();
+
+        // Il flag lo calcola il model, non la view: la stessa regola decide se mostrare il
+        // bottone Rinnova e se rinnova() accetta la richiesta, quindi non possono divergere
+        // come facevano index e scheda, che offrivano il rinnovo su stati diversi.
+        $abbonamenti = array_map(
+            static fn (array $a): array => $a + ['rinnovabile' => $model->rinnovabile($a)],
+            $model->elencoConDettagli()
+        );
+
         $tipiPresenti = array_values(array_unique(array_filter(array_column($abbonamenti, 'tipo_nome'))));
         sort($tipiPresenti);
         $anniPresenti = array_values(array_unique(array_filter(array_column($abbonamenti, 'anno_inizio'))));
@@ -114,6 +137,7 @@ class AbbonamentiController extends BaseController
         return view('abbonamenti/show', [
             'title'                => 'Abbonamento',
             'abbonamento'          => $abbonamento,
+            'rinnovabile'          => $model->rinnovabile($abbonamento),
             'periodi'              => (new AbbonamentiPeriodiModel())->perAbbonamento($id),
             'interventi'           => $interventi,
             'statiLabel'           => AbbonamentiModel::STATI_LABEL,
@@ -207,7 +231,9 @@ class AbbonamentiController extends BaseController
      * - rifiutata  → proposta : ripensamento o modifica elementi della proposta
      * - attivo     → sospeso  : interventi futuri da_pianificare → sospeso
      * - sospeso    → attivo   : POST ripristina=1 → da_pianificare; 0 → annullato
-     * - attivo/sospeso → disdetto: tutti i futuri da_pianificare e sospeso → annullato
+     * - attivo/sospeso → disdetto: tutti i futuri → annullato, comprese le visite già
+     *                              pianificate, di cui il messaggio avvisa perché il cliente
+     *                              ne conosce già la data
      */
     public function cambiaStato(int $id): RedirectResponse
     {
@@ -249,8 +275,22 @@ class AbbonamentiController extends BaseController
                 $msg = 'Abbonamento riattivato. Gli interventi sospesi sono stati annullati.';
             }
         } elseif ($nuovoStato === AbbonamentiModel::STATO_DISDETTO) {
-            $model->annullaInterventi($id);
-            $msg = 'Abbonamento disdetto. Gli interventi futuri sono stati annullati.';
+            $esito = $model->annullaInterventi($id, true);
+
+            if ($esito['totale'] === 0) {
+                $msg = 'Abbonamento disdetto. Non c\'erano interventi futuri da annullare.';
+            } else {
+                $msg = 'Abbonamento disdetto. ' . $esito['totale']
+                    . ($esito['totale'] === 1 ? ' intervento futuro annullato' : ' interventi futuri annullati') . '.';
+
+                // La data era già stata comunicata al cliente: l'annullamento in calendario
+                // non basta, qualcuno deve telefonare.
+                if ($esito['pianificati'] > 0) {
+                    $msg .= ' Attenzione: ' . $esito['pianificati']
+                        . ($esito['pianificati'] === 1 ? ' era già pianificato' : ' erano già pianificati')
+                        . ' — avvisa il cliente.';
+                }
+            }
         } else {
             $msg = 'Stato aggiornato.';
         }
@@ -270,9 +310,21 @@ class AbbonamentiController extends BaseController
      */
     public function rinnova(int $id): string|RedirectResponse
     {
-        $precedente = (new AbbonamentiModel())->find($id);
+        $model      = new AbbonamentiModel();
+        $precedente = $model->trovaConDettagli($id);
         if (! $precedente) {
             return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
+        }
+
+        // Il bottone non compare quando non si può rinnovare, ma la rotta resta raggiungibile
+        // per URL o da una pagina rimasta aperta: qui si applica la stessa regola, e il motivo
+        // arriva dal model per non rischiare di spiegare all'utente un rifiuto diverso da
+        // quello effettivo. Serve trovaConDettagli() e non find(), perché rinnovabile() legge
+        // stato_calcolato e successore_id.
+        $motivo = $model->motivoNonRinnovabile($precedente);
+        if ($motivo !== null) {
+            return redirect()->to('abbonamenti/' . $id)
+                ->with('error', 'Questo abbonamento ' . $motivo . '.');
         }
 
         $precompilato = array_merge($precedente, [
@@ -429,6 +481,112 @@ class AbbonamentiController extends BaseController
         $data['stato'] = AbbonamentiModel::STATO_RIFIUTATA;
         (new AbbonamentiModel())->update($id, $data);
         return redirect()->to('abbonamenti')->with('success', 'Proposta rifiutata correttamente.');
+    }
+
+    /**
+     * Annulla l'accettazione: cancella gli interventi generati e riporta l'abbonamento a proposta.
+     *
+     * È l'inverso esatto di accetta(), unico punto in cui gli interventi nascono. Tenendo qui
+     * l'unico punto in cui muoiono, vale l'invariante che regge tutto il resto: un abbonamento
+     * in stato proposta non ha mai interventi collegati. Da lì lo si corregge e si riaccetta —
+     * gli interventi si rigenerano dai periodi correnti, senza bisogno di un "rigenera" a parte —
+     * oppure lo si elimina.
+     *
+     * Metodo separato da cambiaStato() per la stessa ragione di accetta(): è l'unica altra
+     * transizione con un effetto massivo sulle righe figlie, e nasconderlo in un ramo di un
+     * metodo pensato per cambi di stato leggeri lo renderebbe invisibile.
+     */
+    public function annullaAccettazione(int $id): RedirectResponse
+    {
+        $model       = new AbbonamentiModel();
+        $abbonamento = $model->trovaConDettagli($id);
+
+        if (! $abbonamento) {
+            return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
+        }
+
+        $ammessi = [AbbonamentiModel::STATO_ATTIVO, AbbonamentiModel::STATO_SOSPESO];
+        if (! in_array($abbonamento['stato_calcolato'], $ammessi, true)) {
+            return redirect()->to('abbonamenti/' . $id)->with('error',
+                'Si annulla l\'accettazione solo di un abbonamento attivo o sospeso: uno scaduto o disdetto è storia, non un errore da correggere.');
+        }
+
+        // Una query sola: le stesse righe servono per la guardia e per il conteggio.
+        $interventi = (new InterventiModel())->perAbbonamento($id);
+        $bloccanti  = array_values(array_filter(
+            $interventi,
+            static fn (array $i): bool => in_array($i['stato'], self::STATI_BLOCCANO_ANNULLAMENTO, true)
+        ));
+
+        if ($bloccanti !== []) {
+            helper('interventi');
+
+            // Etichetta col codice e lo stato: sono tutti dello stesso abbonamento e dello
+            // stesso cliente, quindi il nome del cliente non distinguerebbe niente.
+            $etichetta = static fn (array $i): string => $i['codice']
+                . ' (' . (InterventiModel::STATI_LABEL[$i['stato']] ?? $i['stato']) . ')';
+
+            $quanti = count($bloccanti);
+
+            return redirect()->to('abbonamenti/' . $id)->with('error',
+                'Non si può annullare l\'accettazione: ' . $quanti . ' intervent'
+                . ($quanti === 1 ? 'o è già stato pianificato o lavorato' : 'i sono già stati pianificati o lavorati')
+                . ' — ' . elenco_interventi_link($bloccanti, $etichetta)
+                . ' Spostali o annullali prima di procedere.');
+        }
+
+        $db = db_connect();
+        $db->transStart();
+
+        $cancellati = (new InterventiModel())->eliminaPerAbbonamento($id);
+        $model->update($id, ['stato' => AbbonamentiModel::STATO_PROPOSTA]);
+
+        $db->transComplete();
+
+        if (! $db->transStatus()) {
+            return redirect()->to('abbonamenti/' . $id)->with('error',
+                'Errore durante l\'annullamento: nessuna modifica è stata salvata.');
+        }
+
+        return redirect()->to('abbonamenti/' . $id)->with('success',
+            'Accettazione annullata: ' . $cancellati . ' intervent' . ($cancellati === 1 ? 'o cancellato' : 'i cancellati')
+            . '. L\'abbonamento è tornato in proposta e ora si può modificare o eliminare.');
+    }
+
+    /**
+     * Elimina definitivamente un abbonamento in stato proposta, con i suoi periodi.
+     *
+     * Solo da proposta, dove per l'invariante di annullaAccettazione() non esistono interventi
+     * collegati: non serve nessun controllo sui figli. I periodi seguono da soli, la loro
+     * foreign key è ON DELETE CASCADE. Nessuna transazione: è una sola DELETE, e la cascata è
+     * atomica dentro la stessa istruzione.
+     */
+    public function elimina(int $id): RedirectResponse
+    {
+        $model       = new AbbonamentiModel();
+        $abbonamento = $model->trovaConDettagli($id);
+
+        if (! $abbonamento) {
+            return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
+        }
+
+        if ($abbonamento['stato_calcolato'] !== AbbonamentiModel::STATO_PROPOSTA) {
+            return redirect()->to('abbonamenti/' . $id)->with('error',
+                'Si elimina solo un abbonamento in stato proposta. Se è già stato accettato, annulla prima l\'accettazione.');
+        }
+
+        // La foreign key è ON DELETE RESTRICT dalla v0.29.0: senza questo controllo l'utente
+        // vedrebbe un errore SQL invece di capire che deve prima occuparsi del rinnovo.
+        if (! empty($abbonamento['successore_id'])) {
+            return redirect()->to('abbonamenti/' . $id)->with('error',
+                'Questo abbonamento è già stato rinnovato e non si può eliminare: '
+                . '<a href="' . base_url('abbonamenti/' . $abbonamento['successore_id']) . '">apri il rinnovo</a>'
+                . ' e occupati prima di quello.');
+        }
+
+        $model->delete($id);
+
+        return redirect()->to('abbonamenti')->with('success', 'Abbonamento eliminato.');
     }
 
     private function regolaValidazione(): array
