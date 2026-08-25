@@ -665,6 +665,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `abbonamento_precedente_id` passa a `ON DELETE RESTRICT`, unica FK del progetto configurata per cedere in silenzio; due regole duplicate consolidate sul model — la condizione di scadenza (quattro copie) e la rinnovabilità (due view già divergenti tra loro, ora `rinnovabile()`, usata anche da `rinnova()` per rifiutare lato server)
 - Vedi `docs\spec\abbonamenti_annulla_accettazione_spec.md`
 
+#### ✅ v0.29.1 — Ordine delle migration corretto per l'installazione da zero
+- `CreateClientiTable` e `CreatePersonaleTable` avevano lo stesso timestamp; a parità CI4 ordina per nome della classe, quindi `clienti` — che ha una foreign key verso `personale` — veniva creata per prima e `migrate` su un database vuoto falliva subito. Il database di sviluppo funziona solo perché le due furono eseguite in giorni diversi, nell'ordine opposto
+- `CreatePersonaleTable` rinominata a `2026-06-13-114112`: l'ordine dei file rispecchia ora la dipendenza reale, e ne beneficia anche il rollback, che procede a ritroso
+- Confronto completo fra le 44 migration e lo schema reale letto da `information_schema`: nessun'altra divergenza
+- Emerso ricostruendo il database online che `php spark migrate` esegue **solo il namespace `App`**: senza `--all` le migration di Shield e Settings restano fuori e `personale` fallisce con `errno 150`, perché `users` non esiste ancora. Corretto anche il `down()` di `AddArticoloIdToInterventiMateriali`, che eliminava la colonna senza rimuovere prima la foreign key
+- **Schema ricostruito da zero in produzione e verificato il 26/08/2026**: 47 migration in sequenza su database vuoto, senza errori. La procedura sta in `docs/deploy.md` — pull, `migrate --all`, `AdminSeeder`, e il resto della configurazione dall'interfaccia
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

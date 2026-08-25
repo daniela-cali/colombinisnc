@@ -1,5 +1,17 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.29.1] - 2026-08-25
+
+### Ordine delle migration corretto per l'installazione da zero
+
+- [DEV] **`php spark migrate` su un database vuoto si fermava alla prima migration.** `CreateClientiTable` e `CreatePersonaleTable` avevano lo stesso identico timestamp (`2026-06-13-114113`), e a parità CI4 ordina per nome della classe (`MigrationRunner::getObjectUid()` concatena le cifre della version al nome della classe, poi `ksort()`): `clienti` finiva prima di `personale`, ma dichiara una foreign key verso quella tabella, quindi MySQL rifiutava la `CREATE TABLE`. Il database di sviluppo è sano solo perché a giugno le due furono eseguite in giorni diversi, nell'ordine opposto — il difetto era invisibile finché non si ricostruiva lo schema da zero, cioè esattamente quello che serve al go-live
+- [DEV] `CreatePersonaleTable` rinominata a `2026-06-13-114112`, un secondo prima di `clienti`, così l'ordine dei file rispecchia la dipendenza reale invece di dipendere da un pareggio risolto alfabeticamente. Ne beneficia anche il rollback, che va a ritroso: prima `personale` sarebbe stata eliminata mentre `clienti` la referenziava ancora
+- [DEV] Sui database dove la migration risulta già eseguita, la riga in `migrations` porta la vecchia version e va allineata, oppure si riparte con `migrate:refresh`, che cancella e riscrive quelle righe da sé
+- [DEV] Verificato per introspezione da `information_schema` che lo schema reale corrisponde a quello dichiarato dalle 44 migration: colonne, tipi, default, nullabilità, indici e foreign key con entrambe le regole, comprese le tre corrette in v0.27.0 e le asimmetrie volute. L'unico difetto era l'ordine di esecuzione
+- [DEV] **`php spark migrate` esegue solo il namespace `App`**: le migration di Shield e Settings vivono nei loro namespace dentro `vendor/` e senza `--all` non vengono nemmeno considerate. Su un database vuoto `personale` falliva quindi con `errno 150`, che sembra un errore nella migration e invece dice solo che `users` non esiste. In sviluppo non era mai emerso perché Shield e Settings furono eseguite al primo setup, in un batch a parte. La procedura completa e verificata è ora in `docs/deploy.md`
+- [DEV] Corretto il `down()` di `AddArticoloIdToInterventiMateriali`, che eliminava la colonna `articolo_id` senza prima rimuovere la foreign key: MySQL rifiuta di eliminare l'indice finché il vincolo esiste, e `migrate:refresh` si fermava lì. È l'unica migration del progetto con questo difetto — tutte le altre che aggiungono una chiave la rimuovono prima della colonna, compresa la sorella `AddClienteIdToInterventiMateriali` sulla stessa tabella
+- [DEV] **Schema ricostruito da zero in produzione e verificato**: 47 migration (44 di App più le 3 di Shield e Settings) eseguite in sequenza su database vuoto, senza errori
+
 ## [0.29.0] - 2026-08-25
 
 ### Annullare l'accettazione di un abbonamento

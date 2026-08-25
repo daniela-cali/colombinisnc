@@ -23,6 +23,9 @@ class AddArticoloIdToInterventiMateriali extends Migration
 
     public function down(): void
     {
+        // La chiave va rimossa prima della colonna: l'indice che la accompagna serve al
+        // vincolo, e MySQL rifiuta di eliminarlo finché il vincolo esiste.
+        $this->forge->dropForeignKey('interventi_materiali', 'interventi_materiali_articolo_id_foreign');
         $this->forge->dropColumn('interventi_materiali', 'articolo_id');
     }
 }
