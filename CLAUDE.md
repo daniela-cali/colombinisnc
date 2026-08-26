@@ -22,84 +22,33 @@ Prima di iniziare qualsiasi feature nuova o non banale, proporre sempre un brain
 Una volta concordato l'approccio nel brainstorming, per le feature non banali scrivere uno spec in `docs/spec/<nome>_spec.md` **prima** di scrivere codice — segue la traccia degli spec già esistenti nella cartella (es. `abbonamenti_next_visita_spec.md`): contesto/problema, soluzione con le decisioni chiave e il *perché*, eventuali alternative scartate, riepilogo puntuale delle modifiche file per file, sezione esplicita "fuori scope". Serve a tenere traccia dei ragionamenti fatti insieme, non solo del risultato finale. Non serve per fix di una riga o modifiche ovvie — solo per feature con più decisioni di design da ricordare.
 
 ## Roadmap — non proporre la v1.0.0
-La v1.0.0 (release finale: test, deploy su colombini.metesoftware.it, ottimizzazione percorsi OpenRouteService) è prevista per **metà settembre 2026**, non è imminente. Non proporla come prossimo passo a inizio sessione. Al momento si aggiungono le funzionalità che vengono in mente via via, senza un ordine rigido pianificato — chiedere all'utente cosa vuole affrontare piuttosto che assumere si proceda verso v1.0.0.
+La v1.0.0 (release finale: test, deploy su colombini.metesoftware.it, ottimizzazione percorsi OpenRouteService) è prevista per **gennaio 2027**, non è imminente. La data non è tecnica ma operativa: si cambia gestionale all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso.
+
+Non proporla come prossimo passo a inizio sessione. Al momento si aggiungono le funzionalità che vengono in mente via via, senza un ordine rigido pianificato — chiedere all'utente cosa vuole affrontare piuttosto che assumere si proceda verso v1.0.0.
+
+**Il database di produzione contiene dati veri in caricamento** dal 26/08/2026, quando è stato svuotato e ricostruito da zero. Non è più un ambiente demo sacrificabile: il caricamento dell'anagrafica avviene lì, progressivamente, fino al go-live. Le operazioni distruttive su quel database vanno trattate di conseguenza.
 
 ## Stack tecnologico
-- **PHP**: 8.2+
-- **CodeIgniter**: 4.7.3
-- **MySQL**: 8.x
-- **AdminLTE**: 4.0.2 con Bootstrap 5.3.8
-- **Frontend**: nessun bundler (Vite/webpack) — dipendenze gestite via npm + comando `assets:publish`
+- **Il motore del database non è lo stesso nei due ambienti**: **MySQL 8.x** in sviluppo, **MariaDB 10.11** (LTS, Debian 12) in produzione. Nessun manifest lo dichiara, quindi va ricordato qui. Il vincolo vero non è una versione ma una feature: le colonne generate (`GENERATED ALWAYS AS ... STORED`, usate su `clienti.denominazione`) richiedono MySQL 5.7+ **oppure** MariaDB 10.2+, e la sintassi è identica nei due. Il resto del codice non usa niente di specifico di un dialetto.
+- **Non cambiare la collation.** `app/Config/Database.php` fissa `DBCollat` a `utf8mb4_general_ci`, che esiste in entrambi i motori e coincide con il `collation_server` della produzione. Il default di MySQL 8 è invece `utf8mb4_0900_ai_ci`, che in MariaDB **non esiste**: adottarlo spaccherebbe sia i dump sia la coerenza degli ordinamenti fra i due ambienti.
+- **`sql_mode`: lo sviluppo è il più severo dei due.** MySQL 8 ha di default `ONLY_FULL_GROUP_BY`, `NO_ZERO_DATE` e `NO_ZERO_IN_DATE`, che in produzione mancano. Quindi ciò che passa in dev passa anche online, ma non il contrario: una data `0000-00-00` entrata in produzione da un import viene accettata lì e rifiutata al rientro in dev o in un ripristino su MySQL 8.
+- Versioni di PHP, CodeIgniter e Shield: `composer.json`. Versioni di AdminLTE, Bootstrap e degli altri pacchetti frontend: `package.json`.
 
 ## Asset frontend — gestione dipendenze
-Le dipendenze frontend si installano via **npm** e vengono copiate in `public/assets/vendor/` tramite il comando Spark `php spark assets:publish`.
-
-Stack npm del progetto:
-```
-admin-lte@^4.0       → AdminLTE 4 (CSS + JS)
-bootstrap@^5.3       → Bootstrap 5 (solo JS — il CSS è incluso in AdminLTE)
-@popperjs/core       → richiesto da Bootstrap per dropdown e tooltip
-overlayscrollbars    → richiesto da AdminLTE 4
-bootstrap-icons      → icone
-```
+Le dipendenze frontend si installano via **npm** (l'elenco aggiornato è in `package.json`) e vengono copiate in `public/assets/vendor/` tramite il comando Spark `php spark assets:publish`. Non c'è nessun bundler.
 
 Il comando `app/Commands/AssetsPublish.php` legge un manifest e copia i file `dist/` da `node_modules/` verso `public/assets/vendor/`. Va eseguito dopo ogni `npm install` o aggiornamento pacchetti. In produzione i file sono committati in git e il comando non serve.
 
-AdminLTE 4 non ha jQuery come dipendenza — è un rewrite su Bootstrap 5 puro.
+**jQuery c'è, ma non per AdminLTE.** AdminLTE 4 non ha jQuery come dipendenza — è un rewrite su Bootstrap 5 puro. `jquery` sta in `package.json` perché lo richiede **DataTables**: va usato solo lì. Per tutto il resto dell'interfaccia si usa Bootstrap 5 nativo, non jQuery.
 
 ## Go-live in produzione
 Il database di sviluppo dovrà essere **completamente svuotato** prima del go-live. Tutti i dati attuali sono dati di test — clienti, interventi, materiali. Non migrare nessun record dal dev al prod.
 
-## Note ambiente e troubleshooting
-Questa sezione raccoglie note tecniche sull'ambiente di sviluppo e soluzioni a problemi ricorrenti. Non sono regole di progetto ma vanno tenute qui perché il file viene pushato ed è disponibile su qualsiasi macchina.
-
-**Ripristino diff VSCode (Claude Code)**
-Se il diff delle modifiche smette di apparire nell'IDE VSCode:
-1. Verificare che `~/.claude/settings.json` abbia `"defaultMode": "default"` (non `"acceptEdits"`)
-2. Eseguire `Ctrl+Shift+P` → **Developer: Reload Window** per ricaricare l'estensione
-3. Se non basta, aprire una nuova sessione di Claude Code
-
-**ID utente loggato: usare `user_id()`, non `session()->get('user_id')`**
+## ID utente loggato — usare `user_id()`, non `session()->get('user_id')`
 Shield salva i dati dell'utente in sessione sotto la chiave `'user'` (array con `id`, email, ecc. — vedi `Config\Auth::$sessionConfig['field']`), non sotto una chiave piatta `'user_id'`. `session()->get('user_id')` restituisce quindi sempre `null`, silenziosamente (nessun errore). Per ottenere l'ID dell'utente loggato usare l'helper Shield **`user_id()`** (o `auth()->id()`), già autoloadato. Bug noto: `PromemoriaModel::normalizza()` usa ancora il pattern sbagliato → `created_by`/`updated_by` dei promemoria sono sempre `NULL`.
 
-**`dd()` funziona regolarmente**
-CodeIgniter 4 include una copia vendorizzata di Kint dentro il framework (`vendor/codeigniter4/framework/system/ThirdParty/Kint/`), attivata automaticamente quando `CI_DEBUG` è `true` (ambiente `development`) — non serve installare `kint-php/kint` separatamente. Verificato con `dd()` diretto: dump completo e corretto. Se in una sessione di debug sembra non fare nulla, sospettare prima il contesto (output engoiato da un ob_start() esterno, contenuto che appare ma passa inosservato più in alto/basso nella pagina) prima di concludere che Kint sia assente.
-
-**Accesso da smartphone in LAN (dev server)**
-Per testare l'app dal telefono sulla stessa rete Wi-Fi del PC di sviluppo:
-1. `cd d:\Programmazione\Progetti\colombinisnc`
-2. `php -S 0.0.0.0:8081 -t public` (in ascolto su tutte le interfacce, non solo `localhost`)
-3. Dal telefono: `http://<IP-LAN-PC>:8081`
-
-`app.baseURL` in `.env` è attualmente impostato su `http://192.168.1.133:8081` (IP LAN del PC di sviluppo, non `localhost:8081`) — necessario perché `base_url()` genera i link assoluti in base a quel valore fisso, non in base all'host da cui arriva la richiesta. Funziona identico anche da desktop (basta aprire lo stesso IP invece di `localhost`), quindi si può lasciare così come configurazione permanente di sviluppo.
-
-Se l'IP del PC cambia (riconnessione Wi-Fi, rinnovo DHCP): controllare il nuovo indirizzo con `ipconfig` (voce "Indirizzo IPv4" della scheda Wi-Fi) e aggiornare `app.baseURL` di conseguenza. Per fermare il server: `Ctrl+C` nel terminale in cui gira.
-
-**Fermare il server quando il `Ctrl+C` non è disponibile** (server avviato in background, o terminale chiuso): si trova il processo dalla porta e lo si termina per PID.
-
-```powershell
-netstat -ano | findstr 8081        # ultima colonna della riga LISTENING = PID
-Stop-Process -Id <PID> -Force
-```
-
-Prima di terminarlo conviene verificare di aver preso il processo giusto — e con quali argomenti era partito:
-
-```powershell
-Get-CimInstance Win32_Process -Filter "ProcessId = <PID>" | Select-Object CommandLine
-```
-
-Non usare `Stop-Process -Name php -Force`: chiude **tutti** i processi PHP, compresi eventuali `spark` o script in esecuzione.
-
-**`Not Found` senza grafica → manca `-t public`**
-Se il browser mostra `Not Found — The requested resource / was not found on this server` in pagina bianca, è il 404 **del server built-in di PHP**, non quello di CodeIgniter: l'app non è mai stata eseguita. La causa è quasi sempre `php -S 0.0.0.0:8081` avviato senza `-t public`, con la document root che finisce sulla cartella corrente invece che su `public/`: PHP cerca un `index.php` nella root del progetto, non lo trova e risponde da sé.
-
-Il sintomo somiglia a un problema di rotte, ma si distingue subito da due segni: la pagina non ha nessuno stile dell'applicazione, e nel log del server non compare nessuna riga di CodeIgniter. Per confermarlo basta il `Get-CimInstance` qui sopra, che mostra gli argomenti con cui il processo è partito.
-
-**Hot-reload della Debug Toolbar disattivato (blocca `php -S`)**
-`app/Config/Events.php` non registra più la rotta `__hot-reload` (era codice di scaffolding standard di CodeIgniter 4). Quella rotta apre una connessione SSE che il browser tiene aperta indefinitamente finché la tab resta aperta. Siccome `php -S` gestisce **una richiesta alla volta per l'intero processo** (non per tab/sessione), anche una sola di quelle connessioni rimaste appese blocca tutto il server — qualunque altra richiesta, da qualunque tab o browser, resta in coda senza mai essere servita, senza nessun errore nei log (non è un'eccezione, è solo una connessione che non finisce mai). Sintomo tipico: il sito "si pianta" dal nulla, non riparte nemmeno in incognito, ma il processo PHP risulta ancora vivo. Se in futuro serve riattivarla, va usato un server che gestisca richieste concorrenti (es. `php spark serve` con più worker, o Apache/nginx+PHP-FPM) — mai con `php -S`.
-
-**Doppio login involontario → `LogicException` di Shield**
-Se una tab con il form di login resta aperta mentre la sessione nel frattempo è già autenticata (tasto Indietro, tab dimenticata, doppio submit), il POST arrivava direttamente a `LoginController::loginAction()` e Shield lanciava `LogicException: The user has User Info in Session...`. Il filtro `App\Filters\NoAuth` (redirect alla dashboard se già loggato) era applicato solo alla rotta `GET login` in `Routes.php`, non al `POST login` registrato da Shield in `AuthRoutes.php`. Fix: `Routes.php` ora sovrascrive **anche** il `POST login` con lo stesso filtro `noauth`, prima che `service('auth')->routes($routes)` (fine file) registri le rotte di default di Shield.
+## Ambiente di sviluppo e troubleshooting
+Le note tecniche sull'ambiente di sviluppo e i rimedi ai problemi ricorrenti (server `php -S` piantato o irraggiungibile, `Not Found` in pagina bianca, accesso da smartphone in LAN, `dd()`/Kint, diff VSCode, doppio login Shield) stanno nella skill `ambiente-dev` — `.claude/skills/ambiente-dev/SKILL.md`. Si caricano da sole quando serve, invece di stare in contesto a ogni sessione.
 
 ## Sistema di ritorno "from"
 Quando un form (edit o nuovo) può essere aperto da contesti diversi (lista, scheda cliente, ecc.), si usa il parametro `from` per tornare alla pagina di origine dopo salvataggio o eliminazione.
@@ -180,7 +129,7 @@ $this->forge->addField('created_at DATETIME NULL');
 $this->forge->addField('updated_at DATETIME NULL');
 ```
 
-Nel model: `$useTimestamps = true` per `created_at`/`updated_at`. I campi `created_by` e `updated_by` vengono popolati automaticamente dal callback `normalizza()` leggendo l'helper Shield **`user_id()`** (non `session()->get('user_id')` — vedi nota in "Note ambiente e troubleshooting"). `updated_by` va impostato in `$beforeUpdate`; `created_by` in `$beforeInsert` (e non va mai sovrascritto negli update).
+Nel model: `$useTimestamps = true` per `created_at`/`updated_at`. I campi `created_by` e `updated_by` vengono popolati automaticamente dal callback `normalizza()` leggendo l'helper Shield **`user_id()`** (non `session()->get('user_id')` — vedi la sezione "ID utente loggato"). `updated_by` va impostato in `$beforeUpdate`; `created_by` in `$beforeInsert` (e non va mai sovrascritto negli update).
 
 ## Codici progressivi — sempre da NumeratoriModel
 Ogni codice progressivo (`CLI-0001`, `INT-0042`, `PIS-0007`) si ottiene da

@@ -685,7 +685,9 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Nuova colonna `clienti.potenziale`, predisposizione per chi ha ricevuto una proposta senza essere ancora cliente: è un flag e non un prefisso perché descrive uno stato che cambia, mentre il codice deve restare stabile. Interfaccia fuori scope
 - Vedi `docs\spec\numeratori_atomici_spec.md`
 
-#### 🔲 v1.0.0 — Release
+#### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
+- La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
+- Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
 - Deploy su Nginx, VPS dedicata (dominio colombini.metesoftware.it — colombini-snc.it resta il sito aziendale)
