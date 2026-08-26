@@ -113,6 +113,7 @@
   <tr><td><span class="badge badge-fk">FK</span> <code>user_id</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>→ users.id · ON DELETE SET NULL</td></tr>
   <tr><td><code>dt_import</code></td><td>DATE</td><td class="null">NULL</td><td></td><td>Data importazione da software esterno</td></tr>
   <tr><td><code>attivo</code></td><td>TINYINT</td><td></td><td>1</td><td></td></tr>
+  <tr><td><code>potenziale</code></td><td>TINYINT</td><td></td><td>0</td><td>1 = ha ricevuto una proposta ma non è ancora cliente · aggiunto v0.30.0</td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -168,7 +169,7 @@
   <tr><td><code>durata_default</code></td><td>INT UNSIGNED</td><td></td><td>60</td><td>Minuti — pre-compila il form intervento</td></tr>
   <tr><td><code>attivo</code></td><td>TINYINT(1)</td><td></td><td>1</td><td></td></tr>
   <tr><td><code>abbonabile</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = può essere usato negli abbonamenti · aggiunto v0.14.0</td></tr>
-  <tr><td><code>prefisso_codice</code></td><td>VARCHAR(10)</td><td class="null">NULL</td><td>NULL</td><td>Prefisso 3 caratteri per codici da abbonamento (es. PIS, ADD). NULL = usa INT · aggiunto v0.14.0</td></tr>
+  <tr><td><code>prefisso_codice</code></td><td>VARCHAR(10)</td><td class="null">NULL</td><td>NULL</td><td>Prefisso dei codici degli interventi di questo tipo (es. PIS, ADD, SAL), da abbonamento o inseriti a mano. NULL = usa INT · aggiunto v0.14.0 · esteso agli interventi manuali in v0.30.0</td></tr>
   <tr><td><code>ha_pulizia_fondo</code></td><td>TINYINT UNSIGNED</td><td></td><td>0</td><td>1 = il tipo prevede l'opzione pulizia fondo (es. piscine) · aggiunto v0.14.0</td></tr>
   <tr><td><code>operazioni_standard</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Testo libero, elenco puntato (una riga = un punto) delle operazioni tipiche del tipo — precompila <code>abbonamenti.operazioni_incluse</code> · aggiunto v0.26.0</td></tr>
   <tr><td><code>ordine</code></td><td>INT UNSIGNED</td><td></td><td>0</td><td></td></tr>
@@ -428,17 +429,19 @@
   Tabella di sistema di <strong>CodeIgniter Settings</strong> (creata dalla sua migrazione, non da una nostra):
   archivio chiave/valore per le impostazioni salvate a runtime. Nessuna foreign key, nessun campo standard del
   progetto — la struttura è quella della libreria e <strong>non va modificata</strong>.
-  Documentata qui perché ospita un dato tutt'altro che accessorio: il <strong>contatore progressivo dei codici
-  intervento</strong>.
+  Documentata qui perché ospita un dato tutt'altro che accessorio: i <strong>contatori progressivi dei codici</strong>
+  di interventi e clienti.
 </p>
 <p class="note">
-  Una riga per prefisso — <code>class='Interventi'</code>, <code>key='seq_INT'</code> · <code>'seq_PIS'</code> ·
-  <code>'seq_ADD'</code>… — creata al primo utilizzo di quel prefisso, quindi un nuovo tipo abbonabile non
-  richiede nessuna migrazione. <code>InterventiModel::generaCodice()</code> la legge in transazione con
-  <code>SELECT … FOR UPDATE</code> e la incrementa: due utenti che salvano nello stesso istante non possono
-  ottenere lo stesso codice. È l'alternativa deliberata a <code>MAX(codice)</code>, che regredirebbe dopo una
-  cancellazione, e all'<code>AUTO_INCREMENT</code> letto da <code>information_schema</code>, che InnoDB aggiorna
-  in modo asincrono e può quindi essere stale.
+  Una riga per serie — <code>class='Interventi'</code> con <code>key='seq_INT'</code> · <code>'seq_PIS'</code> ·
+  <code>'seq_ADD'</code>…, e <code>class='Clienti'</code> con <code>key='seq_CLI'</code> — creata al primo utilizzo
+  di quel prefisso, quindi un nuovo tipo abbonabile non richiede nessuna migrazione.
+  <code>NumeratoriModel::prossimo()</code> la legge in transazione con <code>SELECT … FOR UPDATE</code> e la
+  incrementa: due utenti che salvano nello stesso istante non possono ottenere lo stesso codice, e il numero non
+  torna mai indietro. È l'alternativa deliberata a <code>MAX(codice)</code>, che regredirebbe dopo una
+  cancellazione riassegnando un codice già speso, e all'<code>AUTO_INCREMENT</code> letto da
+  <code>information_schema</code>, che InnoDB aggiorna in modo asincrono e può quindi essere stale.
+  I valori sono consultabili da <strong>Impostazioni → Numeratori</strong> (sola lettura, dalla v0.30.0).
 </p>
 <table>
   <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>

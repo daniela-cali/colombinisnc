@@ -182,6 +182,28 @@ $this->forge->addField('updated_at DATETIME NULL');
 
 Nel model: `$useTimestamps = true` per `created_at`/`updated_at`. I campi `created_by` e `updated_by` vengono popolati automaticamente dal callback `normalizza()` leggendo l'helper Shield **`user_id()`** (non `session()->get('user_id')` — vedi nota in "Note ambiente e troubleshooting"). `updated_by` va impostato in `$beforeUpdate`; `created_by` in `$beforeInsert` (e non va mai sovrascritto negli update).
 
+## Codici progressivi — sempre da NumeratoriModel
+Ogni codice progressivo (`CLI-0001`, `INT-0042`, `PIS-0007`) si ottiene da
+`NumeratoriModel::prossimo($classe, $prefisso)`. Nessun model compone codici per conto suo, né
+li ricava da `MAX(codice)` o dall'`AUTO_INCREMENT`: il primo regredisce dopo una cancellazione
+e sbaglia il massimo quando i codici hanno lunghezze diverse, il secondo è aggiornato da InnoDB
+in modo asincrono.
+
+Un model che genera codici dichiara due costanti e delega:
+
+```php
+const CLASSE_NUMERATORE = 'Clienti';
+const PREFISSO_CODICE   = 'CLI';
+
+public function generaCodice(string $prefisso = self::PREFISSO_CODICE): string
+{
+    return (new NumeratoriModel())->prossimo(self::CLASSE_NUMERATORE, $prefisso);
+}
+```
+
+I prefissi non si scrivono a mano nel codice: vanno in costanti del model, così la pagina
+Impostazioni → Numeratori può descrivere ogni serie senza indovinare da dove nasce.
+
 ## Query nei model — usare $this, non $this->db->table()
 Nei metodi di un model, usare sempre `$this` (il Query Builder del model) invece di `$this->db->table(...)`. Questo garantisce che timestamp e altri comportamenti del model vengano applicati automaticamente.
 

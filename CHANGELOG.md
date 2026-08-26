@@ -1,5 +1,22 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.30.0] - 2026-08-26
+
+### Numeratori atomici e nuova pagina Impostazioni → Numeratori
+
+- [APP] Nuova pagina **Impostazioni → Numeratori**: per ogni serie di codici — clienti creati nel gestionale, interventi manuali, visite extra e una serie per ogni tipo di intervento — mostra quanti codici sono stati assegnati, l'ultimo, il prossimo che verrà generato e la data dell'ultimo utilizzo. Prima l'unico modo per saperlo era interrogare il database a mano
+- [APP] Compaiono anche i numeratori **configurati ma non ancora usati**: un tipo intervento appena creato col suo prefisso si vede subito, fermo a zero e pronto a partire da `-0001`
+- [APP] La pagina è di sola consultazione. I numeri non si modificano dall'interfaccia: un valore abbassato per errore produrrebbe codici duplicati e salvataggi che falliscono, e il caso reale — riallineare una serie dopo un caricamento massivo — si risolve direttamente sul database
+- [APP] **Il codice di un cliente eliminato non viene più riassegnato.** Prima il numero tornava disponibile e poteva finire a un cliente diverso, mentre il vecchio era magari già su un preventivo
+- [APP] Il prefisso dei clienti creati nel gestionale passa da `INT-` a **`CLI-`**: `INT` indicava "interno" sui clienti e "intervento" sugli interventi. I codici esistenti sono convertiti dalla migration
+- [APP] **Il prefisso di un tipo intervento vale ora per tutti i suoi interventi**, non solo per quelli generati da un abbonamento: una consegna sale inserita a mano riceve `SAL-0001` invece di `INT-0516`. Prima i prefissi dei tipi non abbonabili non producevano mai un codice, quindi configurarli non serviva a niente. `INT` resta per i tipi senza prefisso e per gli interventi senza tipo, e le **visite extra restano `EXT`**: non sono una categoria di lavoro ma una prestazione fuori dalle scadenze previste. I codici già assegnati non cambiano
+- [DEV] **`ClientiModel::generaCodice()` non usa più `MAX(codice)`** (punto 4 della review). Aveva tre difetti: ordinava i codici come stringhe, quindi bastava mescolare 3 e 4 cifre perché il massimo trovato fosse quello sbagliato e il codice generato collidesse con uno esistente; regrediva dopo una cancellazione; non era atomico, e due salvataggi simultanei ottenevano lo stesso numero morendo sul vincolo `UNIQUE`
+- [DEV] Nuovo `NumeratoriModel`: unico posto che sa cos'è una sequenza — transazione, `SELECT … FOR UPDATE`, incremento, formato — più `elenco()` per la pagina. `ClientiModel::generaCodice()` e `InterventiModel::generaCodice()` restano come API pubbliche ma delegano, quindi nessuna firma cambia. La convenzione è ora in `CLAUDE.md`
+- [DEV] Il prefisso `EXT` delle visite extra era una stringa scritta a mano dentro `InterventiModel::normalizza()`, ignota a qualsiasi altra parte del progetto: diventa `PREFISSO_EXTRA`, usata sia dove il codice si genera sia dove la serie viene descritta
+- [DEV] Scartato il fix economico proposto dalla review — padding a 4 cifre e ordinamento numerico: con i codici esistenti a 3 cifre avrebbe rotto la generazione al cliente successivo, e lasciava in piedi gli altri due difetti. Col contatore il padding smette di avere effetto sulla correttezza: superato `PIS-9999` il codice diventa `PIS-10000` e la serie prosegue
+- [DEV] Eliminata la riga `settings(class='Interventi', key='progressivo')`, creata a giugno e mai letta da nessuna parte
+- [DEV] Nuova colonna `clienti.potenziale`: predisposizione per i clienti che hanno ricevuto una proposta senza ancora essere clienti. È un flag e non un prefisso nel codice perché descrive uno stato che cambia, mentre il codice è un identificatore che deve restare stabile — quando il potenziale accetta, il preventivo già inviato deve continuare a corrispondergli. L'interfaccia è fuori scope. Vedi `docs/spec/numeratori_atomici_spec.md`
+
 ## [0.29.2] - 2026-08-26
 
 ### L'orologio di MySQL non decide più cosa è "oggi"

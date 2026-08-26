@@ -22,6 +22,8 @@ $routes->group('impostazioni', ['filter' => 'permission:impostazioni.manage'], f
     $routes->post('parametri',       'Impostazioni\GeneraleController::salvaParametri');
     $routes->post('parametri/logo',  'Impostazioni\GeneraleController::cambiaLogo');
 
+    $routes->get('numeratori',       'Impostazioni\NumeratoriController::index');
+
     $routes->group('tipi-intervento', function ($routes) {
         $routes->get('/',              'Impostazioni\TipiInterventoController::index');
         $routes->post('store',         'Impostazioni\TipiInterventoController::store');

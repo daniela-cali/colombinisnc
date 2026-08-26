@@ -29,6 +29,10 @@ class ClientiModel extends Model
     const TIPO_SOCIETA        = 'societa';
     const TIPO_PERSONA_FISICA = 'persona_fisica';
 
+    /** Classe e prefisso della serie in settings: 'Clienti' + 'seq_CLI' → CLI-0001. */
+    const CLASSE_NUMERATORE = 'Clienti';
+    const PREFISSO_CODICE   = 'CLI';
+
     // valori: -1 Ventimiglia (da Andora verso Francia), 0 Ceriale (da Andora a Loano), 1 Savona (da Loano in poi)
     const ZONA_VENTIMIGLIA = -1;
     const ZONA_CERIALE     =  0;
@@ -205,21 +209,17 @@ class ClientiModel extends Model
     }
 
     /**
-     * Genera il prossimo codice INT-xxx per clienti non presenti nel software contabile.
+     * Genera il prossimo codice CLI-xxxx per i clienti non presenti nel software contabile.
+     *
+     * I clienti importati dall'anagrafica storica conservano invece il codice del gestionale
+     * contabile, quindi questa serie cresce solo con i clienti nuovi.
+     *
+     * Il numero arriva dal contatore atomico di NumeratoriModel, dove stanno le ragioni per
+     * cui non si usa MAX(codice) e non si riassegna mai un codice già speso.
      */
-    public function generaCodice(): string
+    public function generaCodice(string $prefisso = self::PREFISSO_CODICE): string
     {
-        $row = $this->select('codice')
-            ->like('codice', 'INT-', 'after')
-            ->orderBy('codice', 'DESC')
-            ->first();
-
-        if (! $row) {
-            return 'INT-001';
-        }
-
-        $numero = (int) substr($row['codice'], 4);
-        return 'INT-' . str_pad($numero + 1, 3, '0', STR_PAD_LEFT);
+        return (new NumeratoriModel())->prossimo(self::CLASSE_NUMERATORE, $prefisso);
     }
 
     /**

@@ -47,6 +47,20 @@
     </div>
 
     <div class="col-md-4 mb-4">
+        <a href="<?= base_url('impostazioni/numeratori') ?>" class="text-decoration-none">
+            <div class="card card-outline card-primary h-100 settings-card">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4">
+                    <i class="bi bi-123 settings-icon"></i>
+                    <h5 class="card-title mt-3">Numeratori</h5>
+                    <p class="text-muted small mb-0">
+                        A che numero sono arrivate le serie dei codici.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-4 mb-4">
         <div class="card card-outline card-secondary h-100 settings-card">
             <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-4 text-muted">
                 <i class="bi bi-envelope settings-icon text-muted"></i>

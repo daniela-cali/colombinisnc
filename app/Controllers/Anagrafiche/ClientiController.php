@@ -246,9 +246,9 @@ class ClientiController extends BaseController
 
         $adhoc = $this->recordDaPromuovere();
 
-        // Un cliente promosso dall'import conserva il codice del gestionale contabile;
-        // i nuovi ricevono il progressivo INT-xxx. generaCodice() cerca il massimo fra i
-        // soli 'INT-%', quindi i codici numerici legacy non ne alterano la numerazione.
+        // Un cliente promosso dall'import conserva il codice del gestionale contabile; i nuovi
+        // ricevono il progressivo CLI-xxxx. La serie ha un contatore suo, quindi i codici
+        // legacy non ne alterano la numerazione e nessun numero viene assegnato due volte.
         $codice = $adhoc !== null ? $adhoc['codice'] : $model->generaCodice();
 
         if ($adhoc !== null && $model->where('codice', $codice)->countAllResults() > 0) {

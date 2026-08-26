@@ -27,7 +27,7 @@ inviti a fare meglio quando capita.
 | 1 | Protezione CSRF disattivata | sicurezza | **alta** | ✅ chiuso in v0.27.2 |
 | 2 | Upload del logo senza validazione, estensione presa dal client | sicurezza | **alta** | ✅ chiuso in v0.27.3 |
 | 3 | `InterventiController::update()` non verifica il tecnico proprietario | sicurezza | **alta** | ✅ chiuso in v0.27.3 |
-| 4 | `ClientiModel::generaCodice()` si rompe a INT-999 e non è atomico | bug | media | aperto |
+| 4 | `ClientiModel::generaCodice()` si rompe a INT-999 e non è atomico | bug | media | ✅ chiuso in v0.30.0 |
 | 5 | Un admin può eliminare o declassare sé stesso | sicurezza | media | ✅ chiuso in v0.28.0 |
 | 6 | Creazione dipendente: email non verificata, nessuna transazione | bug | media | ✅ chiuso in v0.28.0 |
 | 7 | Magic link attivo ma posta non configurata | bug | media | ◐ mitigato in v0.27.2 (link rimosso); SMTP da configurare |
@@ -142,6 +142,17 @@ una scelta consapevole e documentata (il calendario è condiviso fra i tecnici).
 non lo fa, ma è protetto dal permesso `interventi.elimina` che i tecnici non hanno: coperto.
 
 ## 4. `ClientiModel::generaCodice()` si rompe a INT-999 e non è atomico
+
+> ✅ **Chiuso in v0.30.0** con la correzione "corretta" fra le due proposte qui sotto: il
+> contatore atomico, estratto in `NumeratoriModel` e usato da entrambi i generatori. Scartata
+> quella economica (padding a 4 cifre più ordinamento numerico): con i codici esistenti a 3
+> cifre avrebbe rotto la generazione al cliente successivo, e lasciava in piedi la regressione
+> dopo cancellazione e la mancanza di atomicità.
+>
+> Emersi lavorandoci: il prefisso `INT-` dei clienti era omonimo di quello degli interventi ed
+> è diventato `CLI-`; il prefisso di un tipo intervento valeva solo per gli interventi da
+> abbonamento, quindi quelli configurati su tipi non abbonabili non producevano mai un codice.
+> Aggiunta la pagina Impostazioni → Numeratori. Vedi `docs/spec/numeratori_atomici_spec.md`.
 
 **Dove:** `app/Models/ClientiModel.php:210-223`
 

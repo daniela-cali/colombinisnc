@@ -677,6 +677,14 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Scartate entrambe le scorciatoie — `SET time_zone` sulla connessione e l'allineamento manuale del fuso sul server, già fatto: risolvono il sintomo e lasciano una dipendenza da configurazione esterna che un cambio di macchina riporterebbe a rompersi in silenzio, per giunta nella fascia notturna in cui gira il batch degli abbonamenti scaduti
 - Restano i `CURDATE()` nelle due viste `v_abbonamenti_*`, SQL memorizzato non raggiungibile da un parametro: nessun codice applicativo le interroga, servono per le query manuali su DBeaver
 
+#### ✅ v0.30.0 — Numeratori atomici e pagina Numeratori
+- `ClientiModel::generaCodice()` ricavava il codice da `MAX(codice)`: ordinamento alfabetico (quindi massimo sbagliato appena si mescolano 3 e 4 cifre), regressione dopo una cancellazione e nessuna atomicità. Sostituito dal contatore in `settings` con `SELECT … FOR UPDATE`, già usato dagli interventi (punto 4 della review)
+- Nuovo `NumeratoriModel`: unico posto che sa cos'è una sequenza. I due `generaCodice()` restano come API pubbliche e delegano; la convenzione è in `CLAUDE.md`
+- Nuova pagina **Impostazioni → Numeratori** in sola lettura: assegnati, ultimo codice, prossimo e data d'uso per ogni serie, comprese quelle previste ma non ancora usate. Niente modifica dall'interfaccia — un numero abbassato per errore produrrebbe codici duplicati, e il riallineamento dopo un import si fa sul database
+- Prefisso dei clienti da `INT-` a `CLI-`, che era omonimo di quello degli interventi; il prefisso di un tipo intervento vale ora per tutti i suoi interventi e non solo per quelli da abbonamento, mentre le visite extra restano `EXT`
+- Nuova colonna `clienti.potenziale`, predisposizione per chi ha ricevuto una proposta senza essere ancora cliente: è un flag e non un prefisso perché descrive uno stato che cambia, mentre il codice deve restare stabile. Interfaccia fuori scope
+- Vedi `docs\spec\numeratori_atomici_spec.md`
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
