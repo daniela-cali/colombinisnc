@@ -31,7 +31,7 @@ inviti a fare meglio quando capita.
 | 5 | Un admin può eliminare o declassare sé stesso | sicurezza | media | ✅ chiuso in v0.28.0 |
 | 6 | Creazione dipendente: email non verificata, nessuna transazione | bug | media | ✅ chiuso in v0.28.0 |
 | 7 | Magic link attivo ma posta non configurata | bug | media | ◐ mitigato in v0.27.2 (link rimosso); SMTP da configurare |
-| 8 | `CURDATE()` e fuso orario del server MySQL | bug latente | media | aperto |
+| 8 | `CURDATE()` e fuso orario del server MySQL | bug latente | media | chiuso v0.29.2 |
 | 9 | Periodi abbonamento sostituiti senza transazione | bug | media | ✅ chiuso in v0.28.1 |
 | 10 | Assenze per malattia visibili a tutti | privacy | media | aperto — richiede una decisione |
 | 11 | Font Awesome: ~570 KB per un solo utilizzo | performance | media | aperto |
@@ -274,6 +274,24 @@ configurazione del database `SET time_zone = '+01:00'` (o `'Europe/Rome'` se le 
 fusi sono caricate su MySQL). L'alternativa più esplicita è passare la data calcolata in PHP
 come parametro al posto di `CURDATE()`. Da verificare comunque sul server di produzione con
 un semplice `SELECT NOW(), CURDATE();` appena disponibile.
+
+**Chiuso in v0.29.2** con la seconda strada, non con `SET time_zone`. Il fuso sul server
+online è stato allineato a mano, il che risolve il sintomo, ma lascia in piedi una dipendenza
+da configurazione esterna: un cambio di macchina, un container ricreato o un provider che
+reimposta i default la fanno tornare a rompersi senza che nessun errore lo segnali. Passando
+la data da PHP l'orologio di MySQL smette di decidere, e il suo fuso diventa irrilevante.
+
+Le sette occorrenze in codice applicativo sono state sostituite (`selectStatoCalcolato()` e
+`inScadenza()` in `AbbonamentiModel`, `scadenzeInRitardo()` in `InterventiModel`, dove anche
+`CURDATE() - INTERVAL 7 DAY` e `LAST_DAY(CURDATE())` si calcolano ora in PHP). Restano quelle
+dentro il `CREATE VIEW` di `v_abbonamenti_clienti` e `v_abbonamenti_clienti_interventi`, che
+sono SQL memorizzato e non raggiungibile da un parametro: quelle viste però non sono
+interrogate da nessun codice applicativo — esistono per le query manuali su DBeaver — quindi
+nessuna decisione dell'applicazione ci passa attraverso.
+
+Emersa nel farlo un'incoerenza che la review non aveva visto: in `inScadenza()` i `where`
+usavano già `date('Y-m-d')` mentre il `DATEDIFF` della stessa query usava `CURDATE()`, quindi
+selezione e conteggio dei giorni seguivano due orologi diversi.
 
 ## 9. Periodi abbonamento sostituiti senza transazione
 

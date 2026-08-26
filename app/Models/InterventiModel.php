@@ -323,6 +323,13 @@ class InterventiModel extends Model
      */
     public function scadenzeInRitardo(): array
     {
+        // Le tre date di confronto arrivano da PHP e non da CURDATE(): il fuso orario del
+        // server MySQL non decide più quale sia "oggi", e i valori restano gli stessi che
+        // calcolava il database — mezzanotte di oggi, sette giorni fa, fine del mese corrente.
+        $oggi       = $this->db->escape(date('Y-m-d'));
+        $setteFa    = $this->db->escape(date('Y-m-d', strtotime('-7 days')));
+        $fineMese   = $this->db->escape(date('Y-m-t'));
+
         $righe = $this->select("interventi.id, interventi.data_scadenza, interventi.stato,
                       interventi.data_pianificata, interventi.created_at,
                       c.denominazione AS cliente_denominazione")
@@ -335,13 +342,13 @@ class InterventiModel extends Model
                     // Il criterio "fermo" (created_at) esclude gli abbonamenti generati in
                     // blocco con scadenza oltre il mese corrente: created_at è sempre vecchio
                     // per costruzione, ma non sono davvero fermi finché non è il loro mese.
-                    ->where('(interventi.data_scadenza < CURDATE()
-                              OR (interventi.created_at <= CURDATE() - INTERVAL 7 DAY
-                                  AND (interventi.abbonamento_id IS NULL OR interventi.data_scadenza <= LAST_DAY(CURDATE()))))', null, false)
+                    ->where("(interventi.data_scadenza < {$oggi}
+                              OR (interventi.created_at <= {$setteFa}
+                                  AND (interventi.abbonamento_id IS NULL OR interventi.data_scadenza <= {$fineMese})))", null, false)
                 ->groupEnd()
                 ->orGroupStart()
                     ->whereIn('interventi.stato', [self::STATO_PIANIFICATO, self::STATO_IN_CORSO])
-                    ->where('(interventi.data_scadenza < CURDATE() OR interventi.data_pianificata < CURDATE())', null, false)
+                    ->where("(interventi.data_scadenza < {$oggi} OR interventi.data_pianificata < {$oggi})", null, false)
                 ->groupEnd()
             ->groupEnd()
             ->findAll();

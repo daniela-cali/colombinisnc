@@ -672,6 +672,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Emerso ricostruendo il database online che `php spark migrate` esegue **solo il namespace `App`**: senza `--all` le migration di Shield e Settings restano fuori e `personale` fallisce con `errno 150`, perché `users` non esiste ancora. Corretto anche il `down()` di `AddArticoloIdToInterventiMateriali`, che eliminava la colonna senza rimuovere prima la foreign key
 - **Schema ricostruito da zero in produzione e verificato il 26/08/2026**: 47 migration in sequenza su database vuoto, senza errori. La procedura sta in `docs/deploy.md` — pull, `migrate --all`, `AdminSeeder`, e il resto della configurazione dall'interfaccia
 
+#### ✅ v0.29.2 — L'orologio di MySQL non decide più cosa è "oggi"
+- Le sette `CURDATE()` rimaste in codice applicativo sostituite con la data calcolata in PHP (punto 8 della review): stato calcolato degli abbonamenti, abbonamenti in scadenza sulla dashboard, scadenze in ritardo del calendario. Le query confrontano gli stessi valori, ma il fuso orario del server MySQL smette di contare
+- Scartate entrambe le scorciatoie — `SET time_zone` sulla connessione e l'allineamento manuale del fuso sul server, già fatto: risolvono il sintomo e lasciano una dipendenza da configurazione esterna che un cambio di macchina riporterebbe a rompersi in silenzio, per giunta nella fascia notturna in cui gira il batch degli abbonamenti scaduti
+- Restano i `CURDATE()` nelle due viste `v_abbonamenti_*`, SQL memorizzato non raggiungibile da un parametro: nessun codice applicativo le interroga, servono per le query manuali su DBeaver
+
 #### 🔲 v1.0.0 — Release
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)

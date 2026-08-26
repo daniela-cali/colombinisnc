@@ -121,13 +121,18 @@ class AbbonamentiModel extends Model
      *
      * Esisteva in quattro copie identiche sparse fra le query: qui in un punto solo, così la
      * regola e l'elenco STATI_SCADIBILI si modificano una volta sola.
+     *
+     * La data di confronto arriva da PHP e non da CURDATE(): il fuso orario del server MySQL
+     * non decide più quale sia "oggi", e resta un parametro di configurazione che nessuno deve
+     * ricordarsi di allineare.
      */
     private function selectStatoCalcolato(): string
     {
         $scadibili = implode(', ', array_map(fn (string $s) => $this->db->escape($s), self::STATI_SCADIBILI));
         $scaduto   = $this->db->escape(self::STATO_SCADUTO);
+        $oggi      = $this->db->escape(date('Y-m-d'));
 
-        return "CASE WHEN abbonamenti.data_fine < CURDATE() AND abbonamenti.stato IN ({$scadibili})
+        return "CASE WHEN abbonamenti.data_fine < {$oggi} AND abbonamenti.stato IN ({$scadibili})
                       THEN {$scaduto} ELSE abbonamenti.stato END AS stato_calcolato";
     }
 
@@ -279,13 +284,18 @@ class AbbonamentiModel extends Model
     /**
      * Abbonamenti attivi in scadenza entro $giorni giorni, con denominazione cliente,
      * tipo intervento e giorni rimanenti. Ordinati per data di fine crescente (dashboard).
+     *
+     * I giorni rimanenti si contano dalla stessa data che filtra le righe: con CURDATE() nel
+     * DATEDIFF e date() nei where, la selezione e il conteggio seguivano due orologi diversi.
      */
     public function inScadenza(int $giorni = 30): array
     {
+        $oggi = $this->db->escape(date('Y-m-d'));
+
         return $this->select("abbonamenti.id, abbonamenti.data_fine,
                 clienti.denominazione AS cliente_denominazione,
                 tipi_intervento.nome AS tipo,
-                DATEDIFF(abbonamenti.data_fine, CURDATE()) AS giorni_rimasti")
+                DATEDIFF(abbonamenti.data_fine, {$oggi}) AS giorni_rimasti")
             ->join('clienti', 'clienti.id = abbonamenti.cliente_id')
             ->join('tipi_intervento', 'tipi_intervento.id = abbonamenti.tipo_intervento_id', 'left')
             ->where('abbonamenti.stato', self::STATO_ATTIVO)
@@ -398,8 +408,8 @@ class AbbonamentiModel extends Model
      * Calcola le date di fine sotto-periodo tra data_inizio e data_fine per la frequenza data.
      *
      * Tutte le frequenze si allineano ai confini naturali del calendario — mai "+N giorni secchi"
-     * dall'inizio del contratto — così il filtro LAST_DAY(CURDATE()) sul pool funziona senza
-     * bisogno di sapere la frequenza.
+     * dall'inizio del contratto — così il filtro sul pool, che guarda la fine del mese corrente,
+     * funziona senza bisogno di sapere la frequenza.
      *
      * Settimanale  → domenica della settimana ISO corrente, poi domeniche successive.
      * Quindicinale → 15 del mese (se inizio ≤ 15°) o fine mese (se inizio ≥ 16°), poi si alterna.

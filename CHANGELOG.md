@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.29.2] - 2026-08-26
+
+### L'orologio di MySQL non decide più cosa è "oggi"
+
+- [APP] Nessun cambiamento visibile: le pagine che dicono cosa è in ritardo, scaduto o in arrivo mostrano esattamente gli stessi dati. Cambia il fatto che continueranno a mostrarli anche se il gestionale finisce su un altro server
+- [DEV] **Le sette occorrenze di `CURDATE()` in codice applicativo sostituite con la data calcolata in PHP** (punto 8 della review): `selectStatoCalcolato()` e `inScadenza()` in `AbbonamentiModel`, `scadenzeInRitardo()` in `InterventiModel`, dove anche `CURDATE() - INTERVAL 7 DAY` e `LAST_DAY(CURDATE())` diventano `strtotime('-7 days')` e `date('Y-m-t')`. Le query confrontano gli stessi valori di prima, ma non dipendono più dal fuso orario del server MySQL
+- [DEV] Scartata la correzione alternativa proposta dalla review — `SET time_zone` sulla connessione — e scartato anche il semplice allineamento del fuso sul server, già fatto a mano: entrambi risolvono il sintomo ma lasciano in piedi una dipendenza da configurazione esterna, che un cambio di macchina o un container ricreato riporterebbe a rompersi in silenzio. Con MySQL su UTC e PHP su `Europe/Rome`, fra mezzanotte e le due il database risponde "ieri": è la fascia in cui gira il batch degli abbonamenti scaduti
+- [DEV] Emersa nel farlo un'incoerenza che la review non aveva visto: in `inScadenza()` i `where` usavano già `date('Y-m-d')` mentre il `DATEDIFF` della stessa query usava `CURDATE()`, quindi la selezione delle righe e il conteggio dei giorni rimanenti seguivano due orologi diversi
+- [DEV] Restano i `CURDATE()` dentro il `CREATE VIEW` di `v_abbonamenti_clienti` e `v_abbonamenti_clienti_interventi`: sono SQL memorizzato, che un parametro PHP non può raggiungere, ma quelle viste non sono interrogate da nessun codice applicativo — esistono per le query manuali su DBeaver
+
 ## [0.29.1] - 2026-08-25
 
 ### Ordine delle migration corretto per l'installazione da zero
