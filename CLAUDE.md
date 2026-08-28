@@ -255,6 +255,20 @@ Il pattern: ogni classe di card definisce `--card-accent` e `--card-accent-text`
 
 Le classi specifiche di AdminLTE 4 vanno documentate qui man mano che vengono scoperte. Non copiare i selettori del vecchio progetto (erano Bootstrap 4 / AdminLTE 3).
 
+## DataTables 2 — l'etichetta di "Tutti" non sta nel `lengthMenu`
+Per offrire la scelta del numero di righe si usa `lengthMenu: [25, 50, 100, -1]`, dove `-1` significa "nessuna paginazione". L'etichetta di quella voce **non** si imposta passando due array paralleli (`[[25, -1], [25, 'Tutti']]`): era il modo di DataTables 1.x, e in 2.x per i valori noti viene scavalcata dal default inglese `lengthLabels: {"-1": "All"}` che sta nel bundle.
+
+La traduzione va dentro `language`:
+
+```js
+language: {
+    lengthMenu:   'Mostra _MENU_ righe',
+    lengthLabels: { '-1': 'Tutti' }
+}
+```
+
+Altre stranezze di DataTables 2 vanno documentate qui man mano che si scoprono: il progetto non carica nessun file di lingua esterno, ogni view dichiara il proprio oggetto `language` inline.
+
 ## View Help
 Un file di help per sezione (non per view singola): `app/Views/help/<sezione>.php`. Descrive il flusso completo della sezione — come creare, modificare, le regole di cancellazione, ecc. Il controller passa `$help_sezione = 'clienti'`; il layout carica il file corrispondente e mostra il bottone guida solo se esiste. Se una sezione non ha ancora un file help, il bottone non appare.
 

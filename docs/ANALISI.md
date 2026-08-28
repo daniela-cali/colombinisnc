@@ -685,6 +685,14 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Nuova colonna `clienti.potenziale`, predisposizione per chi ha ricevuto una proposta senza essere ancora cliente: è un flag e non un prefisso perché descrive uno stato che cambia, mentre il codice deve restare stabile. Interfaccia fuori scope
 - Vedi `docs\spec\numeratori_atomici_spec.md`
 
+#### ✅ v0.31.0 — Filtri a tendina nell'elenco interventi
+- Le pillole di filtro diventano tendine indipendenti — Stato, Periodo, Origine, Fase, Urgenza, più Categoria nella sola vista "Tutti" — e i filtri si sommano invece di escludersi: "aperture ancora da pianificare" prima non era esprimibile
+- Stato ha una voce larga *Aperti* con sotto le tre precise (stesso schema di "Scaduti" negli abbonamenti) e la nuova voce *Sospesi*, uno stato che esisteva nel model ma non aveva filtro. Il filtro di apertura passa da *Pianificati* a *Da pianificare*
+- Periodo ragiona sulla data pianificata se c'è, altrimenti sulla scadenza: è *quando cade* l'intervento, e i da pianificare hanno solo la seconda. I secchielli sono calcolati in PHP nel rendering, così il filtro resta una ricerca di parola come gli altri e non serve una funzione di ricerca custom in JavaScript
+- Ordinamento di partenza urgenti → stato (rango del ciclo di vita) → scadenza, con gli interventi senza data in fondo ordinati per creazione; righe per pagina a scelta; via i campi di ricerca per colonna, resta la ricerca full text
+- Migrazione a `public/js/search-bar.js`: i filtri diventano configurazione JSON nel markup e spariscono ~70 righe di JS inline. Resta `cantieri/index.php` col vecchio pattern
+- **Server-side processing valutato e rimandato**: 7-8.000 interventi l'anno attesi a regime contro un tetto client-side attorno alle 3.000 righe, ma imporrebbe di riscrivere in JS il disegno delle colonne a quattro mesi dal go-live. Tendine, filtri dichiarativi e ordinamento sopravvivono al cambio di motore — cambierebbe solo da dove arrivano le righe
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo

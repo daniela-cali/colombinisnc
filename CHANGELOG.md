@@ -1,5 +1,25 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.31.0] - 2026-08-28
+
+### Filtri a tendina nell'elenco interventi
+
+- [APP] **Le pillole di filtro diventano tendine**, una per criterio: Stato, Periodo, Origine (piscine e addolcitori), Fase (piscine), Urgenza, più Categoria nella sola vista "Tutti gli interventi". Prima erano fino a otto bottoni in fila che si escludevano a vicenda: sceglierne uno azzerava il precedente, e combinazioni come "aperture ancora da pianificare" non erano esprimibili. Ora ogni tendina resta accesa per conto suo e i filtri si sommano
+- [APP] La tendina **Stato** ha una voce larga **Aperti** — da pianificare, pianificati e in corso insieme — con sotto le tre voci precise, come già fanno gli abbonamenti con "Scaduti". *Pianificati* ora significa solo `pianificato`: gli *In corso* hanno la loro voce, prima erano mescolati
+- [APP] Nuova voce **Sospesi**: lo stato esisteva già (interventi fermi perché l'abbonamento è sospeso) ma non aveva nessun filtro, si vedevano solo scegliendo "Tutti"
+- [APP] Nuova tendina **Periodo**: Settimana e arretrati (con sotto Solo scaduti e Solo questa settimana), Oggi, Questo mese, Prossimi 30 giorni. La data di riferimento è la pianificata se c'è, altrimenti la scadenza — cioè *quando cade* l'intervento: filtrando sulla sola pianificata i da pianificare sparirebbero tutti. Un intervento è "scaduto" solo se c'è ancora qualcosa da fare: uno completato in ritardo è fatto, non scaduto
+- [APP] **Il filtro di apertura è ora "Da pianificare"** invece di "Pianificati": la lista si apre su ciò che richiede un'azione. Nelle tre sezioni resta anche Origine su *Singoli*, che è il comportamento di prima — la vecchia pillola escludeva di nascosto gli interventi da abbonamento, ora lo si legge sul bottone e si disfa con un clic
+- [APP] La vista **Tutti gli interventi** guadagna le tendine Categoria e Origine e apre più larga delle sezioni: Aperti, tutte le categorie, tutte le origini, settimana e arretrati. Serve a cercare senza sapere in che categoria sta l'impianto del cliente, quindi non deve nascondere metà degli interventi appena la si apre
+- [APP] **Ordinamento di partenza**: prima gli urgenti, poi lo stato secondo il ciclo di vita (da pianificare → pianificato → in corso → completato → annullato → sospeso), poi la scadenza più vicina. Gli interventi **senza nessuna data** finiscono in fondo e fra loro sono ordinati per data di creazione: senza scadenza il criterio giusto è l'ordine di arrivo. La colonna Stato diventa cliccabile per ordinare
+- [APP] **Righe per pagina a scelta**: 25, 50, 100 o Tutti. *Tutti* è comodo per stampare o cercare a occhio, ma mette in pagina tutte le righe insieme: su elenchi lunghi rallenta
+- [APP] **Tolti i campi di ricerca dentro le intestazioni di colonna**: resta la sola ricerca in alto, che cerca su tutte le colonne. Cercare "Rossi" non distingue più fra cliente e tecnico, in cambio c'è un campo solo invece di sei
+- [DEV] `operativo/interventi/index.php` migrata a `public/js/search-bar.js`, il file condiviso già usato da abbonamenti e scheda cliente: i filtri sono ora configurazione JSON nel markup (`data-pill-filtri`) invece di ~70 righe di JS inline duplicato. Restava uno dei due file col vecchio pattern; l'altro è `cantieri/index.php`
+- [DEV] Tre nuove colonne nascoste per i filtri — urgenza, periodo (più parole per riga, es. `oggi settimana mese`, cercate con `\b`) e categoria, che conta come `generale` gli interventi senza tipo, come fa `elencoCompleto()`
+- [DEV] `data-order` su Stato (rango del ciclo di vita), Urgenza e Scadenza: DataTables ordina sul **testo** della cella, e una cella che contiene solo un'icona o un badge non porta il valore su cui si vuole ordinare. Senza, l'ordinamento per urgenza non faceva assolutamente nulla — tutte le righe valevano stringa vuota
+- [DEV] `InterventiController::index()` passa `categorieLabel` per la tendina Categoria. La ricerca full text continua a trovare anche le parole delle colonne nascoste (`apertura`, `singolo`, `scaduto`): è il prezzo del fatto che devono restare `searchable` perché le tendine funzionino
+- [DEV] Valutato e **rimandato il server-side processing** di DataTables, con la lista che carica tutto: a regime ci si aspettano 7-8.000 interventi l'anno e il client-side ha un tetto attorno alle 3.000 righe. Obbligherebbe a riscrivere in JavaScript il disegno di ogni colonna, a quattro mesi dal go-live e per un problema che si manifesta con lo storico accumulato. Le tendine, i filtri dichiarativi e l'ordinamento sopravvivono al cambio di motore: quel giorno cambia solo da dove arrivano le righe
+- [DEV] `CLAUDE.md`: in DataTables 2 l'etichetta della voce "Tutti" (`-1`) si traduce in `language.lengthLabels`, non passando due array paralleli al `lengthMenu` come in 1.x — il default inglese `All` del bundle vincerebbe comunque
+
 ## [0.30.0] - 2026-08-26
 
 ### Numeratori atomici e nuova pagina Impostazioni → Numeratori

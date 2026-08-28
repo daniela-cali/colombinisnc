@@ -34,6 +34,9 @@ class InterventiController extends BaseController
             'statiLabel'    => InterventiModel::STATI_LABEL,
             'sezione'       => $sezione,
             'sezioneLabel'  => $categorie[$sezione] ?? 'Tutti gli interventi',
+            // Serve alla tendina Categoria, mostrata solo nella vista "Tutti" dove la
+            // categoria non è già decisa dalla voce di menu.
+            'categorieLabel' => $categorie,
             'help_sezione'  => 'interventi',
         ]);
     }
