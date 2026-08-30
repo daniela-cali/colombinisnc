@@ -1,5 +1,19 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.32.0] - 2026-08-30
+
+### Filtri a tendina nei cantieri e data di fine coerente
+
+- [APP] **Elenco cantieri: i filtri diventano tendine**, come negli interventi e negli abbonamenti. Stato apre su *Aperti* come prima, ma ora si combina con la nuova tendina **Anno**: "i cantieri sospesi del 2025" prima non era una domanda esprimibile
+- [APP] Un cantiere compare in **tutti gli anni che attraversa**, non solo in quello di inizio: uno aperto a novembre 2025 e chiuso a marzo 2026 si trova sotto entrambi. Quelli senza data di fine prevista arrivano fino all'anno corrente — un cantiere aperto nel 2024 e mai chiuso è ancora lavoro di oggi. Quelli senza data di inizio non stanno in nessun anno e si vedono scegliendo *Tutti gli anni*
+- [APP] **La data di fine prevista non può più essere anteriore alla data di inizio**: il salvataggio viene rifiutato con un messaggio esplicito, sia creando sia modificando un cantiere. Prima il dato entrava a database e ogni calcolo di durata a valle doveva difendersene
+- [APP] **Righe per pagina a scelta (25, 50, 100, Tutti)** anche nell'elenco clienti e nell'articoli di magazzino
+- [APP] Il bottone *Nuovo cantiere* nella scheda cliente era giallo mentre *Nuovo intervento* e *Nuovo abbonamento* sono verdi: ora sono tutti e tre uguali. Il giallo di Bootstrap su fondo bianco, oltretutto, si legge male
+- [DEV] Nuova regola di validazione riusabile `non_anteriore_a[campo]` in `app/Validation/DateRules.php`, registrata nei `ruleSets` di `Config\Validation`: confronta due campi data dello stesso form, cosa che nessuna regola di CI4 fa (`greater_than` e simili lavorano sui numeri, e su un valore solo). Volutamente permissiva quando un campo è vuoto o illeggibile — quei casi li giudicano già `permit_empty` e `valid_date`, e bocciarli due volte darebbe due messaggi per un problema solo. Applicabile in un minuto anche alla coppia `data_inizio`/`data_fine` degli abbonamenti
+- [DEV] `cantieri/index.php` migrata a `public/js/search-bar.js`: era l'ultimo file rimasto col vecchio pattern dei filtri in JS inline. Ora tutte le tabelle del gestionale filtrano con lo stesso meccanismo dichiarativo
+- [DEV] Gli anni di un cantiere sono calcolati in PHP nel rendering e scritti come più parole in una colonna nascosta (`2025 2026`), cercate con `\b`: stesso trucco dei secchielli di periodo negli interventi, che evita una funzione di ricerca custom in JavaScript
+- [DEV] `CLAUDE.md`: due convenzioni scoperte lavorando — DataTables ordina sul **testo** della cella, quindi icone, badge e date formattate hanno bisogno di `data-order` col valore vero (una colonna con la sola icona non ordina affatto, e nessuno se ne accorge); e il pattern completo dei filtri con colonne nascoste, `data-pill-filtri` e `search-bar.js`
+
 ## [0.31.0] - 2026-08-28
 
 ### Filtri a tendina nell'elenco interventi

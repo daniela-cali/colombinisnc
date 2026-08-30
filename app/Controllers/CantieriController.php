@@ -333,7 +333,12 @@ class CantieriController extends BaseController
             'referente_nome'     => 'permit_empty|max_length[150]',
             'referente_telefono' => 'permit_empty|max_length[50]',
             'data_inizio'        => 'permit_empty|valid_date[Y-m-d]',
-            'data_fine_prevista' => 'permit_empty|valid_date[Y-m-d]',
+            'data_fine_prevista' => [
+                'rules'  => 'permit_empty|valid_date[Y-m-d]|non_anteriore_a[data_inizio]',
+                'errors' => [
+                    'non_anteriore_a' => 'La data di fine prevista non può essere anteriore alla data di inizio.',
+                ],
+            ],
         ];
     }
 }

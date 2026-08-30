@@ -147,9 +147,11 @@ $(function () {
             infoEmpty:    'Nessun record',
             infoFiltered: '(filtrati da _MAX_ totali)',
             zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
+            paginate: { first: '«', last: '»', next: '›', previous: '‹' },
+            lengthLabels: { '-1': 'Tutti' }
         },
         responsive: true,
+        lengthMenu:  [25, 50, 100, -1],
         order: [[1, 'asc']],
         orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
         pageLength:  25,

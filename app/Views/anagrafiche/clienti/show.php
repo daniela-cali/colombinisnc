@@ -582,7 +582,7 @@ $statoBadge = [
                     </div>
                     <a href="<?= base_url('cantieri/nuovo?cliente_id=' . $cliente['id']
                         . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-cantieri')) ?>"
-                       class="btn btn-sm btn-outline-warning filtri-nuovo">
+                       class="btn btn-sm btn-outline-success filtri-nuovo">
                         <i class="bi bi-plus-lg me-1"></i>Nuovo cantiere
                     </a>
                 </div>

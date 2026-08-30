@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Validation\DateRules;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Validation\StrictRules\CreditCardRules;
 use CodeIgniter\Validation\StrictRules\FileRules;
@@ -25,6 +26,8 @@ class Validation extends BaseConfig
         FormatRules::class,
         FileRules::class,
         CreditCardRules::class,
+        // Regole del progetto: confronti fra due campi data (vedi app/Validation/DateRules.php)
+        DateRules::class,
     ];
 
     /**

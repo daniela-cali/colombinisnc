@@ -7,6 +7,37 @@
  * @var array  $statiBadge  CantieriModel::STATI_BADGE
  */
 $this->extend('layouts/admin');
+
+/* Anni attraversati da un cantiere, per la tendina Anno: un cantiere ha una durata, quindi
+   uno iniziato a novembre 2025 e finito a marzo 2026 deve uscire sia da "2025" sia da "2026".
+   La colonna nascosta contiene quindi più anni per riga ("2025 2026") e il filtro ne cerca uno,
+   stesso meccanismo dei secchielli di periodo negli interventi.
+   Senza data di fine prevista si arriva fino all'anno corrente: un cantiere aperto nel 2024 e
+   mai chiuso è ancora lavoro di oggi. Senza data di inizio non c'è nessun anno da attribuire. */
+$annoCorrente = (int) date('Y');
+
+$anniDi = static function (array $c) use ($annoCorrente): array {
+    if (empty($c['data_inizio'])) {
+        return [];
+    }
+
+    $da = (int) substr($c['data_inizio'], 0, 4);
+    $a  = ! empty($c['data_fine_prevista'])
+        ? (int) substr($c['data_fine_prevista'], 0, 4)
+        : max($da, $annoCorrente);
+
+    /* Il max() vale per i cantieri salvati prima della regola non_anteriore_a: da ora
+       la fine anteriore all'inizio non passa più la validazione, ma i dati già a
+       database possono averla, e range() rovesciato elencherebbe anni a caso. */
+    return range($da, max($da, $a));
+};
+
+$anniPresenti = [];
+foreach ($cantieri as $c) {
+    $anniPresenti = array_merge($anniPresenti, $anniDi($c));
+}
+$anniPresenti = array_unique($anniPresenti);
+rsort($anniPresenti);
 ?>
 <?= $this->section('title') ?>Cantieri<?= $this->endSection() ?>
 
@@ -40,19 +71,51 @@ $this->extend('layouts/admin');
         <?php if (empty($cantieri)): ?>
             <p class="text-muted text-center py-4 mb-0">Nessun cantiere presente.</p>
         <?php else: ?>
-            <div class="mb-3 filtri-scroll">
-                <button class="btn btn-sm btn-outline-success" data-filtro="aperto">
-                    <i class="bi bi-unlock me-1"></i>Aperti
-                </button>
-                <button class="btn btn-sm btn-outline-warning" data-filtro="sospeso">
-                    <i class="bi bi-pause-circle me-1"></i>Sospesi
-                </button>
-                <button class="btn btn-sm btn-outline-secondary" data-filtro="chiuso">
-                    <i class="bi bi-lock me-1"></i>Chiusi
-                </button>
-                <button class="btn btn-sm btn-outline-primary" data-filtro="tutti">
-                    Tutti (<?= count($cantieri) ?>)
-                </button>
+            <?php
+            // Stato sulla colonna nascosta 7, anno sulla 8. Le due tendine sono gruppi
+            // indipendenti: search-bar.js azzera solo le colonne del proprio gruppo,
+            // quindi i filtri si combinano (es. i cantieri aperti del 2025).
+            $filtriStato = [
+                'tutti'   => [],
+                'aperto'  => ['col' => 7, 'q' => '^aperto$',  'regex' => true],
+                'sospeso' => ['col' => 7, 'q' => '^sospeso$', 'regex' => true],
+                'chiuso'  => ['col' => 7, 'q' => '^chiuso$',  'regex' => true],
+            ];
+            // La colonna 8 contiene più anni per riga ("2025 2026"): si cerca la singola
+            // parola con \b, non l'intero contenuto con ^...$.
+            $filtriAnno = ['tutti' => []];
+            foreach ($anniPresenti as $anno) {
+                $filtriAnno[$anno] = ['col' => 8, 'q' => '\\b' . $anno . '\\b', 'regex' => true];
+            }
+            ?>
+            <div class="mb-3 d-flex flex-wrap gap-2">
+                <div class="dropdown" data-pill-tabella="tabella-cantieri"
+                     data-pill-filtri='<?= esc(json_encode($filtriStato), 'attr') ?>'>
+                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-funnel me-1"></i>Stato: <span class="filtro-label">Aperti</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><button type="button" class="dropdown-item" data-filtro="tutti">Tutti (<?= count($cantieri) ?>)</button></li>
+                        <li><button type="button" class="dropdown-item" data-filtro="aperto" data-default><i class="bi bi-unlock me-1"></i>Aperti</button></li>
+                        <li><button type="button" class="dropdown-item" data-filtro="sospeso"><i class="bi bi-pause-circle me-1"></i>Sospesi</button></li>
+                        <li><button type="button" class="dropdown-item" data-filtro="chiuso"><i class="bi bi-lock me-1"></i>Chiusi</button></li>
+                    </ul>
+                </div>
+
+                <?php if ($anniPresenti): ?>
+                    <div class="dropdown" data-pill-tabella="tabella-cantieri"
+                         data-pill-filtri='<?= esc(json_encode($filtriAnno), 'attr') ?>'>
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-calendar3 me-1"></i>Anno: <span class="filtro-label">Tutti</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><button type="button" class="dropdown-item" data-filtro="tutti" data-default>Tutti gli anni</button></li>
+                            <?php foreach ($anniPresenti as $anno): ?>
+                                <li><button type="button" class="dropdown-item" data-filtro="<?= esc($anno, 'attr') ?>"><?= esc($anno) ?></button></li>
+                            <?php endforeach ?>
+                        </ul>
+                    </div>
+                <?php endif ?>
             </div>
             <div class="table-responsive">
                 <table id="tabella-cantieri" class="table table-hover align-middle mb-0">
@@ -66,6 +129,7 @@ $this->extend('layouts/admin');
                             <th class="text-center">Stato</th>
                             <th style="width:60px"></th>
                             <th></th><!-- 7 Filter stato -->
+                            <th></th><!-- 8 Filter anni attraversati -->
                         </tr>
                     </thead>
                     <tbody>
@@ -114,6 +178,8 @@ $this->extend('layouts/admin');
                                 </td>
                                 <!-- 8 Filter stato -->
                                 <td><?= esc($c['stato']) ?></td>
+                                <!-- 9 Filter anni attraversati -->
+                                <td><?= implode(' ', $anniDi($c)) ?></td>
                             </tr>
                         <?php endforeach ?>
                     </tbody>
@@ -126,6 +192,7 @@ $this->extend('layouts/admin');
 
 <?= $this->section('scripts') ?>
 <?= $this->include('partials/datatables_scripts') ?>
+<script src="<?= base_url('js/search-bar.js') ?>"></script>
 <script>
 $(function () {
 
@@ -151,30 +218,15 @@ $(function () {
             { name: 'periodo',  targets: 4, searchable: false },
             { name: 'stato',    targets: 5, searchable: false, orderable: false, responsivePriority: 3 },
             { name: 'azioni',   targets: 6, searchable: false, orderable: false, responsivePriority: 2 },
-            { name: 'filter_stato', targets: 7, searchable: true, orderable: false, visible: false }
+            { name: 'filter_stato', targets: 7, searchable: true, orderable: false, visible: false },
+            { name: 'filter_anno',  targets: 8, searchable: true, orderable: false, visible: false }
         ]
     });
 
-    // Filtri pill: cercano lo stato nella colonna nascosta 7
-    var filtri = {
-        aperto:  '^aperto$',
-        sospeso: '^sospeso$',
-        chiuso:  '^chiuso$',
-        tutti:   ''
-    };
-
-    function setFiltro(nome) {
-        table.column(7).search(filtri[nome], filtri[nome] !== '', false).draw();
-        document.querySelectorAll('[data-filtro]').forEach(function (b) {
-            b.classList.toggle('active', b.dataset.filtro === nome);
-        });
-    }
-
-    document.querySelectorAll('[data-filtro]').forEach(function (b) {
-        b.addEventListener('click', function () { setFiltro(this.dataset.filtro); });
+    // Attiva il filtro di default delle tendine (Stato: Aperti) — gestite da search-bar.js
+    document.querySelectorAll('[data-pill-tabella="tabella-cantieri"] [data-default]').forEach(function (b) {
+        b.click();
     });
-
-    setFiltro('aperto');
 });
 </script>
 <?= $this->endSection() ?>

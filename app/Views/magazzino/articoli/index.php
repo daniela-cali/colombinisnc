@@ -113,10 +113,11 @@ $(function () {
             infoEmpty:    'Nessun record',
             infoFiltered: '(filtrati da _MAX_ totali)',
             zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
+            paginate: { first: '«', last: '»', next: '›', previous: '‹' },
+            lengthLabels: { '-1': 'Tutti' }
         },
         responsive: true,
-        pageLength: 25,
+        lengthMenu:  [25, 50, 100, -1],
         order: [[2, 'asc'], [1, 'asc']],
         columnDefs: [
             { orderable: false, targets: [-1], responsivePriority: 2 },

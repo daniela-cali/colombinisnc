@@ -693,6 +693,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Migrazione a `public/js/search-bar.js`: i filtri diventano configurazione JSON nel markup e spariscono ~70 righe di JS inline. Resta `cantieri/index.php` col vecchio pattern
 - **Server-side processing valutato e rimandato**: 7-8.000 interventi l'anno attesi a regime contro un tetto client-side attorno alle 3.000 righe, ma imporrebbe di riscrivere in JS il disegno delle colonne a quattro mesi dal go-live. Tendine, filtri dichiarativi e ordinamento sopravvivono al cambio di motore — cambierebbe solo da dove arrivano le righe
 
+#### ✅ v0.32.0 — Filtri a tendina nei cantieri e data di fine coerente
+- Elenco cantieri con tendine Stato e Anno che si combinano; un cantiere compare in tutti gli anni che attraversa, non solo in quello di inizio, e senza data di fine si arriva fino all'anno corrente
+- Nuova regola di validazione riusabile `non_anteriore_a[campo]` (`app/Validation/DateRules.php`, registrata nei `ruleSets`): CI4 non ha regole che confrontino due campi fra loro. Applicata a `data_fine_prevista` dei cantieri, pronta per la coppia `data_inizio`/`data_fine` degli abbonamenti
+- `cantieri/index.php` era l'ultimo file coi filtri in JS inline: ora tutte le tabelle usano `search-bar.js`
+- Righe per pagina a scelta anche in elenco clienti e articoli di magazzino; bottoni "Nuovo" della scheda cliente uniformati
+- In `CLAUDE.md` due convenzioni scoperte lavorando: `data-order` obbligatorio quando la cella non mostra il valore grezzo (una colonna con la sola icona non ordina affatto) e il pattern completo dei filtri a colonne nascoste
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo

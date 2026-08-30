@@ -269,6 +269,29 @@ language: {
 
 Altre stranezze di DataTables 2 vanno documentate qui man mano che si scoprono: il progetto non carica nessun file di lingua esterno, ogni view dichiara il proprio oggetto `language` inline.
 
+## DataTables — l'ordinamento guarda il testo della cella, non il dato
+DataTables ordina una colonna sul **testo** che la cella contiene. Quando la cella non mostra il valore grezzo, l'ordinamento è sbagliato o non fa proprio niente, e il difetto è silenzioso:
+
+- **cella con sola icona** (`<i class="bi ...">`): il testo è vuoto per tutte le righe, quindi ordinare quella colonna non cambia nulla
+- **badge con etichetta**: ordina alfabeticamente sull'etichetta (Annullato, Completato, Da pianificare…), non secondo il ciclo di vita
+- **data formattata `d/m/Y`**: ordina per giorno, poi mese, poi anno
+
+Il rimedio è sempre `data-order` sulla `<td>`, con il valore vero: la data ISO, il rango numerico dello stato, `1`/`0` per un flag. Per gli stati si dichiara una mappa accanto a `$statoBadge` nella view (`$statoOrdine = ['da_pianificare' => 1, ...]`), così l'ordinamento segue il flusso del lavoro.
+
+Un valore nullo va pensato, non lasciato vuoto: una stringa vuota in ordinamento crescente precede qualunque data. In `operativo/interventi/index.php` la scadenza assente diventa `'9999-' . $i['created_at']`, che spinge quelle righe in fondo e fra loro le ordina per data di creazione.
+
+## Filtri delle tabelle — colonne nascoste e `search-bar.js`
+I filtri degli elenchi non si scrivono in JavaScript nella view. Il meccanismo condiviso è `public/js/search-bar.js`, usato da interventi, cantieri, abbonamenti e scheda cliente, e funziona identico sia con bottoni a pillola sia con voci di un dropdown:
+
+1. la view aggiunge una **colonna nascosta** (`visible: false`, `searchable: true`) con il valore grezzo su cui filtrare
+2. il contenitore dei bottoni dichiara `data-pill-tabella` (id della tabella) e `data-pill-filtri` (JSON `{ nome: {col, q, regex} }`, prodotto con `esc(json_encode($filtri), 'attr')`)
+3. ogni bottone ha `data-filtro`, e quello iniziale anche `data-default`; lo script della pagina simula un clic sui `[data-default]` dopo aver creato la DataTable
+4. il bottone del dropdown contiene uno `<span class="filtro-label">`, che `search-bar.js` aggiorna con la voce scelta
+
+Ogni tendina è un gruppo a sé e azzera solo le proprie colonne, quindi i filtri di gruppi diversi **si combinano**. Una colonna nascosta può contenere più parole per riga (`oggi settimana mese`, `2025 2026`): in quel caso il filtro cerca la singola parola con `\b`, non l'intero contenuto con `^...$`.
+
+Conseguenza da tenere a mente: le colonne nascoste sono `searchable`, quindi anche la ricerca globale trova quei valori — scrivendo `scaduto` o `apertura` nel campo Cerca escono le righe corrispondenti.
+
 ## View Help
 Un file di help per sezione (non per view singola): `app/Views/help/<sezione>.php`. Descrive il flusso completo della sezione — come creare, modificare, le regole di cancellazione, ecc. Il controller passa `$help_sezione = 'clienti'`; il layout carica il file corrispondente e mostra il bottone guida solo se esiste. Se una sezione non ha ancora un file help, il bottone non appare.
 
