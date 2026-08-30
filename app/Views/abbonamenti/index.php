@@ -9,6 +9,20 @@
  * @var array  $frequenze    AbbonamentiModel::FREQUENZE_LABEL
  */
 $this->extend('layouts/admin');
+
+/* Rango per l'ordinamento della colonna Stato: la cella mostra un badge, quindi senza
+   data-order DataTables ordinerebbe per l'etichetta, cioè alfabeticamente (Attivo,
+   Disdetto, Proposta...). L'ordine segue la vita del contratto — nasce proposta,
+   diventa attivo, può sospendersi, poi scade — con in fondo le due uscite anticipate:
+   disdetto (chiuso prima del tempo) e rifiutata (proposta mai accettata). */
+$statoOrdine = [
+    'proposta'  => 1,
+    'attivo'    => 2,
+    'sospeso'   => 3,
+    'scaduto'   => 4,
+    'disdetto'  => 5,
+    'rifiutata' => 6,
+];
 ?>
 <?= $this->section('title') ?>Abbonamenti<?= $this->endSection() ?>
 
@@ -47,76 +61,55 @@ $this->extend('layouts/admin');
             <p class="text-muted text-center py-4 mb-0">Nessun abbonamento presente.</p>
         <?php else: ?>
             <?php
-            // Filtri Stato: tutti sulla colonna nascosta 9. "scaduto" (prefix match, senza
-            // ancora di chiusura) intercetta sia "scaduto con-rinnovo" sia "scaduto senza-rinnovo".
-            $filtriStato = [
-                'tutti'                 => [],
-                'attivo'                => ['col' => 9, 'q' => '^attivo$', 'regex' => true],
-                'sospeso'               => ['col' => 9, 'q' => '^sospeso$', 'regex' => true],
-                'scaduto'               => ['col' => 9, 'q' => '^scaduto', 'regex' => true],
-                'scaduto_con_rinnovo'   => ['col' => 9, 'q' => '^scaduto con-rinnovo$', 'regex' => true],
-                'scaduto_senza_rinnovo' => ['col' => 9, 'q' => '^scaduto senza-rinnovo$', 'regex' => true],
-                'disdetto'              => ['col' => 9, 'q' => '^disdetto$', 'regex' => true],
-                'proposta'              => ['col' => 9, 'q' => '^proposta$', 'regex' => true],
-                'rifiutata'             => ['col' => 9, 'q' => '^rifiutata$', 'regex' => true],
-            ];
-
-            // Filtri Tipo: sulla colonna 3 già visibile (Tipo intervento), una voce per tipo presente.
-            $filtriTipo = ['tutti' => []];
+            // Tipo: sulla colonna 3 già visibile (Tipo intervento), una voce per tipo presente.
+            $vociTipo = ['tutti' => ['label' => 'Tutti i tipi', 'default' => true]];
             foreach ($tipiPresenti as $tipo) {
-                $filtriTipo[$tipo] = ['col' => 3, 'q' => '^' . preg_quote($tipo, '/') . '$', 'regex' => true];
+                $vociTipo[$tipo] = ['label' => $tipo, 'col' => 3, 'q' => '^' . preg_quote($tipo, '/') . '$', 'regex' => true];
             }
 
-            // Filtri Anno: sulla colonna nascosta 10 (anno_inizio), una voce per anno presente.
-            $filtriAnno = ['tutti' => []];
+            // Anno: sulla colonna nascosta 10 (anno_inizio), una voce per anno presente.
+            $vociAnno = ['tutti' => ['label' => 'Tutti gli anni', 'default' => true]];
             foreach ($anniPresenti as $anno) {
-                $filtriAnno[$anno] = ['col' => 10, 'q' => '^' . preg_quote($anno, '/') . '$', 'regex' => true];
+                $vociAnno[$anno] = ['label' => $anno, 'col' => 10, 'q' => '^' . preg_quote($anno, '/') . '$', 'regex' => true];
             }
             ?>
             <div class="mb-3 d-flex flex-wrap gap-2">
-                <div class="dropdown" data-pill-tabella="tabella-abbonamenti"
-                     data-pill-filtri='<?= esc(json_encode($filtriStato), 'attr') ?>'>
-                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-funnel me-1"></i>Stato: <span class="filtro-label">Tutti</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button type="button" class="dropdown-item" data-filtro="tutti">Tutti (<?= count($abbonamenti) ?>)</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="attivo" data-default><i class="bi bi-check-circle me-1"></i>Attivi</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="sospeso"><i class="bi bi-pause-circle me-1"></i>Sospesi</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="scaduto"><i class="bi bi-clock-history me-1"></i>Scaduti</button></li>
-                        <li><button type="button" class="dropdown-item ps-4" data-filtro="scaduto_con_rinnovo">↳ con rinnovo</button></li>
-                        <li><button type="button" class="dropdown-item ps-4" data-filtro="scaduto_senza_rinnovo">↳ senza rinnovo</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="disdetto"><i class="bi bi-x-circle me-1"></i>Disdetti</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="proposta"><i class="bi bi-file-earmark-text me-1"></i>Proposte</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="rifiutata"><i class="bi bi-x-circle me-1"></i>Rifiutati</button></li>
-                    </ul>
-                </div>
+                <?php /* Stato: tutto sulla colonna nascosta 9. "Scaduti" cerca per prefisso, senza
+                         ancora di chiusura, così intercetta sia "scaduto con-rinnovo" sia
+                         "scaduto senza-rinnovo", che restano disponibili come voci rientrate. */ ?>
+                <?= view('partials/filtro_tendina', [
+                    'tabella'   => 'tabella-abbonamenti',
+                    'etichetta' => 'Stato',
+                    'classe'    => 'btn-outline-primary',
+                    'voci'      => [
+                        'tutti'                 => ['label' => 'Tutti (' . count($abbonamenti) . ')'],
+                        'attivo'                => ['label' => 'Attivi', 'icona' => 'bi-check-circle', 'default' => true,
+                                                    'col' => 9, 'q' => '^attivo$', 'regex' => true],
+                        'sospeso'               => ['label' => 'Sospesi', 'icona' => 'bi-pause-circle',  'col' => 9, 'q' => '^sospeso$', 'regex' => true],
+                        'scaduto'               => ['label' => 'Scaduti', 'icona' => 'bi-clock-history', 'col' => 9, 'q' => '^scaduto',  'regex' => true],
+                        'scaduto_con_rinnovo'   => ['label' => 'con rinnovo',   'sotto' => true, 'col' => 9, 'q' => '^scaduto con-rinnovo$',   'regex' => true],
+                        'scaduto_senza_rinnovo' => ['label' => 'senza rinnovo', 'sotto' => true, 'col' => 9, 'q' => '^scaduto senza-rinnovo$', 'regex' => true],
+                        'disdetto'              => ['label' => 'Disdetti',  'icona' => 'bi-x-circle',          'col' => 9, 'q' => '^disdetto$',  'regex' => true],
+                        'proposta'              => ['label' => 'Proposte',  'icona' => 'bi-file-earmark-text', 'col' => 9, 'q' => '^proposta$',  'regex' => true],
+                        'rifiutata'             => ['label' => 'Rifiutati', 'icona' => 'bi-x-circle',          'col' => 9, 'q' => '^rifiutata$', 'regex' => true],
+                    ],
+                ]) ?>
 
-                <div class="dropdown" data-pill-tabella="tabella-abbonamenti"
-                     data-pill-filtri='<?= esc(json_encode($filtriTipo), 'attr') ?>'>
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-tag me-1"></i>Tipo: <span class="filtro-label">Tutti</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button type="button" class="dropdown-item" data-filtro="tutti" data-default>Tutti i tipi</button></li>
-                        <?php foreach ($tipiPresenti as $tipo): ?>
-                            <li><button type="button" class="dropdown-item" data-filtro="<?= esc($tipo, 'attr') ?>"><?= esc($tipo) ?></button></li>
-                        <?php endforeach ?>
-                    </ul>
-                </div>
+                <?= view('partials/filtro_tendina', [
+                    'tabella'   => 'tabella-abbonamenti',
+                    'etichetta' => 'Tipo',
+                    'icona'     => 'bi-tag',
+                    'attivo'    => 'Tutti',
+                    'voci'      => $vociTipo,
+                ]) ?>
 
-                <div class="dropdown" data-pill-tabella="tabella-abbonamenti"
-                     data-pill-filtri='<?= esc(json_encode($filtriAnno), 'attr') ?>'>
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-calendar3 me-1"></i>Anno: <span class="filtro-label">Tutti</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button type="button" class="dropdown-item" data-filtro="tutti" data-default>Tutti gli anni</button></li>
-                        <?php foreach ($anniPresenti as $anno): ?>
-                            <li><button type="button" class="dropdown-item" data-filtro="<?= esc($anno, 'attr') ?>"><?= esc($anno) ?></button></li>
-                        <?php endforeach ?>
-                    </ul>
-                </div>
+                <?= view('partials/filtro_tendina', [
+                    'tabella'   => 'tabella-abbonamenti',
+                    'etichetta' => 'Anno',
+                    'icona'     => 'bi-calendar3',
+                    'attivo'    => 'Tutti',
+                    'voci'      => $vociAnno,
+                ]) ?>
             </div>
             <form id="form-accetta-multiplo" method="post" action="<?= base_url('abbonamenti/accetta-multiplo') ?>"
                   onsubmit="return confirm('Accettare le proposte selezionate? Verranno generati gli interventi.')">
@@ -181,7 +174,7 @@ $this->extend('layouts/admin');
                                         <?= $a['prezzo'] !== null ? '€ ' . number_format((float) $a['prezzo'], 2, ',', '.') : '—' ?>
                                     </td>
                                     <!-- 7 Stato -->
-                                    <td class="text-center">
+                                    <td class="text-center" data-order="<?= $statoOrdine[$a['stato_calcolato']] ?? 99 ?>">
                                         <span class="badge <?= $statiBadge[$a['stato_calcolato']] ?? 'bg-secondary' ?>">
                                             <?= esc($statiLabel[$a['stato_calcolato']] ?? $a['stato_calcolato']) ?>
                                         </span>
@@ -263,17 +256,17 @@ $(function () {
             { name: 'frequenza', targets: 4 },
             { name: 'periodo',   targets: 5, searchable: false },
             { name: 'prezzo',    targets: 6, searchable: false },
-            { name: 'stato',     targets: 7, searchable: false, orderable: false, responsivePriority: 3 },
+            // Ordina per il rango del ciclo di vita (data-order sulla cella), non per l'etichetta del badge.
+            // Resta non cercabile: lo stato grezzo è già nella colonna nascosta 9.
+            { name: 'stato',     targets: 7, searchable: false, responsivePriority: 3 },
             { name: 'azioni',    targets: 8, searchable: false, orderable: false, responsivePriority: 2 },
             { name: 'filter_stato', targets: 9, searchable: true, orderable: false, visible: false },
             { name: 'filter_anno',  targets: 10, searchable: true, orderable: false, visible: false }
         ]
     });
 
-    // Attiva il filtro "tutti" di default nei tre dropdown (Stato/Tipo/Anno) — gestiti da search-bar.js
-    document.querySelectorAll('[data-pill-tabella="tabella-abbonamenti"] [data-default]').forEach(function (b) {
-        b.click();
-    });
+    // Filtri iniziali: quelli ricordati dalla sessione, altrimenti i default — vedi search-bar.js
+    filtriIniziali('tabella-abbonamenti');
 
     // Selezione multipla proposte: "seleziona tutte" + abilitazione bottone "Accetta selezionati"
     function aggiornaBottoneAccetta() {

@@ -280,17 +280,59 @@ Il rimedio è sempre `data-order` sulla `<td>`, con il valore vero: la data ISO,
 
 Un valore nullo va pensato, non lasciato vuoto: una stringa vuota in ordinamento crescente precede qualunque data. In `operativo/interventi/index.php` la scadenza assente diventa `'9999-' . $i['created_at']`, che spinge quelle righe in fondo e fra loro le ordina per data di creazione.
 
-## Filtri delle tabelle — colonne nascoste e `search-bar.js`
-I filtri degli elenchi non si scrivono in JavaScript nella view. Il meccanismo condiviso è `public/js/search-bar.js`, usato da interventi, cantieri, abbonamenti e scheda cliente, e funziona identico sia con bottoni a pillola sia con voci di un dropdown:
+## Filtri delle tabelle — partial, colonne nascoste e `search-bar.js`
+I filtri degli elenchi non si scrivono a mano: né il markup né il JavaScript. Il meccanismo è
+condiviso da tutte le tabelle del gestionale (interventi, cantieri, abbonamenti, scheda cliente)
+e si compone di tre pezzi:
 
-1. la view aggiunge una **colonna nascosta** (`visible: false`, `searchable: true`) con il valore grezzo su cui filtrare
-2. il contenitore dei bottoni dichiara `data-pill-tabella` (id della tabella) e `data-pill-filtri` (JSON `{ nome: {col, q, regex} }`, prodotto con `esc(json_encode($filtri), 'attr')`)
-3. ogni bottone ha `data-filtro`, e quello iniziale anche `data-default`; lo script della pagina simula un clic sui `[data-default]` dopo aver creato la DataTable
-4. il bottone del dropdown contiene uno `<span class="filtro-label">`, che `search-bar.js` aggiorna con la voce scelta
+1. la view aggiunge una **colonna nascosta** (`visible: false`, `searchable: true`) con il valore
+   grezzo su cui filtrare;
+2. la tendina si stampa con il partial `app/Views/partials/filtro_tendina.php`, reso con
+   `view('partials/filtro_tendina', [...])` — **non** con `$this->include()`, che condivide i dati
+   della view chiamante invece di accettare i propri;
+3. `public/js/search-bar.js` fa il resto: applica i filtri, aggiorna l'etichetta del bottone e
+   ricorda la scelta.
 
-Ogni tendina è un gruppo a sé e azzera solo le proprie colonne, quindi i filtri di gruppi diversi **si combinano**. Una colonna nascosta può contenere più parole per riga (`oggi settimana mese`, `2025 2026`): in quel caso il filtro cerca la singola parola con `\b`, non l'intero contenuto con `^...$`.
+Ogni voce si dichiara **una volta sola**, con dentro sia l'etichetta sia cosa cercare: il partial
+separa le chiavi `col`/`q`/`regex` (che diventano il JSON di `data-pill-filtri`) dal resto
+(`label`, `icona`, `default`, `sotto`, che diventano la riga del menu). Una voce senza `col`
+azzera le colonne del gruppo: è il classico "Tutti".
 
-Conseguenza da tenere a mente: le colonne nascoste sono `searchable`, quindi anche la ricerca globale trova quei valori — scrivendo `scaduto` o `apertura` nel campo Cerca escono le righe corrispondenti.
+```php
+<?= view('partials/filtro_tendina', [
+    'tabella'   => 'tabella-interventi',
+    'etichetta' => 'Stato',
+    'classe'    => 'btn-outline-primary',
+    'voci'      => [
+        'tutti'    => ['label' => 'Tutti (' . count($interventi) . ')'],
+        'aperti'   => ['label' => 'Aperti', 'icona' => 'bi-play-circle', 'default' => true,
+                       'col' => 9, 'q' => '^(da_pianificare|pianificato|in_corso)$', 'regex' => true],
+        'in_corso' => ['label' => 'In corso', 'sotto' => true,
+                       'col' => 9, 'q' => '^in_corso$', 'regex' => true],
+    ],
+]) ?>
+```
+
+Dopo aver creato la DataTable, la view chiama `filtriIniziali('id-tabella')`: applica i filtri
+ricordati dalla sessione e, dove non ce ne sono, quelli marcati `'default' => true`.
+
+**I filtri scelti si ricordano in `sessionStorage`**, cioè finché la scheda del browser resta
+aperta: si torna alla lista dopo aver aperto una scheda o salvato un form e la si ritrova come la
+si era filtrata, mentre il giorno dopo si riparte dai default. La chiave comprende la pagina con
+la sua query string, così le tre sezioni degli interventi (`?sezione=piscine`, `generale`,
+`addolcitori`) ricordano ciascuna la propria combinazione. Scartato mettere i filtri
+nell'indirizzo: l'URL resta pulito. Quando in una pagina ci sono più tendine con la stessa
+etichetta su tabelle diverse — la scheda cliente ne ha tre chiamate "Stato" — va passato un
+`gruppo` esplicito, altrimenti si sovrascrivono la memoria a vicenda.
+
+Ogni tendina è un gruppo a sé e azzera solo le proprie colonne, quindi i filtri di gruppi diversi
+**si combinano**. Una colonna nascosta può contenere più parole per riga (`oggi settimana mese`,
+`2025 2026`): in quel caso il filtro cerca la singola parola con `\b`, non l'intero contenuto con
+`^...$`.
+
+Conseguenza da tenere a mente: le colonne nascoste sono `searchable`, quindi anche la ricerca
+globale trova quei valori — scrivendo `scaduto` o `apertura` nel campo Cerca escono le righe
+corrispondenti.
 
 ## View Help
 Un file di help per sezione (non per view singola): `app/Views/help/<sezione>.php`. Descrive il flusso completo della sezione — come creare, modificare, le regole di cancellazione, ecc. Il controller passa `$help_sezione = 'clienti'`; il layout carica il file corrispondente e mostra il bottone guida solo se esiste. Se una sezione non ha ancora un file help, il bottone non appare.

@@ -1,5 +1,22 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.33.0] - 2026-08-30
+
+### Filtri a tendina ovunque, con memoria di sessione
+
+- [APP] **I filtri si ricordano finché la scheda del browser resta aperta.** Metti i filtri su una lista, apri una scheda, torni indietro: la lista è come l'avevi lasciata. Prima ogni ritorno ripartiva dai default, ed era il fastidio più frequente. Il giorno dopo, a browser chiuso, si riparte puliti
+- [APP] **Anche la scheda cliente passa alle tendine**: le tre tabelle — interventi, abbonamenti, cantieri — usano gli stessi filtri degli elenchi principali, e ognuna ricorda i propri
+- [APP] Nella scheda cliente gli interventi hanno ora cinque tendine come l'elenco: Stato, Periodo, Origine, Fase, Urgenza. La tendina Origine qui distingue anche le **visite extra**, che l'elenco principale conta fra i singoli
+- [APP] Le due pillole *Da pianificare* e *Pianificati* della scheda cliente diventano una voce sola **Aperti**, con sotto le tre precise. La vecchia *Da pianificare* nascondeva di nascosto gli interventi da abbonamento: ora nella scheda di un cliente si vede tutto il suo lavoro in ballo
+- [APP] Nella scheda cliente compaiono i filtri per gli stati che esistevano ma non erano raggiungibili: **Sospesi** fra gli interventi, **Proposte** e **Rifiutati** fra gli abbonamenti
+- [APP] **La colonna Stato è ordinabile** anche in cantieri e abbonamenti, e ordina secondo la vita del record — aperto → sospeso → chiuso per i cantieri, proposta → attivo → sospeso → scaduto → disdetto → rifiutata per gli abbonamenti — invece che alfabeticamente
+- [DEV] Nuovo partial `app/Views/partials/filtro_tendina.php`: il markup di una tendina di filtro esiste ora in un posto solo, e le sedici tendine del gestionale passano da lì. Ogni voce si dichiara una volta sola, con dentro sia l'etichetta sia cosa cercare — il partial separa le chiavi `col`/`q`/`regex` (che diventano il JSON di `data-pill-filtri`) dal resto. Si rende con `view()` e non con `$this->include()`, che condivide i dati della view chiamante invece di accettare i propri
+- [DEV] `search-bar.js` ricorda la scelta in `sessionStorage`, con chiave `pagina + query string + gruppo`: le tre sezioni degli interventi ricordano combinazioni separate. Gli accessi sono in `try/catch` — in navigazione privata i filtri non si ricordano invece di rompere la pagina. Nuova funzione `filtriIniziali('id-tabella')` che sostituisce, in ogni view, il ciclo sui `[data-default]`
+- [DEV] Scartati i filtri nell'indirizzo (`?f_stato=aperti`): avrebbero reso i link condivisibili e il tasto Indietro gratuito, ma l'URL sporco non convince. Quando in una pagina più tendine hanno la stessa etichetta su tabelle diverse — la scheda cliente ne ha tre chiamate "Stato" — serve un `gruppo` esplicito, altrimenti si sovrascrivono la memoria
+- [DEV] La logica dei secchielli di periodo si sposta da `operativo/interventi/index.php` all'helper già esistente, come `periodi_intervento()`: serviva alla seconda view e sarebbe diventata una copia da tenere allineata
+- [DEV] **Corretto un difetto silenzioso nella tabella interventi della scheda cliente**: il `<thead>` aveva un `<th>` in meno delle celle di ogni riga. DataTables costruisce le colonne dall'intestazione, quindi si fermava a dieci e la colonna delle azioni restava fuori dalla sua gestione — la regola `orderable: false, searchable: false` non si applicava a nulla. Non produceva errori visibili, ed è per questo che era passato inosservato
+- [DEV] `CLAUDE.md`: la sezione sui filtri riscritta sul meccanismo reale (partial, dichiarazione unica per voce, memoria di sessione)
+
 ## [0.32.0] - 2026-08-30
 
 ### Filtri a tendina nei cantieri e data di fine coerente

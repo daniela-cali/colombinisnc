@@ -34,48 +34,8 @@ $statoOrdine = [
     'sospeso'        => 6,
 ];
 
-/* Secchielli di periodo per la tendina "Periodo": ogni riga elenca in una colonna nascosta
-   i periodi a cui appartiene ("oggi settimana mese prossimi30"), così il filtro resta una
-   ricerca di parola come tutti gli altri, senza funzioni di ricerca custom in JavaScript.
-   La data di riferimento è la pianificata se c'è, altrimenti la scadenza — cioè "quando cade"
-   l'intervento: quelli da pianificare hanno solo la seconda, e filtrando sulla pianificata
-   sparirebbero tutti. I secchielli si sovrappongono di proposito (un intervento di oggi sta
-   anche in settimana, mese e prossimi30). Le soglie sono calcolate al momento del rendering:
-   una pagina lasciata aperta oltre la mezzanotte va ricaricata. */
-$oggi            = new DateTimeImmutable('today');
-$inizioSettimana = $oggi->modify('monday this week');
-$fineSettimana   = $inizioSettimana->modify('+6 days');
-$fra30Giorni     = $oggi->modify('+30 days');
-$statiAperti     = ['da_pianificare', 'pianificato', 'in_corso', 'sospeso'];
-
-$periodiDi = static function (array $i) use ($oggi, $inizioSettimana, $fineSettimana, $fra30Giorni, $statiAperti): string {
-    $riferimento = $i['data_pianificata'] ?: $i['data_scadenza'];
-    if (! $riferimento) {
-        return '';
-    }
-
-    $data       = new DateTimeImmutable(substr($riferimento, 0, 10));
-    $secchielli = [];
-
-    // Scaduto solo se c'è ancora qualcosa da fare: un completato in ritardo non è scaduto, è fatto.
-    if ($data < $oggi && in_array($i['stato'], $statiAperti, true)) {
-        $secchielli[] = 'scaduto';
-    }
-    if ($data->format('Y-m-d') === $oggi->format('Y-m-d')) {
-        $secchielli[] = 'oggi';
-    }
-    if ($data >= $inizioSettimana && $data <= $fineSettimana) {
-        $secchielli[] = 'settimana';
-    }
-    if ($data->format('Y-m') === $oggi->format('Y-m')) {
-        $secchielli[] = 'mese';
-    }
-    if ($data >= $oggi && $data <= $fra30Giorni) {
-        $secchielli[] = 'prossimi30';
-    }
-
-    return implode(' ', $secchielli);
-};
+// I secchielli di periodo della colonna nascosta 13 li calcola periodi_intervento()
+helper('interventi');
 ?>
 <?= $this->section('title') ?><?= esc($sezioneLabel) ?><?= $this->endSection() ?>
 
@@ -113,144 +73,117 @@ $periodiDi = static function (array $i) use ($oggi, $inizioSettimana, $fineSetti
                 /* Ogni tendina lavora su una colonna nascosta diversa e resta indipendente dalle
                    altre: search-bar.js azzera solo le colonne del proprio gruppo, quindi i filtri
                    si combinano (es. aperture da abbonamento ancora da pianificare), cosa che le
-                   vecchie pillole mutuamente esclusive non permettevano. */
-                $filtriStato = [
-                    'tutti'          => [],
-                    // "Aperti" raccoglie i tre stati di lavoro in corso; sotto restano le voci
-                    // precise, come "Scaduti" negli abbonamenti ha le sue con/senza rinnovo.
-                    // Sospeso resta fuori: è fermo, non è lavoro che si può fare oggi.
-                    'aperti'         => ['col' => 9, 'q' => '^(da_pianificare|pianificato|in_corso)$', 'regex' => true],
-                    'da_pianificare' => ['col' => 9, 'q' => '^da_pianificare$', 'regex' => true],
-                    'pianificati'    => ['col' => 9, 'q' => '^pianificato$',    'regex' => true],
-                    'in_corso'       => ['col' => 9, 'q' => '^in_corso$',       'regex' => true],
-                    'completati'     => ['col' => 9, 'q' => '^completato$',     'regex' => true],
-                    'annullati'      => ['col' => 9, 'q' => '^annullato$',      'regex' => true],
-                    'sospesi'        => ['col' => 9, 'q' => '^sospeso$',        'regex' => true],
-                ];
-                /* Categoria: solo nella vista "Tutti", dove non è già decisa dalla voce di menu.
-                   Gli interventi senza tipo contano come "generale", come fa elencoCompleto(). */
-                $filtriCategoria = ['tutte' => []];
+                   vecchie pillole mutuamente esclusive non permettevano.
+                   Nella vista "Tutti" i default sono più larghi che nelle sezioni: quella pagina
+                   serve a cercare senza sapere la categoria, quindi non deve nascondere nulla
+                   appena la si apre. */
+                $vistaTutti = $sezione === null;
+
+                // Categoria: solo dove non è già decisa dalla voce di menu. Gli interventi senza
+                // tipo contano come "generale", come fa elencoCompleto().
+                $vociCategoria = ['tutte' => ['label' => 'Tutte le categorie', 'default' => true]];
                 foreach ($categorieLabel as $codice => $etichetta) {
-                    $filtriCategoria[$codice] = ['col' => 14, 'q' => '^' . preg_quote($codice, '/') . '$', 'regex' => true];
+                    $vociCategoria[$codice] = [
+                        'label' => $etichetta,
+                        'col'   => 14,
+                        'q'     => '^' . preg_quote($codice, '/') . '$',
+                        'regex' => true,
+                    ];
                 }
-                $filtriOrigine = [
-                    'tutte'       => [],
-                    'abbonamento' => ['col' => 10, 'q' => '^abbonamento$', 'regex' => true],
-                    'singoli'     => ['col' => 10, 'q' => '^singolo$',     'regex' => true],
-                ];
-                $filtriFase = [
-                    'tutte'    => [],
-                    'aperture' => ['col' => 11, 'q' => '^apertura$', 'regex' => true],
-                    'chiusure' => ['col' => 11, 'q' => '^chiusura$', 'regex' => true],
-                ];
-                $filtriUrgenza = [
-                    'tutti'   => [],
-                    'urgenti' => ['col' => 12, 'q' => '^urgente$', 'regex' => true],
-                ];
-                /* La colonna 13 contiene più parole per riga ("oggi settimana mese"), quindi
-                   qui si cerca la singola parola con \b e non l'intero contenuto con ^...$. */
-                $filtriPeriodo = [
-                    'tutti' => [],
-                    // Voce larga con sotto le due precise, come "Aperti" negli stati: la settimana
-                    // da sola nasconderebbe l'arretrato, che è proprio quello da non perdere di vista.
-                    'settimana_arretrati' => ['col' => 13, 'q' => '\\b(scaduto|settimana)\\b', 'regex' => true],
-                    'scaduti'             => ['col' => 13, 'q' => '\\bscaduto\\b',    'regex' => true],
-                    'settimana'           => ['col' => 13, 'q' => '\\bsettimana\\b',  'regex' => true],
-                    'oggi'                => ['col' => 13, 'q' => '\\boggi\\b',       'regex' => true],
-                    'mese'                => ['col' => 13, 'q' => '\\bmese\\b',       'regex' => true],
-                    'prossimi30'          => ['col' => 13, 'q' => '\\bprossimi30\\b', 'regex' => true],
-                ];
                 ?>
                 <div class="mb-3 d-flex flex-wrap gap-2">
-                    <?php if ($sezione === null): ?>
-                        <div class="dropdown" data-pill-tabella="tabella-interventi"
-                             data-pill-filtri='<?= esc(json_encode($filtriCategoria), 'attr') ?>'>
-                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-tag me-1"></i>Categoria: <span class="filtro-label">Tutte</span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><button type="button" class="dropdown-item" data-filtro="tutte" data-default>Tutte le categorie</button></li>
-                                <?php foreach ($categorieLabel as $codice => $etichetta): ?>
-                                    <li><button type="button" class="dropdown-item" data-filtro="<?= esc($codice, 'attr') ?>"><?= esc($etichetta) ?></button></li>
-                                <?php endforeach ?>
-                            </ul>
-                        </div>
+                    <?php if ($vistaTutti): ?>
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tabella-interventi',
+                            'etichetta' => 'Categoria',
+                            'icona'     => 'bi-tag',
+                            'classe'    => 'btn-outline-primary',
+                            'attivo'    => 'Tutte',
+                            'voci'      => $vociCategoria,
+                        ]) ?>
                     <?php endif ?>
 
-                    <div class="dropdown" data-pill-tabella="tabella-interventi"
-                         data-pill-filtri='<?= esc(json_encode($filtriStato), 'attr') ?>'>
-                        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-funnel me-1"></i>Stato: <span class="filtro-label"><?= $sezione === null ? 'Aperti' : 'Da pianificare' ?></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><button type="button" class="dropdown-item" data-filtro="tutti">Tutti (<?= count($interventi) ?>)</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="aperti" <?= $sezione === null ? 'data-default' : '' ?>><i class="bi bi-play-circle me-1"></i>Aperti</button></li>
-                            <li><button type="button" class="dropdown-item ps-4" data-filtro="da_pianificare" <?= $sezione !== null ? 'data-default' : '' ?>>↳ Da pianificare</button></li>
-                            <li><button type="button" class="dropdown-item ps-4" data-filtro="pianificati">↳ Pianificati</button></li>
-                            <li><button type="button" class="dropdown-item ps-4" data-filtro="in_corso">↳ In corso</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="completati"><i class="bi bi-check-circle me-1"></i>Completati</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="annullati"><i class="bi bi-x-circle me-1"></i>Annullati</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="sospesi"><i class="bi bi-pause-circle me-1"></i>Sospesi</button></li>
-                        </ul>
-                    </div>
+                    <?php /* "Aperti" raccoglie i tre stati di lavoro in corso; sotto restano le voci
+                             precise, come "Scaduti" negli abbonamenti ha le sue con/senza rinnovo.
+                             Sospeso resta fuori: è fermo, non è lavoro che si può fare oggi. */ ?>
+                    <?= view('partials/filtro_tendina', [
+                        'tabella'   => 'tabella-interventi',
+                        'etichetta' => 'Stato',
+                        'classe'    => 'btn-outline-primary',
+                        'attivo'    => $vistaTutti ? 'Aperti' : 'Da pianificare',
+                        'voci'      => [
+                            'tutti'          => ['label' => 'Tutti (' . count($interventi) . ')'],
+                            'aperti'         => ['label' => 'Aperti', 'icona' => 'bi-play-circle', 'default' => $vistaTutti,
+                                                 'col' => 9, 'q' => '^(da_pianificare|pianificato|in_corso)$', 'regex' => true],
+                            'da_pianificare' => ['label' => 'Da pianificare', 'sotto' => true, 'default' => ! $vistaTutti,
+                                                 'col' => 9, 'q' => '^da_pianificare$', 'regex' => true],
+                            'pianificati'    => ['label' => 'Pianificati', 'sotto' => true, 'col' => 9, 'q' => '^pianificato$', 'regex' => true],
+                            'in_corso'       => ['label' => 'In corso',    'sotto' => true, 'col' => 9, 'q' => '^in_corso$',    'regex' => true],
+                            'completati'     => ['label' => 'Completati', 'icona' => 'bi-check-circle', 'col' => 9, 'q' => '^completato$', 'regex' => true],
+                            'annullati'      => ['label' => 'Annullati',  'icona' => 'bi-x-circle',     'col' => 9, 'q' => '^annullato$',  'regex' => true],
+                            'sospesi'        => ['label' => 'Sospesi',    'icona' => 'bi-pause-circle', 'col' => 9, 'q' => '^sospeso$',    'regex' => true],
+                        ],
+                    ]) ?>
 
-                    <div class="dropdown" data-pill-tabella="tabella-interventi"
-                         data-pill-filtri='<?= esc(json_encode($filtriPeriodo), 'attr') ?>'>
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-calendar3 me-1"></i>Periodo: <span class="filtro-label"><?= $sezione === null ? 'Settimana e arretrati' : 'Tutti' ?></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><button type="button" class="dropdown-item" data-filtro="tutti" <?= $sezione !== null ? 'data-default' : '' ?>>Tutti i periodi</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="settimana_arretrati" <?= $sezione === null ? 'data-default' : '' ?>><i class="bi bi-calendar-week me-1"></i>Settimana e arretrati</button></li>
-                            <li><button type="button" class="dropdown-item ps-4" data-filtro="scaduti">↳ Solo scaduti</button></li>
-                            <li><button type="button" class="dropdown-item ps-4" data-filtro="settimana">↳ Solo questa settimana</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="oggi">Oggi</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="mese">Questo mese</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="prossimi30">Prossimi 30 giorni</button></li>
-                        </ul>
-                    </div>
+                    <?php /* La colonna 13 contiene più parole per riga ("oggi settimana mese"), quindi
+                             si cerca la singola parola con \b e non l'intero contenuto con ^...$.
+                             La voce larga tiene dentro l'arretrato: la settimana da sola nasconderebbe
+                             proprio quello che non va perso di vista. */ ?>
+                    <?= view('partials/filtro_tendina', [
+                        'tabella'   => 'tabella-interventi',
+                        'etichetta' => 'Periodo',
+                        'icona'     => 'bi-calendar3',
+                        'attivo'    => $vistaTutti ? 'Settimana e arretrati' : 'Tutti',
+                        'voci'      => [
+                            'tutti'               => ['label' => 'Tutti i periodi', 'default' => ! $vistaTutti],
+                            'settimana_arretrati' => ['label' => 'Settimana e arretrati', 'icona' => 'bi-calendar-week', 'default' => $vistaTutti,
+                                                      'col' => 13, 'q' => '\\b(scaduto|settimana)\\b', 'regex' => true],
+                            'scaduti'             => ['label' => 'Solo scaduti',          'sotto' => true, 'col' => 13, 'q' => '\\bscaduto\\b',   'regex' => true],
+                            'settimana'           => ['label' => 'Solo questa settimana', 'sotto' => true, 'col' => 13, 'q' => '\\bsettimana\\b', 'regex' => true],
+                            'oggi'                => ['label' => 'Oggi',               'col' => 13, 'q' => '\\boggi\\b',       'regex' => true],
+                            'mese'                => ['label' => 'Questo mese',        'col' => 13, 'q' => '\\bmese\\b',       'regex' => true],
+                            'prossimi30'          => ['label' => 'Prossimi 30 giorni', 'col' => 13, 'q' => '\\bprossimi30\\b', 'regex' => true],
+                        ],
+                    ]) ?>
 
-                    <?php // Nella vista "Tutti" il default è "Tutte": una pagina che serve a cercare
-                          // non deve nascondere gli interventi da abbonamento appena la apri.
-                          // In Generale la tendina non compare: gli abbonamenti sono solo piscine e addolcitori. ?>
-                    <?php if (in_array($sezione, ['piscine', 'addolcitori'], true) || $sezione === null): ?>
-                        <div class="dropdown" data-pill-tabella="tabella-interventi"
-                             data-pill-filtri='<?= esc(json_encode($filtriOrigine), 'attr') ?>'>
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-file-earmark-text me-1"></i>Origine: <span class="filtro-label"><?= $sezione === null ? 'Tutte' : 'Singoli' ?></span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><button type="button" class="dropdown-item" data-filtro="tutte" <?= $sezione === null ? 'data-default' : '' ?>>Tutte le origini</button></li>
-                                <li><button type="button" class="dropdown-item" data-filtro="abbonamento">Da abbonamento</button></li>
-                                <li><button type="button" class="dropdown-item" data-filtro="singoli" <?= $sezione !== null ? 'data-default' : '' ?>>Singoli</button></li>
-                            </ul>
-                        </div>
+                    <?php // In Generale la tendina Origine non compare: gli abbonamenti sono solo piscine e addolcitori ?>
+                    <?php if ($vistaTutti || in_array($sezione, ['piscine', 'addolcitori'], true)): ?>
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tabella-interventi',
+                            'etichetta' => 'Origine',
+                            'icona'     => 'bi-file-earmark-text',
+                            'attivo'    => $vistaTutti ? 'Tutte' : 'Singoli',
+                            'voci'      => [
+                                'tutte'       => ['label' => 'Tutte le origini', 'default' => $vistaTutti],
+                                'abbonamento' => ['label' => 'Da abbonamento', 'col' => 10, 'q' => '^abbonamento$', 'regex' => true],
+                                'singoli'     => ['label' => 'Singoli', 'default' => ! $vistaTutti, 'col' => 10, 'q' => '^singolo$', 'regex' => true],
+                            ],
+                        ]) ?>
                     <?php endif ?>
 
                     <?php if ($sezione === 'piscine'): ?>
-                        <div class="dropdown" data-pill-tabella="tabella-interventi"
-                             data-pill-filtri='<?= esc(json_encode($filtriFase), 'attr') ?>'>
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-box-arrow-up me-1"></i>Fase: <span class="filtro-label">Tutte</span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><button type="button" class="dropdown-item" data-filtro="tutte" data-default>Tutte</button></li>
-                                <li><button type="button" class="dropdown-item" data-filtro="aperture"><i class="bi bi-box-arrow-up me-1"></i>Aperture</button></li>
-                                <li><button type="button" class="dropdown-item" data-filtro="chiusure"><i class="bi bi-box-arrow-in-down me-1"></i>Chiusure</button></li>
-                            </ul>
-                        </div>
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tabella-interventi',
+                            'etichetta' => 'Fase',
+                            'icona'     => 'bi-box-arrow-up',
+                            'voci'      => [
+                                'tutte'    => ['label' => 'Tutte', 'default' => true],
+                                'aperture' => ['label' => 'Aperture', 'icona' => 'bi-box-arrow-up',      'col' => 11, 'q' => '^apertura$', 'regex' => true],
+                                'chiusure' => ['label' => 'Chiusure', 'icona' => 'bi-box-arrow-in-down', 'col' => 11, 'q' => '^chiusura$', 'regex' => true],
+                            ],
+                        ]) ?>
                     <?php endif ?>
 
-                    <div class="dropdown" data-pill-tabella="tabella-interventi"
-                         data-pill-filtri='<?= esc(json_encode($filtriUrgenza), 'attr') ?>'>
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-exclamation-triangle me-1"></i>Urgenza: <span class="filtro-label">Tutti</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><button type="button" class="dropdown-item" data-filtro="tutti" data-default>Tutti</button></li>
-                            <li><button type="button" class="dropdown-item" data-filtro="urgenti"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Solo urgenti</button></li>
-                        </ul>
-                    </div>
+                    <?= view('partials/filtro_tendina', [
+                        'tabella'   => 'tabella-interventi',
+                        'etichetta' => 'Urgenza',
+                        'icona'     => 'bi-exclamation-triangle',
+                        'voci'      => [
+                            'tutti'   => ['label' => 'Tutti', 'default' => true],
+                            'urgenti' => ['label' => 'Solo urgenti', 'icona' => 'bi-exclamation-triangle-fill',
+                                          'col' => 12, 'q' => '^urgente$', 'regex' => true],
+                        ],
+                    ]) ?>
                 </div>
                 <?php if (empty($interventi)): ?>
                     <p class="text-muted text-center py-4 mb-0">Nessun intervento trovato.</p>
@@ -362,7 +295,7 @@ $periodiDi = static function (array $i) use ($oggi, $inizioSettimana, $fineSetti
                                         <!-- 13 Filter urgenza: urgente|'' -->
                                         <td><?= $i['urgenza'] ? 'urgente' : '' ?></td>
                                         <!-- 14 Filter periodo -->
-                                        <td><?= $periodiDi($i) ?></td>
+                                        <td><?= periodi_intervento($i) ?></td>
                                         <!-- 15 Filter categoria — senza tipo conta come generale, come in elencoCompleto() -->
                                         <td><?= esc($i['tipo_intervento_categoria'] ?: 'generale') ?></td>
                                     </tr>
@@ -467,10 +400,8 @@ $(function () {
         ]
     });
 
-    // Attiva i filtri di default delle tendine (Stato: Da pianificare, Origine: Singoli) — gestite da search-bar.js
-    document.querySelectorAll('[data-pill-tabella="tabella-interventi"] [data-default]').forEach(function (b) {
-        b.click();
-    });
+    // Filtri iniziali: quelli ricordati dalla sessione, altrimenti i default — vedi search-bar.js
+    filtriIniziali('tabella-interventi');
 });
 </script>
 <?= $this->endSection() ?>

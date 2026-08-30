@@ -8,6 +8,15 @@
  */
 $this->extend('layouts/admin');
 
+/* Rango per l'ordinamento della colonna Stato: la cella mostra un badge, quindi senza
+   data-order DataTables ordinerebbe per l'etichetta, cioè in ordine alfabetico
+   (Aperto, Chiuso, Sospeso). Così invece segue la vita del cantiere. */
+$statoOrdine = [
+    'aperto'  => 1,
+    'sospeso' => 2,
+    'chiuso'  => 3,
+];
+
 /* Anni attraversati da un cantiere, per la tendina Anno: un cantiere ha una durata, quindi
    uno iniziato a novembre 2025 e finito a marzo 2026 deve uscire sia da "2025" sia da "2026".
    La colonna nascosta contiene quindi più anni per riga ("2025 2026") e il filtro ne cerca uno,
@@ -72,49 +81,38 @@ rsort($anniPresenti);
             <p class="text-muted text-center py-4 mb-0">Nessun cantiere presente.</p>
         <?php else: ?>
             <?php
-            // Stato sulla colonna nascosta 7, anno sulla 8. Le due tendine sono gruppi
-            // indipendenti: search-bar.js azzera solo le colonne del proprio gruppo,
-            // quindi i filtri si combinano (es. i cantieri aperti del 2025).
-            $filtriStato = [
-                'tutti'   => [],
-                'aperto'  => ['col' => 7, 'q' => '^aperto$',  'regex' => true],
-                'sospeso' => ['col' => 7, 'q' => '^sospeso$', 'regex' => true],
-                'chiuso'  => ['col' => 7, 'q' => '^chiuso$',  'regex' => true],
-            ];
-            // La colonna 8 contiene più anni per riga ("2025 2026"): si cerca la singola
-            // parola con \b, non l'intero contenuto con ^...$.
-            $filtriAnno = ['tutti' => []];
+            /* Stato sulla colonna nascosta 7, anno sulla 8. Le due tendine sono gruppi
+               indipendenti: search-bar.js azzera solo le colonne del proprio gruppo,
+               quindi i filtri si combinano (es. i cantieri aperti del 2025).
+               La colonna 8 contiene più anni per riga ("2025 2026"), quindi si cerca la
+               singola parola con \b e non l'intero contenuto con ^...$. */
+            $vociAnno = ['tutti' => ['label' => 'Tutti gli anni', 'default' => true]];
             foreach ($anniPresenti as $anno) {
-                $filtriAnno[$anno] = ['col' => 8, 'q' => '\\b' . $anno . '\\b', 'regex' => true];
+                $vociAnno[$anno] = ['label' => $anno, 'col' => 8, 'q' => '\\b' . $anno . '\\b', 'regex' => true];
             }
             ?>
             <div class="mb-3 d-flex flex-wrap gap-2">
-                <div class="dropdown" data-pill-tabella="tabella-cantieri"
-                     data-pill-filtri='<?= esc(json_encode($filtriStato), 'attr') ?>'>
-                    <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-funnel me-1"></i>Stato: <span class="filtro-label">Aperti</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><button type="button" class="dropdown-item" data-filtro="tutti">Tutti (<?= count($cantieri) ?>)</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="aperto" data-default><i class="bi bi-unlock me-1"></i>Aperti</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="sospeso"><i class="bi bi-pause-circle me-1"></i>Sospesi</button></li>
-                        <li><button type="button" class="dropdown-item" data-filtro="chiuso"><i class="bi bi-lock me-1"></i>Chiusi</button></li>
-                    </ul>
-                </div>
+                <?= view('partials/filtro_tendina', [
+                    'tabella'   => 'tabella-cantieri',
+                    'etichetta' => 'Stato',
+                    'classe'    => 'btn-outline-primary',
+                    'voci'      => [
+                        'tutti'   => ['label' => 'Tutti (' . count($cantieri) . ')'],
+                        'aperto'  => ['label' => 'Aperti', 'icona' => 'bi-unlock', 'default' => true,
+                                      'col' => 7, 'q' => '^aperto$', 'regex' => true],
+                        'sospeso' => ['label' => 'Sospesi', 'icona' => 'bi-pause-circle', 'col' => 7, 'q' => '^sospeso$', 'regex' => true],
+                        'chiuso'  => ['label' => 'Chiusi',  'icona' => 'bi-lock',         'col' => 7, 'q' => '^chiuso$',  'regex' => true],
+                    ],
+                ]) ?>
 
                 <?php if ($anniPresenti): ?>
-                    <div class="dropdown" data-pill-tabella="tabella-cantieri"
-                         data-pill-filtri='<?= esc(json_encode($filtriAnno), 'attr') ?>'>
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-calendar3 me-1"></i>Anno: <span class="filtro-label">Tutti</span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><button type="button" class="dropdown-item" data-filtro="tutti" data-default>Tutti gli anni</button></li>
-                            <?php foreach ($anniPresenti as $anno): ?>
-                                <li><button type="button" class="dropdown-item" data-filtro="<?= esc($anno, 'attr') ?>"><?= esc($anno) ?></button></li>
-                            <?php endforeach ?>
-                        </ul>
-                    </div>
+                    <?= view('partials/filtro_tendina', [
+                        'tabella'   => 'tabella-cantieri',
+                        'etichetta' => 'Anno',
+                        'icona'     => 'bi-calendar3',
+                        'attivo'    => 'Tutti',
+                        'voci'      => $vociAnno,
+                    ]) ?>
                 <?php endif ?>
             </div>
             <div class="table-responsive">
@@ -164,7 +162,7 @@ rsort($anniPresenti);
                                     <?php endif ?>
                                 </td>
                                 <!-- 6 Stato -->
-                                <td class="text-center">
+                                <td class="text-center" data-order="<?= $statoOrdine[$c['stato']] ?? 99 ?>">
                                     <span class="badge <?= $statiBadge[$c['stato']] ?? 'bg-secondary' ?>">
                                         <?= esc($statiLabel[$c['stato']] ?? $c['stato']) ?>
                                     </span>
@@ -216,17 +214,17 @@ $(function () {
             { name: 'titolo',   targets: 2 },
             { name: 'tipo',     targets: 3 },
             { name: 'periodo',  targets: 4, searchable: false },
-            { name: 'stato',    targets: 5, searchable: false, orderable: false, responsivePriority: 3 },
+            // Ordina per il rango del ciclo di vita (data-order sulla cella), non per l'etichetta del badge.
+            // Resta non cercabile: lo stato grezzo è già nella colonna nascosta 7.
+            { name: 'stato',    targets: 5, searchable: false, responsivePriority: 3 },
             { name: 'azioni',   targets: 6, searchable: false, orderable: false, responsivePriority: 2 },
             { name: 'filter_stato', targets: 7, searchable: true, orderable: false, visible: false },
             { name: 'filter_anno',  targets: 8, searchable: true, orderable: false, visible: false }
         ]
     });
 
-    // Attiva il filtro di default delle tendine (Stato: Aperti) — gestite da search-bar.js
-    document.querySelectorAll('[data-pill-tabella="tabella-cantieri"] [data-default]').forEach(function (b) {
-        b.click();
-    });
+    // Filtri iniziali: quelli ricordati dalla sessione, altrimenti i default — vedi search-bar.js
+    filtriIniziali('tabella-cantieri');
 });
 </script>
 <?= $this->endSection() ?>

@@ -700,6 +700,14 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Righe per pagina a scelta anche in elenco clienti e articoli di magazzino; bottoni "Nuovo" della scheda cliente uniformati
 - In `CLAUDE.md` due convenzioni scoperte lavorando: `data-order` obbligatorio quando la cella non mostra il valore grezzo (una colonna con la sola icona non ordina affatto) e il pattern completo dei filtri a colonne nascoste
 
+#### ✅ v0.33.0 — Filtri a tendina ovunque, con memoria di sessione
+- I filtri scelti si ricordano in `sessionStorage` finché la scheda del browser resta aperta: tornando alla lista dopo aver aperto una scheda o salvato un form la si ritrova filtrata com'era. La chiave comprende la pagina con la query string, quindi le tre sezioni degli interventi ricordano combinazioni separate
+- Scartati i filtri nell'indirizzo (`?f_stato=aperti`): avrebbero dato link condivisibili e tasto Indietro gratuito, ma sporcano l'URL
+- Anche le tre tabelle della scheda cliente passano alle tendine; gli interventi ne hanno cinque come l'elenco, e compaiono i filtri per gli stati che esistevano senza essere raggiungibili (Sospesi negli interventi, Proposte e Rifiutati negli abbonamenti)
+- Nuovo partial `app/Views/partials/filtro_tendina.php`: il markup delle sedici tendine del gestionale esiste in un posto solo, e ogni voce si dichiara una volta sola con dentro sia l'etichetta sia cosa cercare. Reso con `view()` e non con `$this->include()`, che condivide i dati della view chiamante
+- Colonna Stato ordinabile per ciclo di vita anche in cantieri e abbonamenti; la logica dei periodi si sposta nell'helper come `periodi_intervento()` invece di essere copiata nella seconda view
+- Corretto un difetto silenzioso nella tabella interventi della scheda cliente: il `<thead>` aveva un `<th>` in meno delle celle, quindi DataTables si fermava a dieci colonne e quella delle azioni restava fuori dalla sua gestione
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo

@@ -16,6 +16,8 @@
  * @var array $cantieriStatiBadge   CantieriModel::STATI_BADGE
  */
 $this->extend('layouts/admin');
+// I secchielli di periodo della colonna nascosta 10 li calcola periodi_intervento()
+helper('interventi');
 $denom = \App\Models\ClientiModel::denominazione($cliente);
 
 $zonaLabels = ['-1' => 'Ventimiglia', '0' => 'Ceriale', '1' => 'Savona'];
@@ -347,26 +349,89 @@ $statoBadge = [
             <div class="card-body">
 
                 <div class="mb-3 filtri-bar">
-                    <div class="filtri-scroll" data-pill-tabella="tbl-interventi"
-                         data-pill-filtri='{"aperti":{"col":8,"q":"^da_pianificare$","regex":true,"col2":9,"q2":"^(?!abbonamento)","regex2":true},"pianificati":{"col":8,"q":"^(pianificato|in_corso)$","regex":true},"completati":{"col":8,"q":"^completato$","regex":true},"annullati":{"col":8,"q":"^annullato$","regex":true},"abbonamento":{"col":9,"q":"abbonamento"},"tutti":{}}'>
-                        <button class="btn btn-sm btn-outline-primary" data-filtro="aperti" data-default>
-                            <i class="bi bi-folder2-open me-1"></i>Da pianificare
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" data-filtro="pianificati">
-                            <i class="bi bi-calendar-check me-1"></i>Pianificati
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" data-filtro="completati">
-                            <i class="bi bi-check-circle me-1"></i>Completati
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" data-filtro="annullati">
-                            <i class="bi bi-x-circle me-1"></i>Annullati
-                        </button>
-                        <button class="btn btn-sm btn-outline-info" data-filtro="abbonamento">
-                            <i class="bi bi-file-earmark-text me-1"></i>Abbonamenti
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" data-filtro="tutti">
-                            Tutti (<?= count($interventi) ?>)
-                        </button>
+                    <?php
+                    /* Stesse tendine dell'elenco interventi, sulle colonne nascoste di questa tabella:
+                       8 = stato grezzo, 9 = origine ('abbonamento', 'extra' o vuoto per i singoli),
+                       10 = periodo, 11 = urgenza, 12 = fase.
+                       "Aperti" raccoglie i tre stati di lavoro in corso e sostituisce le due pillole
+                       separate Da pianificare e Pianificati; non esclude più gli interventi da
+                       abbonamento, perché nella scheda di un cliente il lavoro in ballo va visto tutto. */
+                    ?>
+                    <div class="filtri-scroll">
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tbl-interventi',
+                            'etichetta' => 'Stato',
+                            'gruppo'    => 'interventi_stato',
+                            'classe'    => 'btn-outline-primary',
+                            'voci'      => [
+                                'tutti'          => ['label' => 'Tutti (' . count($interventi) . ')'],
+                                'aperti'         => ['label' => 'Aperti', 'icona' => 'bi-play-circle', 'default' => true,
+                                                     'col' => 8, 'q' => '^(da_pianificare|pianificato|in_corso)$', 'regex' => true],
+                                'da_pianificare' => ['label' => 'Da pianificare', 'sotto' => true, 'col' => 8, 'q' => '^da_pianificare$', 'regex' => true],
+                                'pianificati'    => ['label' => 'Pianificati',    'sotto' => true, 'col' => 8, 'q' => '^pianificato$',    'regex' => true],
+                                'in_corso'       => ['label' => 'In corso',       'sotto' => true, 'col' => 8, 'q' => '^in_corso$',       'regex' => true],
+                                'completati'     => ['label' => 'Completati', 'icona' => 'bi-check-circle', 'col' => 8, 'q' => '^completato$', 'regex' => true],
+                                'annullati'      => ['label' => 'Annullati',  'icona' => 'bi-x-circle',     'col' => 8, 'q' => '^annullato$',  'regex' => true],
+                                'sospesi'        => ['label' => 'Sospesi',    'icona' => 'bi-pause-circle', 'col' => 8, 'q' => '^sospeso$',    'regex' => true],
+                            ],
+                        ]) ?>
+
+                        <?php // La colonna 10 contiene più parole per riga: si cerca la singola con \b ?>
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tbl-interventi',
+                            'etichetta' => 'Periodo',
+                            'gruppo'    => 'interventi_periodo',
+                            'icona'     => 'bi-calendar3',
+                            'voci'      => [
+                                'tutti'               => ['label' => 'Tutti i periodi', 'default' => true],
+                                'settimana_arretrati' => ['label' => 'Settimana e arretrati', 'icona' => 'bi-calendar-week',
+                                                          'col' => 10, 'q' => '\\b(scaduto|settimana)\\b', 'regex' => true],
+                                'scaduti'             => ['label' => 'Solo scaduti',          'sotto' => true, 'col' => 10, 'q' => '\\bscaduto\\b',    'regex' => true],
+                                'settimana'           => ['label' => 'Solo questa settimana', 'sotto' => true, 'col' => 10, 'q' => '\\bsettimana\\b',  'regex' => true],
+                                'oggi'                => ['label' => 'Oggi',                'col' => 10, 'q' => '\\boggi\\b',       'regex' => true],
+                                'mese'                => ['label' => 'Questo mese',         'col' => 10, 'q' => '\\bmese\\b',       'regex' => true],
+                                'prossimi30'          => ['label' => 'Prossimi 30 giorni',  'col' => 10, 'q' => '\\bprossimi30\\b', 'regex' => true],
+                            ],
+                        ]) ?>
+
+                        <?php // I singoli hanno la colonna 9 vuota, quindi si cercano con ^$ ?>
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tbl-interventi',
+                            'etichetta' => 'Origine',
+                            'gruppo'    => 'interventi_origine',
+                            'icona'     => 'bi-file-earmark-text',
+                            'attivo'    => 'Tutte',
+                            'voci'      => [
+                                'tutte'       => ['label' => 'Tutte le origini', 'default' => true],
+                                'abbonamento' => ['label' => 'Da abbonamento', 'col' => 9, 'q' => '^abbonamento$', 'regex' => true],
+                                'extra'       => ['label' => 'Visite extra',   'col' => 9, 'q' => '^extra$',       'regex' => true],
+                                'singoli'     => ['label' => 'Singoli',        'col' => 9, 'q' => '^$',            'regex' => true],
+                            ],
+                        ]) ?>
+
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tbl-interventi',
+                            'etichetta' => 'Fase',
+                            'gruppo'    => 'interventi_fase',
+                            'icona'     => 'bi-box-arrow-up',
+                            'voci'      => [
+                                'tutte'    => ['label' => 'Tutte', 'default' => true],
+                                'aperture' => ['label' => 'Aperture', 'icona' => 'bi-box-arrow-up',      'col' => 12, 'q' => '^apertura$', 'regex' => true],
+                                'chiusure' => ['label' => 'Chiusure', 'icona' => 'bi-box-arrow-in-down', 'col' => 12, 'q' => '^chiusura$', 'regex' => true],
+                            ],
+                        ]) ?>
+
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tbl-interventi',
+                            'etichetta' => 'Urgenza',
+                            'gruppo'    => 'interventi_urgenza',
+                            'icona'     => 'bi-exclamation-triangle',
+                            'voci'      => [
+                                'tutti'   => ['label' => 'Tutti', 'default' => true],
+                                'urgenti' => ['label' => 'Solo urgenti', 'icona' => 'bi-exclamation-triangle-fill',
+                                              'col' => 11, 'q' => '^urgente$', 'regex' => true],
+                            ],
+                        ]) ?>
                     </div>
                     <a href="<?= base_url('operativo/interventi/nuovo?cliente_id=' . $cliente['id']
                         . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi')) ?>"
@@ -387,8 +452,15 @@ $statoBadge = [
                                 <th>Data pianificata</th>
                                 <th class="ps-4">Scadenza</th>
                                 <th>Stato</th>
-                                <th></th><!-- stato raw — nascosto, usato dal filtro -->
-                                <th></th><!-- azioni -->
+                                <th></th><!-- 8 stato raw — nascosto, usato dai filtri -->
+                                <?php /* Il th della colonna 9 mancava: le righe avevano una cella in più
+                                        delle intestazioni, quindi DataTables si fermava a dieci colonne
+                                        e quella delle azioni restava fuori dalla sua gestione. */ ?>
+                                <th></th><!-- 9 origine: abbonamento|extra|'' -->
+                                <th></th><!-- 10 periodo: scaduto oggi settimana mese prossimi30 -->
+                                <th></th><!-- 11 urgenza: urgente|'' -->
+                                <th></th><!-- 12 fase: apertura|chiusura|'' -->
+                                <th></th><!-- 13 azioni -->
                             </tr>
                         </thead>
                         <tbody>
@@ -439,6 +511,9 @@ $statoBadge = [
                                     </td>
                                     <td><?= esc($iv['stato']) ?></td>
                                     <td><?= $iv['abbonamento_id'] ? ($iv['extra'] ? 'extra' : 'abbonamento') : '' ?></td>
+                                    <td><?= periodi_intervento($iv) ?></td>
+                                    <td><?= $iv['urgenza'] ? 'urgente' : '' ?></td>
+                                    <td><?= ! empty($iv['apertura']) ? 'apertura' : (! empty($iv['chiusura']) ? 'chiusura' : '') ?></td>
                                     <td class="text-end">
                                         <a href="<?= base_url('operativo/interventi/' . $iv['id'] . '/edit')
                                             . '?from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-interventi') ?>"
@@ -467,23 +542,24 @@ $statoBadge = [
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <div class="mb-3 filtri-bar">
-                    <div class="filtri-scroll" data-pill-tabella="tbl-abbonamenti"
-                         data-pill-filtri='{"attivo":{"col":6,"q":"^attivo$","regex":true},"sospeso":{"col":6,"q":"^sospeso$","regex":true},"scaduto":{"col":6,"q":"^scaduto$","regex":true},"disdetto":{"col":6,"q":"^disdetto$","regex":true},"tutti":{}}'>
-                        <button class="btn btn-sm btn-outline-success" data-filtro="attivo" data-default>
-                            <i class="bi bi-check-circle me-1"></i>Attivi
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" data-filtro="sospeso">
-                            <i class="bi bi-pause-circle me-1"></i>Sospesi
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" data-filtro="scaduto">
-                            <i class="bi bi-clock-history me-1"></i>Scaduti
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" data-filtro="disdetto">
-                            <i class="bi bi-x-circle me-1"></i>Disdetti
-                        </button>
-                        <button class="btn btn-sm btn-outline-primary" data-filtro="tutti">
-                            Tutti (<?= count($abbonamenti) ?>)
-                        </button>
+                    <?php /* Colonna nascosta 6 = stato_calcolato. Rispetto alle vecchie pillole ci sono
+                             anche Proposte e Rifiutati, che esistono come stato ma non avevano filtro. */ ?>
+                    <div class="filtri-scroll">
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tbl-abbonamenti',
+                            'etichetta' => 'Stato',
+                            'gruppo'    => 'abbonamenti_stato',
+                            'classe'    => 'btn-outline-primary',
+                            'voci'      => [
+                                'tutti'     => ['label' => 'Tutti (' . count($abbonamenti) . ')'],
+                                'attivo'    => ['label' => 'Attivi',    'icona' => 'bi-check-circle',       'default' => true, 'col' => 6, 'q' => '^attivo$',    'regex' => true],
+                                'sospeso'   => ['label' => 'Sospesi',   'icona' => 'bi-pause-circle',       'col' => 6, 'q' => '^sospeso$',   'regex' => true],
+                                'scaduto'   => ['label' => 'Scaduti',   'icona' => 'bi-clock-history',      'col' => 6, 'q' => '^scaduto$',   'regex' => true],
+                                'disdetto'  => ['label' => 'Disdetti',  'icona' => 'bi-x-circle',           'col' => 6, 'q' => '^disdetto$',  'regex' => true],
+                                'proposta'  => ['label' => 'Proposte',  'icona' => 'bi-file-earmark-text',  'col' => 6, 'q' => '^proposta$',  'regex' => true],
+                                'rifiutata' => ['label' => 'Rifiutati', 'icona' => 'bi-x-circle',           'col' => 6, 'q' => '^rifiutata$', 'regex' => true],
+                            ],
+                        ]) ?>
                     </div>
                     <a href="<?= base_url('abbonamenti/nuovo?cliente_id=' . $cliente['id']
                         . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-abbonamenti')) ?>"
@@ -565,20 +641,20 @@ $statoBadge = [
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-body">
                 <div class="mb-3 filtri-bar">
-                    <div class="filtri-scroll" data-pill-tabella="tbl-cantieri"
-                         data-pill-filtri='{"aperto":{"col":7,"q":"^aperto$","regex":true},"sospeso":{"col":7,"q":"^sospeso$","regex":true},"chiuso":{"col":7,"q":"^chiuso$","regex":true},"tutti":{}}'>
-                        <button class="btn btn-sm btn-outline-success" data-filtro="aperto" data-default>
-                            <i class="bi bi-unlock me-1"></i>Aperti
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning" data-filtro="sospeso">
-                            <i class="bi bi-pause-circle me-1"></i>Sospesi
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" data-filtro="chiuso">
-                            <i class="bi bi-lock me-1"></i>Chiusi
-                        </button>
-                        <button class="btn btn-sm btn-outline-primary" data-filtro="tutti">
-                            Tutti (<?= count($cantieri) ?>)
-                        </button>
+                    <?php // Colonna nascosta 7 = stato del cantiere ?>
+                    <div class="filtri-scroll">
+                        <?= view('partials/filtro_tendina', [
+                            'tabella'   => 'tbl-cantieri',
+                            'etichetta' => 'Stato',
+                            'gruppo'    => 'cantieri_stato',
+                            'classe'    => 'btn-outline-primary',
+                            'voci'      => [
+                                'tutti'   => ['label' => 'Tutti (' . count($cantieri) . ')'],
+                                'aperto'  => ['label' => 'Aperti',  'icona' => 'bi-unlock',       'default' => true, 'col' => 7, 'q' => '^aperto$',  'regex' => true],
+                                'sospeso' => ['label' => 'Sospesi', 'icona' => 'bi-pause-circle', 'col' => 7, 'q' => '^sospeso$', 'regex' => true],
+                                'chiuso'  => ['label' => 'Chiusi',  'icona' => 'bi-lock',         'col' => 7, 'q' => '^chiuso$',  'regex' => true],
+                            ],
+                        ]) ?>
                     </div>
                     <a href="<?= base_url('cantieri/nuovo?cliente_id=' . $cliente['id']
                         . '&from=' . urlencode(base_url('anagrafiche/clienti/' . $cliente['id']) . '#sec-cantieri')) ?>"
@@ -737,8 +813,9 @@ $(function () {
         order: [[5, 'desc']],
         columnDefs: [
             { targets: [5, 6], className: 'text-start', type: 'string' },
-            { targets: [8, 9], visible: false },
-            { targets: 10, orderable: false, searchable: false, responsivePriority: 2 },
+            // 8 stato raw, 9 origine, 10 periodo, 11 urgenza, 12 fase: nascoste, servono ai filtri
+            { targets: [8, 9, 10, 11, 12], visible: false },
+            { targets: 13, orderable: false, searchable: false, responsivePriority: 2 },
             { targets: 0, responsivePriority: 1 },
             { targets: 7, responsivePriority: 3 }
         ],
@@ -754,7 +831,8 @@ $(function () {
         }
     });
 
-    document.querySelector('[data-pill-tabella="tbl-interventi"] [data-default]').click();
+    // Filtri iniziali: quelli ricordati dalla sessione, altrimenti i default — vedi search-bar.js
+    filtriIniziali('tbl-interventi');
 
     // DataTable abbonamenti
     if (document.getElementById('tbl-abbonamenti')) {
@@ -778,7 +856,7 @@ $(function () {
                 zeroRecords:  'Nessun abbonamento trovato.'
             }
         });
-        document.querySelector('[data-pill-tabella="tbl-abbonamenti"] [data-default]').click();
+        filtriIniziali('tbl-abbonamenti');
     }
 
     // DataTable cantieri
@@ -802,7 +880,7 @@ $(function () {
                 zeroRecords:  'Nessun cantiere trovato.'
             }
         });
-        document.querySelector('[data-pill-tabella="tbl-cantieri"] [data-default]').click();
+        filtriIniziali('tbl-cantieri');
     }
 
 });
