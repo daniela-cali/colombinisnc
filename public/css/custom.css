@@ -16,6 +16,12 @@
     --clr-sidebar-bg:    #1a2d4a;
     --clr-sidebar-alt:   #162440;
     --clr-top-bar:       #1a6fa8;
+
+    /* Altezza della barra in cima (.app-header). Il layout è `fixed-header`, quindi
+       quella striscia è sempre occupata: ogni elemento `position: sticky` deve
+       fermarsi qui sotto e non a 0, altrimenti si incolla dietro la barra e
+       scompare — che a schermo sembra semplicemente uno sticky che non funziona. */
+    --altezza-header:    57px;
 }
 
 /* --- Navbar -------------------------------------------- */
@@ -358,7 +364,7 @@
 /* --- Scheda cliente v0.11.1 — layout verticale scrollabile ---------- */
 .section-anchor {
     position: sticky;
-    top: 57px;
+    top: var(--altezza-header);
     z-index: 10;
     background: var(--bs-body-bg);
     padding: .5rem 0 .25rem;

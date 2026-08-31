@@ -722,6 +722,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Nuovo `app/Helpers/validazione_helper.php` con `BaseController::validate()` sovrascritto: i messaggi non mostrano più i nomi delle colonne. La mappa delle etichette resta corta perché il ripiego automatico (`cliente_id` → Cliente) copre i casi regolari, quindi un campo aggiunto domani non torna al nome grezzo
 - Corretta in `CLAUDE.md` la sezione su `--card-accent`, che descriveva un sistema di ereditarietà del colore mai esistito nel CSS
 
+#### ✅ v0.34.1 — I giorni dell'agenda restano in cima anche scorrendo
+- Le linguette dei tre giorni nell'agenda del tecnico avevano `position: sticky` con `top: 0` e si fermavano dietro la barra fissa: erano sticky, ma coperte, che a schermo è indistinguibile da uno sticky rotto
+- L'altezza dell'header diventa la variabile `--altezza-header`, condivisa con `.section-anchor` della scheda cliente che la teneva scritta a mano: il difetto era nato proprio da quel doppione
+- Chiusa `mobile_ux_spec.md` §2.7: le tre rifiniture minori sono tutte fatte. Dei punti aperti dello spec mobile resta solo il manifest PWA (§2.6)
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo

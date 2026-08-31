@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.34.1] - 2026-08-31
+
+### I giorni dell'agenda restano in cima anche scorrendo
+
+- [APP] **Nell'agenda del tecnico le linguette Oggi / Domani / Dopodomani non spariscono più scorrendo la lista.** Restano appoggiate sotto la barra blu, così si cambia giorno senza dover risalire in cima — che è il gesto più frequente su una giornata piena di interventi
+- [DEV] `.agenda-giorni` aveva `position: sticky` con `top: 0`. Lo sticky funzionava davvero, ma si fermava a zero, cioè **dietro** la barra fissa (`<body class="layout-fixed fixed-header">`): l'elemento c'era e restava incollato, semplicemente coperto. Da telefono l'effetto è indistinguibile da uno sticky che non funziona, ed è il motivo per cui era passato per un difetto diverso
+- [DEV] Il vero meccanismo era già a posto da prima: `custom.css` ripristina `overflow: visible` su `.app-main`, senza cui nessun `position: sticky` interno si calcolerebbe. Mancava solo il valore di `top`
+- [DEV] L'altezza della barra diventa la variabile `--altezza-header` in `:root`, usata sia da `.agenda-giorni` sia da `.section-anchor` della scheda cliente, che se la teneva scritta a mano come `57px`. È da quel doppione che il difetto era nato: un file sapeva dell'header e l'altro no. Valore calcolato invariato per la scheda cliente
+- [DEV] `mobile_ux_spec.md` §2.7 chiusa: le tre rifiniture minori sono tutte fatte. Restava aperta solo perché questa andava verificata su un telefono vero — il difetto però si riproduce identico sul PC, dato che `fixed-header` non è una regola mobile
+
 ## [0.34.0] - 2026-08-31
 
 ### I pulsanti si trovano sempre nello stesso posto

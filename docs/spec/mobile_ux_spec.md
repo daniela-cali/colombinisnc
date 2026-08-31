@@ -126,9 +126,11 @@ Criterio guida per ogni scelta: **ridurre i tap e le decisioni**. Ogni schermata
 
 ### 2.7 Rifiniture minori
 
-- **Tab giorni sticky sotto l'header**: `.agenda-giorni` ha `top: 0` ma con `layout-fixed` di AdminLTE l'header è sticky — verificare sul telefono che le tab non ci scivolino sotto; nel caso, `top` pari all'altezza dell'header (variabile CSS di AdminLTE).
-- **Flash message su mobile**: se l'utente è scrollato in basso, l'alert in alto non si vede. Valutare su mobile un posizionamento fisso in basso stile toast (solo CSS, stessi alert del layout).
-- **Tooltip "Shift+clic" in `interventi/index.php`**: concetto solo desktop — nasconderlo sotto i 576px (`d-none d-md-inline`).
+Tutte e tre fatte.
+
+- ✅ **Tab giorni sticky sotto l'header** *(v0.34.1)*. Confermato sul telefono: con `top: 0` le tab non sembravano sticky affatto — in realtà lo erano, ma si fermavano dietro la barra fissa e sparivano, che a schermo è indistinguibile da uno sticky che non funziona. Il meccanismo era già a posto: `custom.css` ripristina `overflow: visible` su `.app-main`, senza cui `position: sticky` non si calcola proprio. Mancava solo il valore. Ora `top: var(--altezza-header)`, e l'altezza della barra è una variabile in `:root` usata anche da `.section-anchor` nella scheda cliente, che il numero se lo teneva scritto a mano: è proprio da quel doppione che il difetto era nato.
+- ✅ **Flash message su mobile**: sotto i 576px gli alert del layout sono ancorati in basso come un toast (`.app-main > .alert-dismissible` in `custom.css`), così restano visibili anche a pagina scrollata — caso tipico dopo un redirect con hash del sistema "from".
+- ✅ **Tooltip "Shift+clic" in `interventi/index.php`**: nascosto sotto i 768px con `d-none d-md-inline`, è un concetto solo da scrivania.
 
 ## 3. Alternative scartate
 
