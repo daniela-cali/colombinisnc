@@ -151,6 +151,34 @@ $initialPeriodi = old('periodi') ?: ($periodi ?? []);
                 e.preventDefault();
                 alert('I periodi non coprono l\'intero arco dell\'abbonamento:\n- ' + problemi.join('\n- ')
                     + '\n\nCorreggi le date dei periodi oppure il periodo di validità dell\'abbonamento.');
+                return;
+            }
+
+            // Un periodo più corto di un mese è quasi sempre un errore di battitura sulla data.
+            // Non si blocca — il caso raro deve restare possibile — ma si chiede conferma.
+            // Il giorno zero invece è vietato davvero, dalla regola successiva_a lato server.
+            const corti = [];
+            righe.forEach((riga, i) => {
+                const inizio = riga.querySelector('input[name$="[data_inizio]"]');
+                const fine   = riga.querySelector('input[name$="[data_fine]"]');
+                if (! inizio || ! fine || ! inizio.value || ! fine.value) return;
+
+                const da = new Date(inizio.value + 'T00:00:00');
+                const a  = new Date(fine.value + 'T00:00:00');
+                const unMeseDopo = new Date(da);
+                unMeseDopo.setMonth(unMeseDopo.getMonth() + 1);
+
+                if (a < unMeseDopo) corti.push(i + 1);
+            });
+
+            if (corti.length > 0) {
+                const quali = corti.length === 1
+                    ? 'Il periodo ' + corti[0] + ' dura'
+                    : 'I periodi ' + corti.join(', ') + ' durano';
+
+                if (! confirm(quali + ' meno di un mese. Vuoi salvare lo stesso?')) {
+                    e.preventDefault();
+                }
             }
         });
     }

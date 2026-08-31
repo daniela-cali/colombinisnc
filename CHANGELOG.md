@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.33.1] - 2026-08-31
+
+### Le date degli abbonamenti non possono più essere incoerenti
+
+- [APP] **La data di fine di un abbonamento deve essere successiva a quella di inizio**, e lo stesso vale per ogni periodo di frequenza. Prima si poteva salvare un abbonamento che iniziava e finiva lo stesso giorno: un abbonamento di durata zero non è un abbonamento, è un intervento singolo, e nessun controllo lo intercettava — la verifica sulla copertura dei periodi non se ne accorge, perché un periodo di un giorno copre correttamente un abbonamento di un giorno
+- [APP] **Se un periodo dura meno di un mese, il salvataggio chiede conferma** invece di bloccare: gli abbonamenti reali durano almeno tre mesi, quindi un periodo di pochi giorni è quasi sempre un errore di battitura sulla data. Non è un divieto — se serve davvero si prosegue — e la soglia è a un mese e non a tre di proposito: una conferma che scatta anche sui casi normali si impara a scacciare senza leggerla, e allora smette di proteggere
+- [DEV] Nuova regola `successiva_a[campo]` in `app/Validation/DateRules.php`, gemella stretta di `non_anteriore_a`: le due differiscono per `>` invece di `>=` e condividono un metodo privato che risolve il riferimento e legge le due date. Gli abbonamenti usano la stretta, i **cantieri restano sulla permissiva** — un lavoro aperto e chiuso in giornata esiste davvero, vietarlo sarebbe un falso positivo
+- [DEV] Il riferimento delle due regole accetta il jolly: `successiva_a[periodi.*.data_inizio]` applicato a `periodi.*.data_fine` confronta ogni riga con la propria data di inizio, non con quella del primo periodo. CI4 passa alla regola il nome concreto del campo in esame (`periodi.2.data_fine`) come quinto argomento, da cui si ricava l'indice; senza questo passaggio il riferimento col jolly cercherebbe una chiave inesistente e la regola tacerebbe sempre — un difetto invisibile, perché una validazione che non si esprime non lascia tracce
+- [DEV] Il controllo che blocca quando i periodi non coprono l'arco dell'abbonamento ora esce con `return` dopo l'avviso, così non si sovrappone alla nuova richiesta di conferma
+
 ## [0.33.0] - 2026-08-30
 
 ### Filtri a tendina ovunque, con memoria di sessione

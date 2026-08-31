@@ -708,6 +708,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Colonna Stato ordinabile per ciclo di vita anche in cantieri e abbonamenti; la logica dei periodi si sposta nell'helper come `periodi_intervento()` invece di essere copiata nella seconda view
 - Corretto un difetto silenzioso nella tabella interventi della scheda cliente: il `<thead>` aveva un `<th>` in meno delle celle, quindi DataTables si fermava a dieci colonne e quella delle azioni restava fuori dalla sua gestione
 
+#### ✅ v0.33.1 — Le date degli abbonamenti non possono più essere incoerenti
+- La data di fine di un abbonamento e di ogni suo periodo dev'essere successiva a quella di inizio: prima si poteva salvare un abbonamento di durata zero, che `periodiCoprono()` non intercetta perché un periodo di un giorno copre correttamente un abbonamento di un giorno
+- Nuova regola `successiva_a[campo]`, gemella stretta di `non_anteriore_a`; gli abbonamenti usano la stretta, i cantieri restano sulla permissiva perché un lavoro aperto e chiuso in giornata esiste davvero
+- Il riferimento accetta il jolly (`successiva_a[periodi.*.data_inizio]`) e confronta ogni riga con la propria data di inizio, ricavando l'indice dal nome concreto del campo che CI4 passa alla regola
+- Un periodo più corto di un mese chiede conferma invece di bloccare: la soglia è a un mese e non ai tre della norma aziendale, perché una conferma che scatta sui casi normali si impara a ignorare
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo

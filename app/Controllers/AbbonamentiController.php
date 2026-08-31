@@ -595,7 +595,12 @@ class AbbonamentiController extends BaseController
             'cliente_id'         => 'required|is_natural_no_zero',
             'tipo_intervento_id' => 'required|is_natural_no_zero',
             'data_inizio'        => 'required|valid_date[Y-m-d]',
-            'data_fine'          => 'required|valid_date[Y-m-d]',
+            'data_fine'          => [
+                'rules'  => 'required|valid_date[Y-m-d]|successiva_a[data_inizio]',
+                'errors' => [
+                    'successiva_a' => 'La data di fine deve essere successiva alla data di inizio: un abbonamento non può durare un giorno solo.',
+                ],
+            ],
             'prezzo'             => 'permit_empty|decimal',
 
             // Le regole con il jolly valgono per ogni riga di periodi[]. Il "required" sul
@@ -609,11 +614,14 @@ class AbbonamentiController extends BaseController
                     'valid_date' => 'La data di inizio di un periodo non è valida.',
                 ],
             ],
+            // Il jolly nel riferimento fa confrontare ogni riga con la propria data di inizio,
+            // non con quella del primo periodo (vedi App\Validation\DateRules).
             'periodi.*.data_fine' => [
-                'rules'  => 'required|valid_date[Y-m-d]',
+                'rules'  => 'required|valid_date[Y-m-d]|successiva_a[periodi.*.data_inizio]',
                 'errors' => [
-                    'required'   => 'Ogni periodo deve avere una data di fine.',
-                    'valid_date' => 'La data di fine di un periodo non è valida.',
+                    'required'     => 'Ogni periodo deve avere una data di fine.',
+                    'valid_date'   => 'La data di fine di un periodo non è valida.',
+                    'successiva_a' => 'La data di fine di un periodo deve essere successiva alla sua data di inizio.',
                 ],
             ],
             'periodi.*.frequenza' => [
