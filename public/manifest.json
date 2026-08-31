@@ -1,0 +1,25 @@
+{
+    "name": "Colombini SNC — Gestionale",
+    "short_name": "Colombini",
+    "description": "Gestionale Colombini SNC: interventi, clienti, abbonamenti e agenda dei tecnici.",
+    "lang": "it",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "theme_color": "#1a6fa8",
+    "background_color": "#ffffff",
+    "icons": [
+        {
+            "src": "/assets/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/assets/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $this->renderSection('title') ?> — Colombini SNC</title>
 
+    <?= $this->include('partials/head_pwa') ?>
+
     <!-- Dark mode init: prima del CSS per evitare flash di tema sbagliato -->
     <script>
     (() => {

@@ -104,25 +104,38 @@ Criterio guida per ogni scelta: **ridurre i tap e le decisioni**. Ogni schermata
 | `app/Controllers/Operativo/InterventiController.php` | Metodo `inizia()` (validare la transizione di stato, redirect con flash) |
 | `app/Views/operativo/interventi/show.php` | Bottone condizionato allo stato |
 
-### 2.6 Manifest PWA: icona in home e schermo intero
+### 2.6 Manifest PWA: icona in home e schermo intero ✅ *(v0.35.0)*
 
-**Problema.** Non esistono `manifest.json` né `apple-touch-icon`: aggiunta alla home il sito appare con icona generica e si apre con la barra del browser.
+**Problema.** Non esistevano `manifest.json` né `apple-touch-icon`: aggiunto alla home, il sito appariva con icona generica e si apriva con la barra del browser.
 
-**Soluzione.**
+**L'icona era il vero problema.** L'unico logo del progetto, `public/uploads/logo_azienda.png`, è un banner **2993×595** — testo nero e onda blu, rapporto 5:1. Un'icona si guarda in un quadrato da ~60px: schiacciarci dentro il logo intero rende il testo illeggibile. Scelta con l'utente una **C bianca su fondo blu** (`#1a6fa8`, il primary del gestionale) con l'**onda del logo** sotto: una lettera si riconosce anche a 40px, dove un disegno diventa una macchia.
 
-- `public/manifest.json` con `name`, `short_name` ("Colombini"), `display: standalone`, `theme_color`, `background_color`, icone 192/512px;
-- icone PNG in `public/assets/icons/` (partire dal logo aziendale);
-- nel `<head>` di `app/Views/layouts/admin.php` e `auth.php`: `<link rel="manifest">`, `<meta name="theme-color">`, `<link rel="apple-touch-icon">`;
-- verificare che il checkbox **"Ricordami"** sia visibile nel login (Shield ha già `allowRemembering = true`, 30 giorni): il login frequente è il primo motivo di frustrazione per utenti poco tecnici.
+L'onda non è ridisegnata ma ripresa dai pixel veri del logo: si isolano quelli blu — il testo è nero, quindi si esclude da solo — e si ricolorano di bianco conservando l'alfa, così i bordi restano morbidi. Il generatore è uno script GD one-off, tenuto fuori dal repo perché dipende da un font di Windows; le icone prodotte sono committate, come già si fa con gli asset dei vendor.
+
+**Realizzato:**
+
+- `public/manifest.json`: `display: standalone`, `theme_color` `#1a6fa8`, icone 192/512 dichiarate `any maskable` — il fondo è a tinta piena e il contenuto sta nel 70% centrale, quindi il ritaglio circolare di Android non taglia niente;
+- `public/assets/icons/` con 512, 192, `apple-touch-icon` 180 e 32;
+- `public/favicon.ico` **rigenerata**: quella presente era il segnaposto di CodeIgniter, byte per byte identico al default del framework ed entrato con la commit di inizializzazione. Ora contiene 16/32/48 px. GD non scrive il formato ICO, ma un `.ico` è un piccolo indice seguito dalle immagini e dal Vista in poi ogni voce può contenere un PNG: l'indice è costruito a mano e verificato rileggendolo;
+- i tag di `<head>` stanno in **`app/Views/partials/head_pwa.php`**, incluso dai due layout invece di essere copiato in entrambi. Due copie divergono, ed è esattamente così che era nato il difetto dello sticky in §2.7;
+- iOS ignora in buona parte il manifest per lo schermo intero, quindi servono anche i suoi `<meta name="apple-mobile-web-app-*">`;
+- checkbox **"Ricordami"**: già presente e cablato in `app/Views/auth/login.php`, con `allowRemembering` a 30 giorni. Nessuna modifica necessaria.
+
+**Tre limiti da conoscere, nessuno dei quali è un difetto da correggere:**
+
+1. **In sviluppo non è verificabile fino in fondo.** Il manifest richiede un contesto sicuro: su `http://192.168.1.133:8081` Chrome/Android lo ignora. Da iPhone "Aggiungi a Home" funziona lo stesso e mostra l'icona; la prova completa arriva col deploy su HTTPS.
+2. **`display: standalone` toglie la barra del browser, quindi anche il pulsante Indietro** — su iOS resta la strisciata dal bordo. Qui è mitigato dai breadcrumb presenti in ogni pagina e dal sistema "from", che riporta al punto di partenza dopo salvataggi ed eliminazioni.
+3. **Nessun funzionamento offline.** Il manifest non lo dà: serve un service worker, che è un lavoro a sé e tutt'altro che banale su dati veri. Senza campo il tecnico vede la pagina di errore del browser, e in standalone — senza barra indirizzi per riprovare — sembra che l'app sia rotta. **Esplicitamente fuori scope**, da valutare solo se emergerà come problema reale sul campo.
 
 **File coinvolti:**
 
 | File | Modifica |
 |---|---|
-| `public/manifest.json` | Nuovo file |
-| `public/assets/icons/` | Icone PNG 192/512 + apple-touch-icon 180 |
-| `app/Views/layouts/admin.php`, `app/Views/layouts/auth.php` | Tag nel `<head>` |
-| View login (Shield override, se presente) | Verifica checkbox "Ricordami" |
+| `public/manifest.json` | Nuovo |
+| `public/assets/icons/` | 512, 192, apple-touch-icon 180, 32 |
+| `public/favicon.ico` | Rigenerata (era il default di CodeIgniter) |
+| `app/Views/partials/head_pwa.php` | Nuovo: tutti i tag di `<head>` in un punto solo |
+| `app/Views/layouts/admin.php`, `auth.php` | Include del partial |
 
 ### 2.7 Rifiniture minori
 

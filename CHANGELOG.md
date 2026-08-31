@@ -1,5 +1,19 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.35.0] - 2026-08-31
+
+### Il gestionale si installa sul telefono come un'app
+
+- [APP] **Aggiungendo il gestionale alla schermata del telefono compare un'icona vera** — una C bianca su fondo blu con l'onda del logo — invece dell'icona generica di prima, e si apre **a schermo intero**, senza la barra del browser. Per un tecnico in cantiere sono due righe di schermo in più per l'agenda, e l'app si trova fra le altre senza cercarla
+- [APP] **Cambia anche l'icona nella scheda del browser**: quella di prima era il segnaposto di CodeIgniter, mai sostituito dall'inizio del progetto
+- [DEV] Icone generate dal logo aziendale, che è un banner 2993×595 (rapporto 5:1) e in un quadrato da 60px sarebbe illeggibile: si è scelta una C su fondo `#1a6fa8` con sotto **l'onda vera del logo**, isolata prendendo i soli pixel blu — il testo del logo è nero, quindi si esclude da solo — e ricolorata di bianco conservando l'alfa. Lo script GD è one-off e resta fuori dal repo perché dipende da un font di Windows; le icone prodotte sono committate, come già si fa con gli asset dei vendor
+- [DEV] `public/manifest.json` con `display: standalone` e le icone dichiarate `any maskable`: il fondo è a tinta piena e il contenuto sta nel 70% centrale, quindi il ritaglio circolare di Android non taglia niente
+- [DEV] `public/favicon.ico` ricostruita a mano con 16/32/48 px. GD non sa scrivere il formato ICO, ma un `.ico` è solo un piccolo indice seguito dalle immagini, e dal Vista in poi ogni voce può contenere direttamente un PNG: l'indice è costruito byte per byte e riletto per verifica. Il file precedente era identico al default del framework, entrato con la commit di inizializzazione
+- [DEV] I tag di `<head>` stanno in **`app/Views/partials/head_pwa.php`** e non copiati nei due layout: due copie degli stessi tag divergono, ed è esattamente così che era nato il difetto dello sticky della v0.34.1. iOS ignora in buona parte il manifest per lo schermo intero, quindi servono anche i suoi `<meta name="apple-mobile-web-app-*">`
+- [DEV] Il checkbox "Ricordami" richiesto dallo spec era **già presente e cablato** in `app/Views/auth/login.php`, con `allowRemembering` a 30 giorni: nessuna modifica
+- [DEV] Tre limiti noti, documentati in `mobile_ux_spec.md` §2.6 e non da correggere: in sviluppo su `http` Chrome ignora il manifest (serve un contesto sicuro, quindi la prova completa arriva col deploy su HTTPS); `standalone` toglie il pulsante Indietro, qui mitigato da breadcrumb e sistema "from"; e **non c'è nessun funzionamento offline** — servirebbe un service worker, esplicitamente fuori scope
+- [DEV] Con questa versione `mobile_ux_spec.md` è **chiusa**: non restano punti aperti
+
 ## [0.34.1] - 2026-08-31
 
 ### I giorni dell'agenda restano in cima anche scorrendo

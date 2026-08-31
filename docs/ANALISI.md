@@ -727,6 +727,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - L'altezza dell'header diventa la variabile `--altezza-header`, condivisa con `.section-anchor` della scheda cliente che la teneva scritta a mano: il difetto era nato proprio da quel doppione
 - Chiusa `mobile_ux_spec.md` §2.7: le tre rifiniture minori sono tutte fatte. Dei punti aperti dello spec mobile resta solo il manifest PWA (§2.6)
 
+#### ✅ v0.35.0 — Il gestionale si installa sul telefono come un'app
+- `manifest.json`, icone 512/192/180/32 e favicon rigenerata: aggiunto alla schermata del telefono il gestionale ha un'icona propria e si apre a schermo intero
+- L'icona è una C su fondo blu con l'onda vera del logo, isolata dai soli pixel blu del PNG aziendale: il logo è un banner 5:1 e in un quadrato da 60px il testo sarebbe illeggibile
+- Tag di `<head>` in `app/Views/partials/head_pwa.php`, incluso dai due layout invece che copiato: due copie divergono, com'era successo con l'altezza dell'header in v0.34.1
+- Limiti noti e voluti: su `http` in sviluppo Chrome ignora il manifest (prova completa solo col deploy su HTTPS), `standalone` toglie il pulsante Indietro, e **non c'è funzionamento offline** — servirebbe un service worker, fuori scope
+- Con questa versione `docs/spec/mobile_ux_spec.md` è chiusa: nessun punto aperto
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo
