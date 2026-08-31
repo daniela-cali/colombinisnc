@@ -51,8 +51,8 @@ $statoOrdine = [
                     class="btn btn-sm btn-success" disabled>
                 <i class="bi bi-clipboard-check-fill me-1"></i>Accetta selezionati
             </button>
-            <a href="<?= base_url('abbonamenti/nuovo') ?>" class="btn btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>Nuovo
+            <a href="<?= base_url('abbonamenti/nuovo') ?>" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Nuovo abbonamento
             </a>
         </div>
     </div>
@@ -234,20 +234,8 @@ $statoOrdine = [
 <script>
 $(function () {
 
-    var table = new DataTable('#tabella-abbonamenti', {
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
-        },
-        responsive: true,
-        orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
-        pageLength:  25,
-        order:       [[1, 'desc']],
+    var table = initTabella('#tabella-abbonamenti', {
+        order: [[1, 'desc']],
         columnDefs: [
             { name: 'select',    targets: 0, searchable: false, orderable: false, responsivePriority: 3 },
             { name: 'rif',       targets: 1, searchable: false, responsivePriority: 2 },

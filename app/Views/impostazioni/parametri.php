@@ -213,11 +213,12 @@ $this->extend('layouts/admin');
 
     </div>
 
-    <div class="d-flex justify-content-between mt-4 mb-3">
-        <a href="<?= base_url('impostazioni') ?>" class="btn btn-secondary">
+    <div class="card-azioni mt-4 mb-3">
+        <a href="<?= base_url('impostazioni') ?>"
+           class="btn btn-sm btn-outline-secondary azione-ritorno">
             <i class="bi bi-arrow-left me-1"></i>Indietro
         </a>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-sm btn-primary azione-primaria">
             <i class="bi bi-check-lg me-1"></i>Salva impostazioni
         </button>
     </div>

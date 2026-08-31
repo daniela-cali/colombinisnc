@@ -105,19 +105,7 @@ $this->extend('layouts/admin');
 <?= $this->include('partials/datatables_scripts') ?>
 <script>
 $(function () {
-    $('#tabella-articoli').DataTable({
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' },
-            lengthLabels: { '-1': 'Tutti' }
-        },
-        responsive: true,
-        lengthMenu:  [25, 50, 100, -1],
+    initTabella('#tabella-articoli', {
         order: [[2, 'asc'], [1, 'asc']],
         columnDefs: [
             { orderable: false, targets: [-1], responsivePriority: 2 },

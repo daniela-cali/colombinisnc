@@ -151,11 +151,12 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                     </div>
 
                 </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="<?= esc($from ?: base_url('abbonamenti')) ?>" class="btn btn-secondary btn-sm">
+                <div class="card-footer card-azioni">
+                    <a href="<?= esc($from ?: base_url('abbonamenti')) ?>"
+                       class="btn btn-sm btn-outline-secondary azione-ritorno">
                         <i class="bi bi-arrow-left me-1"></i>Annulla
                     </a>
-                    <button type="submit" class="btn btn-primary btn-sm ms-auto">
+                    <button type="submit" class="btn btn-sm btn-primary azione-primaria">
                         <i class="bi bi-check-lg me-1"></i>Salva
                     </button>
                 </div>

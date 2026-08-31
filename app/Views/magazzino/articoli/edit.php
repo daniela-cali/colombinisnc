@@ -34,26 +34,6 @@ $this->extend('layouts/admin');
                 <h3 class="card-title mb-0">
                     <i class="bi bi-box-seam me-2"></i><?= esc($articolo['descrizione']) ?>
                 </h3>
-                <div class="card-tools d-flex gap-2">
-                    <a href="<?= esc($from ?: base_url('magazzino/articoli')) ?>" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i>Annulla
-                    </a>
-                    <form action="<?= base_url('magazzino/articoli/' . $articolo['id'] . '/delete') ?>"
-                          method="post" class="d-inline"
-                          data-nome="<?= esc($articolo['descrizione']) ?>"
-                          onsubmit="return confirm('Eliminare definitivamente &quot;' + this.dataset.nome + '&quot;?')">
-                        <?= csrf_field() ?>
-                        <?php if ($from): ?>
-                            <input type="hidden" name="from" value="<?= esc($from) ?>">
-                        <?php endif ?>
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i>Elimina
-                        </button>
-                    </form>
-                    <button type="submit" form="form-update" class="btn btn-sm btn-primary">
-                        <i class="bi bi-check-lg me-1"></i>Salva
-                    </button>
-                </div>
             </div>
 
             <form id="form-update"
@@ -141,6 +121,28 @@ $this->extend('layouts/admin');
 
                 </div>
             </form>
+
+            <div class="card-footer card-azioni">
+                <a href="<?= esc($from ?: base_url('magazzino/articoli')) ?>"
+                   class="btn btn-sm btn-outline-secondary azione-ritorno">
+                    <i class="bi bi-x-lg me-1"></i>Annulla
+                </a>
+                <form action="<?= base_url('magazzino/articoli/' . $articolo['id'] . '/delete') ?>"
+                      method="post" class="azione-distruttiva"
+                      data-nome="<?= esc($articolo['descrizione']) ?>"
+                      onsubmit="return confirm('Eliminare definitivamente &quot;' + this.dataset.nome + '&quot;?')">
+                    <?= csrf_field() ?>
+                    <?php if ($from): ?>
+                        <input type="hidden" name="from" value="<?= esc($from) ?>">
+                    <?php endif ?>
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                        <i class="bi bi-trash me-1"></i>Elimina
+                    </button>
+                </form>
+                <button type="submit" form="form-update" class="btn btn-sm btn-primary azione-primaria">
+                    <i class="bi bi-check-lg me-1"></i>Salva
+                </button>
+            </div>
         </div>
 
     </div>

@@ -110,19 +110,8 @@ $(function () {
         return;
     }
 
-    var tabella = $clienti.DataTable({
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
-        },
-        responsive: true,
+    var tabella = initTabella($clienti, {
         order: [[1, 'asc']],
-        pageLength: 25,
         columnDefs: [
             { orderable: false, targets: [-1], responsivePriority: 2 },
             { responsivePriority: 1, targets: 1 }

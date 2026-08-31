@@ -71,8 +71,8 @@ rsort($anniPresenti);
                title="Clicca su un'intestazione per ordinare. Tieni premuto Shift e clicca su altre colonne per ordinare su più criteri."></i>
         </h3>
         <div class="card-tools ms-auto">
-            <a href="<?= base_url('cantieri/nuovo') ?>" class="btn btn-sm">
-                <i class="bi bi-plus-lg me-1"></i>Nuovo
+            <a href="<?= base_url('cantieri/nuovo') ?>" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>Nuovo cantiere
             </a>
         </div>
     </div>
@@ -194,20 +194,8 @@ rsort($anniPresenti);
 <script>
 $(function () {
 
-    var table = new DataTable('#tabella-cantieri', {
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
-        },
-        responsive: true,
-        orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
-        pageLength:  25,
-        order:       [[0, 'desc']],
+    var table = initTabella('#tabella-cantieri', {
+        order: [[0, 'desc']],
         columnDefs: [
             { name: 'rif',      targets: 0, searchable: false, responsivePriority: 2 },
             { name: 'cliente',  targets: 1, responsivePriority: 1 },

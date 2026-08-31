@@ -28,7 +28,7 @@ $statoBadgeInt = [
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
-<div style="max-width:900px">
+<div class="mat-pagina">
 
     <!-- Header -->
     <div class="d-flex align-items-center gap-2 mb-4 flex-wrap">

@@ -139,22 +139,8 @@ $this->extend('layouts/admin');
 <?= $this->include('partials/datatables_scripts') ?>
 <script>
 $(function () {
-    $('#tabella-clienti').DataTable({
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' },
-            lengthLabels: { '-1': 'Tutti' }
-        },
-        responsive: true,
-        lengthMenu:  [25, 50, 100, -1],
+    initTabella('#tabella-clienti', {
         order: [[1, 'asc']],
-        orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
-        pageLength:  25,
         columnDefs: [
             { orderable: false, targets: [-1], responsivePriority: 2 },
             { responsivePriority: 1, targets: 1 },

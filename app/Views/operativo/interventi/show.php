@@ -59,8 +59,21 @@ $statoBadge = [
                            data-bs-toggle="tooltip" data-bs-title="Urgente"></i>
                     <?php endif ?>
                 </h3>
-                <div class="card-tools">
+                <div class="card-tools d-flex align-items-center gap-2">
                     <span class="text-muted small">Creato il <?= date('d/m/Y', strtotime($intervento['created_at'])) ?></span>
+                    <?php if ($puoAgire && $intervento['stato'] !== \App\Models\InterventiModel::STATO_ANNULLATO): ?>
+                        <?php
+                            // Dove tornare dopo il salvataggio: alla scheda cliente se l'intervento
+                            // ne ha uno, altrimenti all'elenco (sistema "from").
+                            $editFrom = $cliente
+                                ? base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi')
+                                : base_url('operativo/interventi');
+                        ?>
+                        <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
+                           class="btn btn-sm btn-outline-primary" title="Modifica">
+                            <i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Modifica</span>
+                        </a>
+                    <?php endif ?>
                 </div>
             </div>
 
@@ -253,21 +266,21 @@ $statoBadge = [
 
             </div>
 
-            <div class="card-footer d-flex flex-wrap gap-2 align-items-center intervento-azioni">
+            <div class="card-footer card-azioni">
                 <?php if ($cliente): ?>
                     <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '#sec-interventi') ?>"
-                       class="btn btn-sm btn-outline-secondary btn-azione-scheda-cliente me-auto">
+                       class="btn btn-sm btn-outline-secondary azione-ritorno">
                         <i class="bi bi-arrow-left me-1"></i>Scheda cliente
                     </a>
                 <?php else: ?>
                     <a href="<?= base_url('operativo/interventi') ?>"
-                       class="btn btn-sm btn-outline-secondary btn-azione-scheda-cliente me-auto">
+                       class="btn btn-sm btn-outline-secondary azione-ritorno">
                         <i class="bi bi-arrow-left me-1"></i>Interventi
                     </a>
                 <?php endif ?>
                 <?php if (auth()->user()->can('interventi.elimina') && $intervento['stato'] === \App\Models\InterventiModel::STATO_ANNULLATO): ?>
                     <?php $codiceIntervento = $intervento['codice']; ?>
-                    <form method="post" class="btn-azione-elimina"
+                    <form method="post" class="azione-distruttiva"
                         action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/delete') ?>"
                         onsubmit="return confirm('Eliminare definitivamente <?= esc($codiceIntervento) ?>?')">
                         <?= csrf_field() ?>
@@ -292,7 +305,7 @@ $statoBadge = [
                     ?>
                     <?php if ($intervento['stato'] === \App\Models\InterventiModel::STATO_PIANIFICATO): ?>
                         <form method="post"
-                            class="btn-azione-inizia <?= $azioneDelMomento === 'inizia' ? 'azione-cta-mobile' : '' ?>"
+                            class="azione-primaria <?= $azioneDelMomento === 'inizia' ? 'azione-cta-mobile' : '' ?>"
                             action="<?= base_url('operativo/interventi/' . $intervento['id'] . '/inizia') ?>">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-sm btn-success w-100">
@@ -301,12 +314,12 @@ $statoBadge = [
                         </form>
                     <?php endif ?>
                     <?php if (! in_array($intervento['stato'], [\App\Models\InterventiModel::STATO_COMPLETATO, \App\Models\InterventiModel::STATO_ANNULLATO])): ?>
-                        <button type="button" class="btn btn-sm btn-outline-danger btn-azione-annulla"
+                        <button type="button" class="btn btn-sm btn-outline-danger azione-distruttiva"
                                 data-bs-toggle="modal" data-bs-target="#modal-annulla">
                             <i class="bi bi-x-circle me-1"></i>Annulla intervento
                         </button>
                         <button type="button"
-                                class="btn btn-sm btn-success btn-azione-completa <?= $azioneDelMomento === 'completa' ? 'azione-cta-mobile' : '' ?>"
+                                class="btn btn-sm btn-success azione-primaria <?= $azioneDelMomento === 'completa' ? 'azione-cta-mobile' : '' ?>"
                                 data-bs-toggle="modal" data-bs-target="#modal-chiudi">
                             <i class="bi bi-check-circle me-1"></i>Completa intervento
                         </button>
@@ -318,7 +331,7 @@ $statoBadge = [
                     ?>
                     <?php if($intervento['stato'] !== \App\Models\InterventiModel::STATO_ANNULLATO ): ?>
                         <a href="<?= base_url('operativo/interventi/' . $intervento['id'] . '/edit?from=' . urlencode($editFrom)) ?>"
-                        class="btn btn-sm btn-primary btn-azione-modifica">
+                        class="btn btn-sm btn-primary azione-secondaria">
                             <i class="bi bi-pencil me-1"></i>Modifica
                         </a>
                     <?php endif ?>

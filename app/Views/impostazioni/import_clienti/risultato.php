@@ -65,13 +65,14 @@ $this->extend('layouts/admin');
                 <?php endif ?>
 
             </div>
-            <div class="card-footer d-flex justify-content-between">
-                <a href="<?= base_url('impostazioni/import-clienti') ?>" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-repeat me-1"></i> Nuovo import
+            <div class="card-footer card-azioni">
+                <a href="<?= base_url('impostazioni/import-clienti') ?>"
+                   class="btn btn-sm btn-outline-secondary azione-ritorno">
+                    <i class="bi bi-arrow-repeat me-1"></i>Nuovo import
                 </a>
-                <a href="<?= base_url('impostazioni/import-clienti/elenco') ?>" class="btn btn-primary">
-                    <i class="bi bi-list-ul me-1"></i>
-                    Vai all'elenco (<?= $contatori['da_migrare'] ?> da migrare)
+                <a href="<?= base_url('impostazioni/import-clienti/elenco') ?>"
+                   class="btn btn-sm btn-primary azione-primaria">
+                    <i class="bi bi-list-ul me-1"></i>Vai all'elenco (<?= $contatori['da_migrare'] ?> da migrare)
                 </a>
             </div>
         </div>

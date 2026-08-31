@@ -714,6 +714,14 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Il riferimento accetta il jolly (`successiva_a[periodi.*.data_inizio]`) e confronta ogni riga con la propria data di inizio, ricavando l'indice dal nome concreto del campo che CI4 passa alla regola
 - Un periodo più corto di un mese chiede conferma invece di bloccare: la soglia è a un mese e non ai tre della norma aziendale, perché una conferma che scatta sui casi normali si impara a ignorare
 
+#### ✅ v0.34.0 — I pulsanti si trovano sempre nello stesso posto
+- Una regola sola per la collocazione delle azioni: in alto gli strumenti che portano altrove (Modifica, Stampa PDF, Nuovo X), in basso ciò che decide qualcosa e chiude il discorso lì (Salva, Annulla, Elimina, cambi di stato). Modifica e Nuovo avevano quattro e due aspetti diversi rispettivamente, per lo più senza che nessuno li avesse scelti: la causa comune era `class="btn btn-sm"` senza variante di colore
+- La regola è stata **ribaltata in corso d'opera** rispetto alla prima stesura dello spec, che ragionava sull'oggetto dell'azione e voleva Modifica nel footer: applicandola portava a spostare quattro schede per farle assomigliare a una. Il ragionamento sta in `docs/spec/ui_azioni_coerenti_spec.md` §2.1
+- `.intervento-azioni` diventa `.card-azioni` con quattro classi semantiche che decidono ordine e posizione via `order`, quindi indipendenti da come è scritto il markup; su mobile le etichette dei pulsanti in intestazione spariscono lasciando l'icona, con area toccabile minima di 44px
+- Nuovo `public/js/datatable-init.js`: le dieci tabelle ripetevano quindici righe di configurazione a testa, e aggiungere la voce "Tutti" aveva richiesto di toccare sette file. Agganciato nel partial degli asset e non nelle view, così una tabella nuova lo eredita. La fusione dei default è a tre livelli, altrimenti una view che sovrascrive un solo messaggio riporterebbe la tabella in inglese senza dare errore
+- Nuovo `app/Helpers/validazione_helper.php` con `BaseController::validate()` sovrascritto: i messaggi non mostrano più i nomi delle colonne. La mappa delle etichette resta corta perché il ripiego automatico (`cliente_id` → Cliente) copre i casi regolari, quindi un campo aggiunto domani non torna al nome grezzo
+- Corretta in `CLAUDE.md` la sezione su `--card-accent`, che descriveva un sistema di ereditarietà del colore mai esistito nel CSS
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo

@@ -316,24 +316,7 @@ helper('interventi');
 <script>
 $(function () {
 
-    var table = new DataTable('#tabella-interventi', {
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' },
-            // In DataTables 2 l'etichetta di -1 arriva da qui, non dal lengthMenu:
-            // il default inglese "All" vincerebbe su qualsiasi etichetta passata lì.
-            lengthLabels: { '-1': 'Tutti' }
-        },
-        responsive: true,
-        orderMulti: true, // già attivo di default in DataTables (Shift+clic ordina su più colonne)
-        pageLength:  25,
-        // -1 = nessuna paginazione; l'etichetta sta in language.lengthLabels.
-        lengthMenu:  [25, 50, 100, -1],
+    var table = initTabella('#tabella-interventi', {
         /* Ordine di default a due criteri, applicati in sequenza:
            colonna 3 (Stato) crescente sul rango del ciclo di vita — prima i da pianificare —
            e a parità di stato colonna 5 (Data scadenza) crescente, cioè cosa scade prima.

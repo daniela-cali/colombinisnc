@@ -57,14 +57,14 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
                         <?= esc($statiLabel[$stato] ?? $stato) ?>
                     </span>
                 </h3>
-                <div class="card-tools">
+                <div class="card-tools d-flex gap-2 flex-wrap">
                     <a href="<?= base_url('cantieri/' . $cantiere['id'] . '/pdf') ?>"
-                       class="btn btn-sm" title="Stampa PDF" target="_blank">
-                        <i class="bi bi-file-earmark-pdf"></i>
+                       class="btn btn-sm btn-outline-secondary" title="Stampa PDF" target="_blank">
+                        <i class="bi bi-file-earmark-pdf"></i><span class="d-none d-sm-inline ms-1">Stampa PDF</span>
                     </a>
                     <a href="<?= base_url('cantieri/' . $cantiere['id'] . '/edit') ?>"
-                       class="btn btn-sm" title="Modifica">
-                        <i class="bi bi-pencil"></i>
+                       class="btn btn-sm btn-outline-primary" title="Modifica">
+                        <i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Modifica</span>
                     </a>
                 </div>
             </div>
@@ -251,8 +251,8 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
                     <span class="badge bg-secondary ms-1"><?= count($interventi) ?></span>
                 </h3>
                 <div class="card-tools">
-                    <a href="<?= $nuovoInterventoUrl ?>" class="btn btn-sm" title="Nuovo intervento">
-                        <i class="bi bi-plus-circle me-1"></i>Nuovo intervento
+                    <a href="<?= $nuovoInterventoUrl ?>" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i>Nuovo intervento
                     </a>
                 </div>
             </div>

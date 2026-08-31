@@ -33,7 +33,7 @@ $this->extend('layouts/admin');
                 <div class="card-header">
                     <h3 class="card-title mb-0"><i class="bi bi-graph-up-arrow me-2"></i>Avanzamento migrazione</h3>
                     <div class="card-tools">
-                        <a href="<?= base_url('impostazioni/import-clienti/elenco') ?>" class="btn btn-sm">
+                        <a href="<?= base_url('impostazioni/import-clienti/elenco') ?>" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-list-ul me-1"></i> Vedi elenco
                         </a>
                     </div>
@@ -100,12 +100,13 @@ $this->extend('layouts/admin');
                     </div>
 
                 </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="<?= base_url('impostazioni') ?>" class="btn btn-secondary">
-                        <i class="bi bi-x-lg me-1"></i> Annulla
+                <div class="card-footer card-azioni">
+                    <a href="<?= base_url('impostazioni') ?>"
+                       class="btn btn-sm btn-outline-secondary azione-ritorno">
+                        <i class="bi bi-x-lg me-1"></i>Annulla
                     </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-arrow-right me-1"></i> Carica e continua
+                    <button type="submit" class="btn btn-sm btn-primary azione-primaria">
+                        <i class="bi bi-arrow-right me-1"></i>Carica e continua
                     </button>
                 </div>
             </form>

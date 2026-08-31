@@ -36,23 +36,6 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                 <h3 class="card-title mb-0">
                     <i class="bi bi-pencil me-2"></i>Modifica — <?= esc($denom) ?>
                 </h3>
-                <div class="card-tools d-flex gap-2">
-                    <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id']) ?>"
-                       class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i>Annulla
-                    </a>
-                    <form action="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/delete') ?>"
-                          method="post" class="d-inline"
-                          onsubmit="return confirm('Eliminare definitivamente <?= esc(addslashes($denom)) ?>?')">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash me-1"></i>Elimina
-                        </button>
-                    </form>
-                    <button type="submit" form="form-update" class="btn btn-sm btn-primary">
-                        <i class="bi bi-check-lg me-1"></i>Salva modifiche
-                    </button>
-                </div>
             </div>
 
             <form id="form-update" action="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/update') ?>" method="post">
@@ -266,6 +249,24 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
 
                 </div><!-- /card-body -->
             </form><!-- /form-update — chiuso prima del footer per evitare nesting con il form delete -->
+
+            <div class="card-footer card-azioni">
+                <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id']) ?>"
+                   class="btn btn-sm btn-outline-secondary azione-ritorno">
+                    <i class="bi bi-x-lg me-1"></i>Annulla
+                </a>
+                <form action="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/delete') ?>"
+                      method="post" class="azione-distruttiva"
+                      onsubmit="return confirm('Eliminare definitivamente <?= esc(addslashes($denom)) ?>?')">
+                    <?= csrf_field() ?>
+                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                        <i class="bi bi-trash me-1"></i>Elimina
+                    </button>
+                </form>
+                <button type="submit" form="form-update" class="btn btn-sm btn-primary azione-primaria">
+                    <i class="bi bi-check-lg me-1"></i>Salva modifiche
+                </button>
+            </div>
 
         </div>
 

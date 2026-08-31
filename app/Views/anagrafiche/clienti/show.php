@@ -75,12 +75,12 @@ $statoBadge = [
             </div>
             <div class="ms-auto d-flex gap-2 flex-wrap">
                 <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/pdf') ?>"
-                   target="_blank" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-file-earmark-pdf me-1"></i>Stampa PDF
+                   target="_blank" class="btn btn-sm btn-outline-secondary" title="Stampa PDF">
+                    <i class="bi bi-file-earmark-pdf"></i><span class="d-none d-sm-inline ms-1">Stampa PDF</span>
                 </a>
                 <a href="<?= base_url('anagrafiche/clienti/' . $cliente['id'] . '/edit') ?>"
-                   class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-pencil me-1"></i>Modifica
+                   class="btn btn-sm btn-outline-primary" title="Modifica">
+                    <i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Modifica</span>
                 </a>
             </div>
         </div>
@@ -807,8 +807,8 @@ $statoBadge = [
 
 $(function () {
     // DataTable interventi
-    var table = $('#tbl-interventi').DataTable({
-        responsive: true,
+    var table = initTabella('#tbl-interventi', {
+        // Meno righe che negli elenchi: qui la tabella è dentro un tab della scheda cliente.
         pageLength: 10,
         order: [[5, 'desc']],
         columnDefs: [
@@ -820,14 +820,8 @@ $(function () {
             { targets: 7, responsivePriority: 3 }
         ],
         language: {
-            emptyTable:   'Nessun intervento registrato.',
-            info:         'Da _START_ a _END_ di _TOTAL_',
-            infoEmpty:    'Nessun risultato',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            lengthMenu:   'Mostra _MENU_ righe',
-            search:       'Cerca:',
-            paginate:     { first: '«', last: '»', next: '›', previous: '‹' },
-            zeroRecords:  'Nessun intervento trovato.'
+            emptyTable:  'Nessun intervento registrato.',
+            zeroRecords: 'Nessun intervento trovato.'
         }
     });
 
@@ -836,8 +830,7 @@ $(function () {
 
     // DataTable abbonamenti
     if (document.getElementById('tbl-abbonamenti')) {
-        $('#tbl-abbonamenti').DataTable({
-            responsive: true,
+        initTabella('#tbl-abbonamenti', {
             pageLength: 10,
             order: [],
             columnDefs: [
@@ -846,14 +839,8 @@ $(function () {
                 { targets: 7, orderable: false, searchable: false }
             ],
             language: {
-                emptyTable:   'Nessun abbonamento registrato.',
-                info:         'Da _START_ a _END_ di _TOTAL_',
-                infoEmpty:    'Nessun risultato',
-                infoFiltered: '(filtrati da _MAX_ totali)',
-                lengthMenu:   'Mostra _MENU_ righe',
-                search:       'Cerca:',
-                paginate:     { first: '«', last: '»', next: '›', previous: '‹' },
-                zeroRecords:  'Nessun abbonamento trovato.'
+                emptyTable:  'Nessun abbonamento registrato.',
+                zeroRecords: 'Nessun abbonamento trovato.'
             }
         });
         filtriIniziali('tbl-abbonamenti');
@@ -861,8 +848,7 @@ $(function () {
 
     // DataTable cantieri
     if (document.getElementById('tbl-cantieri')) {
-        $('#tbl-cantieri').DataTable({
-            responsive: true,
+        initTabella('#tbl-cantieri', {
             pageLength: 10,
             order: [],
             columnDefs: [
@@ -870,14 +856,8 @@ $(function () {
                 { targets: 8, orderable: false, searchable: false }
             ],
             language: {
-                emptyTable:   'Nessun cantiere registrato.',
-                info:         'Da _START_ a _END_ di _TOTAL_',
-                infoEmpty:    'Nessun risultato',
-                infoFiltered: '(filtrati da _MAX_ totali)',
-                lengthMenu:   'Mostra _MENU_ righe',
-                search:       'Cerca:',
-                paginate:     { first: '«', last: '»', next: '›', previous: '‹' },
-                zeroRecords:  'Nessun cantiere trovato.'
+                emptyTable:  'Nessun cantiere registrato.',
+                zeroRecords: 'Nessun cantiere trovato.'
             }
         });
         filtriIniziali('tbl-cantieri');

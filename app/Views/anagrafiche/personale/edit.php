@@ -44,25 +44,6 @@ $nomeCognome = $persona['cognome'] . ' ' . $persona['nome'];
                 <h3 class="card-title mb-0">
                     <i class="bi bi-pencil me-2"></i>Modifica — <?= esc($nomeCognome) ?>
                 </h3>
-                <div class="card-tools d-flex gap-2">
-                    <a href="<?= base_url('anagrafiche/personale/' . $persona['id']) ?>"
-                       class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i>Annulla
-                    </a>
-                    <?php if ($puoEliminare): ?>
-                        <form action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/delete') ?>"
-                              method="post" class="d-inline"
-                              onsubmit="return confirm('Eliminare definitivamente questo dipendente e il suo account? Possibile solo se non ha interventi né assenze in archivio.')">
-                            <?= csrf_field() ?>
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash me-1"></i>Elimina
-                            </button>
-                        </form>
-                    <?php endif ?>
-                    <button type="submit" form="form-update" class="btn btn-sm btn-primary">
-                        <i class="bi bi-check-lg me-1"></i>Salva
-                    </button>
-                </div>
             </div>
             <form id="form-update" action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/update') ?>" method="post">
                 <?= csrf_field() ?>
@@ -143,6 +124,26 @@ $nomeCognome = $persona['cognome'] . ' ' . $persona['nome'];
 
                 </div>
             </form>
+
+            <div class="card-footer card-azioni">
+                <a href="<?= base_url('anagrafiche/personale/' . $persona['id']) ?>"
+                   class="btn btn-sm btn-outline-secondary azione-ritorno">
+                    <i class="bi bi-x-lg me-1"></i>Annulla
+                </a>
+                <?php if ($puoEliminare): ?>
+                    <form action="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/delete') ?>"
+                          method="post" class="azione-distruttiva"
+                          onsubmit="return confirm('Eliminare definitivamente questo dipendente e il suo account? Possibile solo se non ha interventi né assenze in archivio.')">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                            <i class="bi bi-trash me-1"></i>Elimina
+                        </button>
+                    </form>
+                <?php endif ?>
+                <button type="submit" form="form-update" class="btn btn-sm btn-primary azione-primaria">
+                    <i class="bi bi-check-lg me-1"></i>Salva
+                </button>
+            </div>
         </div>
 
     </div>

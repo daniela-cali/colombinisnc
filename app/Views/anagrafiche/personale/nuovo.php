@@ -109,11 +109,12 @@ $this->extend('layouts/admin');
                     </div>
 
                 </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="<?= base_url('anagrafiche/personale') ?>" class="btn btn-secondary">
+                <div class="card-footer card-azioni">
+                    <a href="<?= base_url('anagrafiche/personale') ?>"
+                       class="btn btn-sm btn-outline-secondary azione-ritorno">
                         <i class="bi bi-arrow-left me-1"></i>Annulla
                     </a>
-                    <button type="submit" class="btn btn-primary ms-auto">
+                    <button type="submit" class="btn btn-sm btn-primary azione-primaria">
                         <i class="bi bi-check-lg me-1"></i>Salva
                     </button>
                 </div>

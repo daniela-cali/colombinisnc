@@ -87,6 +87,30 @@ $model->insert(array_merge($this->request->getPost(), ['stato' => 1]));
 
 Non creare metodi helper `campiDaRequest()` né array espliciti campo per campo nel controller.
 
+## Validazione — le etichette dei campi non si scrivono nei controller
+
+I messaggi di CI4 contengono `{field}`, che il framework sostituisce con la `label` della regola
+se c'è e altrimenti con **il nome grezzo della colonna**: senza etichette l'utente leggeva
+«Il campo "tipo_intervento_id" è obbligatorio».
+
+Le etichette non vanno aggiunte regola per regola. `BaseController::validate()` è sovrascritto e
+fa passare ogni array di regole da `regole_con_etichette()`
+(`app/Helpers/validazione_helper.php`), quindi **le regole si continuano a scrivere come sempre**
+e un controller nuovo eredita il comportamento senza saperlo:
+
+```php
+'tipo_intervento_id' => 'required|is_natural_no_zero',   // → «Il campo "Tipo di intervento"…»
+```
+
+`etichetta_campo()` cerca prima in una mappa corta, che copre solo i casi che una regola
+meccanica sbaglierebbe (`piva`, `cfisc`, `citta`, `lat`, `password_confirm`), e altrimenti
+ripiega su una trasformazione automatica: toglie il suffisso `_id`, cambia gli underscore in
+spazi, mette l'iniziale maiuscola. **La mappa non va tenuta allineata al database**: serve solo
+per le eccezioni, e il ripiego garantisce che un campo nuovo non mostri mai il nome della
+colonna. Aggiungere una voce solo quando il risultato automatico è sbagliato o brutto.
+
+Una regola già scritta in forma array conserva i suoi `errors`: riceve solo la `label` in più.
+
 ## Flashdata e layout
 Il layout `app/Views/layouts/admin.php` gestisce già `success`, `error` e `warning` per tutte le pagine. Non duplicarli nelle singole view — causa visualizzazione doppia. Nelle view includere solo `errors` (plurale) per la lista errori di validazione, che il layout non gestisce.
 
@@ -248,12 +272,86 @@ Soluzione: estrarre sempre il valore in una variabile PHP semplice prima dell'at
 ## AdminLTE 4 — Layout card
 Le convenzioni per card-header, card-footer e card-tools vanno documentate qui man mano che si scopre il comportamento reale di AdminLTE 4 con Bootstrap 5. Non usare i pattern del vecchio progetto (`float-left`/`float-right`, `clearfix`) — erano workaround di Bootstrap 4.
 
-## Bottoni nelle card — colore ereditato
-Usare variabili CSS custom per fare in modo che i bottoni dentro `.card-tools` ereditino automaticamente il colore della card, senza aggiungere classi di colore (`btn-primary` ecc.) nella view.
+## Azioni nelle card — dove stanno e che aspetto hanno
 
-Il pattern: ogni classe di card definisce `--card-accent` e `--card-accent-text`; la regola CSS su `.card-tools .btn` legge quelle variabili. I bottoni nelle card colorate si colorano da soli — nella view basta `btn btn-sm`.
+> Nota: questa sezione descriveva fino alla v0.33.1 un sistema `--card-accent` per cui i
+> bottoni ereditavano il colore della card e nella view bastava `btn btn-sm`. **Quel sistema
+> non è mai esistito**: in `custom.css` non c'erano né la regola `.card-tools .btn` né le
+> variabili. I bottoni scritti `btn btn-sm` erano semplicemente privi di variante di colore,
+> quindi trasparenti — sembravano funzionare nelle intestazioni per caso. Ogni pulsante deve
+> avere una variante esplicita. Dettagli in `docs/spec/ui_azioni_coerenti_spec.md`.
 
-Le classi specifiche di AdminLTE 4 vanno documentate qui man mano che vengono scoperte. Non copiare i selettori del vecchio progetto (erano Bootstrap 4 / AdminLTE 3).
+**La regola di collocazione:**
+
+- **In alto, nel `card-tools`**: gli strumenti che portano altrove — Modifica, Stampa PDF,
+  Nuovo X (anche dentro una scheda, quando crea un altro record). Più guida e tooltip.
+- **In basso, nel `card-footer`**: le azioni che decidono qualcosa e chiudono il discorso lì —
+  Salva, Annulla, Elimina, e i cambi di stato delle schede. Il link di ritorno fa parte del
+  gruppo e sta con loro.
+- I **filtri** stanno nel `card-body` sopra la tabella, non sono azioni su un record.
+
+**Lo stile, sempre lo stesso:**
+
+| Azione | Classi |
+|---|---|
+| Modifica | `btn btn-sm btn-outline-primary` + `bi-pencil` |
+| Stampa PDF | `btn btn-sm btn-outline-secondary` + `bi-file-earmark-pdf` |
+| Nuovo X | `btn btn-sm btn-primary` + `bi-plus-lg`, etichetta completa ("Nuovo cantiere") |
+| Salva | `btn btn-sm btn-primary` |
+| Annulla / ritorno | `btn btn-sm btn-outline-secondary` |
+| Elimina | `btn btn-sm btn-outline-danger` |
+
+Il pieno è riservato all'azione principale della pagina (Nuovo X negli elenchi, Salva nei
+form); gli strumenti sono contornati. Sempre `btn-sm`.
+
+**Il footer usa `.card-azioni`** più una classe semantica per pulsante — `.azione-primaria`,
+`.azione-secondaria`, `.azione-ritorno`, `.azione-distruttiva` — che decide ordine e posizione
+via `order`, così non dipendono da come è scritto il markup. Nessuna utility di allineamento
+nella view: niente `d-flex`, `justify-content-between`, `ms-auto`. **La classe semantica va sul
+figlio diretto** di `.card-azioni`: l'`<a>`, il `<button>`, oppure il `<form>` che lo racchiude
+quando l'azione è un POST — è quello l'elemento flex che riceve l'`order`.
+
+**Nel `card-tools`, su mobile l'etichetta sparisce e resta l'icona**, con `title` come tooltip:
+
+```php
+<a href="..." class="btn btn-sm btn-outline-primary" title="Modifica">
+    <i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Modifica</span>
+</a>
+```
+
+Lo spazio va sullo `span` (`ms-1`) e non sull'icona (`me-1`): con l'etichetta nascosta un
+margine a destra scentrerebbe l'icona nel bersaglio da 44px.
+
+Le altre classi specifiche di AdminLTE 4 vanno documentate qui man mano che vengono scoperte.
+Non copiare i selettori del vecchio progetto (erano Bootstrap 4 / AdminLTE 3).
+
+## DataTables — l'init è condiviso, la view passa solo le differenze
+
+Nessuna view configura una DataTable da sola. `public/js/datatable-init.js` espone
+`initTabella(selettore, opzioni)` e tiene i default comuni: `responsive`, `orderMulti`,
+`lengthMenu: [10, 25, 50, 100, -1]`, `pageLength: 25` e tutte le traduzioni. È agganciato in
+`app/Views/partials/datatables_scripts.php`, quindi **la view non deve caricare niente**: basta
+l'include degli asset che già fa.
+
+Nella view resta solo ciò che è specifico di quella tabella — `columnDefs`, `order`, il
+`pageLength` quando differisce dal default, e i messaggi che nominano l'entità:
+
+```js
+var table = initTabella('#tabella-cantieri', {
+    order: [[0, 'desc']],
+    columnDefs: [ ... ],
+    language: { emptyTable: 'Nessun cantiere registrato.' }
+});
+```
+
+Il `pageLength` passato deve essere un valore presente nel `lengthMenu`, altrimenti la tendina
+mostra un numero che non contiene.
+
+**La fusione dei default è a tre livelli, e non è un dettaglio**: `Object.assign` è
+superficiale, quindi `language` va fuso chiave per chiave e dentro di esso anche `paginate` e
+`lengthLabels`. Passare `language: { emptyTable: '...' }` con una fusione piatta cancellerebbe
+l'intero blocco delle traduzioni e la tabella tornerebbe in inglese — senza errori, quindi
+difficile da notare. Chi tocca `datatable-init.js` deve tenerlo presente.
 
 ## DataTables 2 — l'etichetta di "Tutti" non sta nel `lengthMenu`
 Per offrire la scelta del numero di righe si usa `lengthMenu: [25, 50, 100, -1]`, dove `-1` significa "nessuna paginazione". L'etichetta di quella voce **non** si imposta passando due array paralleli (`[[25, -1], [25, 'Tutti']]`): era il modo di DataTables 1.x, e in 2.x per i valori noti viene scavalcata dal default inglese `lengthLabels: {"-1": "All"}` che sta nel bundle.

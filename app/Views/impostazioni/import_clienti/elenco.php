@@ -28,7 +28,7 @@ $this->extend('layouts/admin');
             <span class="badge text-bg-secondary ms-2"><?= $contatori['da_migrare'] ?></span>
         </h3>
         <div class="card-tools">
-            <a href="<?= base_url('impostazioni/import-clienti') ?>" class="btn btn-sm">
+            <a href="<?= base_url('impostazioni/import-clienti') ?>" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-upload me-1"></i> Carica export
             </a>
         </div>
@@ -84,19 +84,8 @@ $this->extend('layouts/admin');
 <?= $this->include('partials/datatables_scripts') ?>
 <script>
 $(function () {
-    $('#tabella-adhoc').DataTable({
-        language: {
-            search:       'Cerca:',
-            lengthMenu:   'Mostra _MENU_ righe',
-            info:         'Da _START_ a _END_ di _TOTAL_ record',
-            infoEmpty:    'Nessun record',
-            infoFiltered: '(filtrati da _MAX_ totali)',
-            zeroRecords:  'Nessun risultato trovato',
-            paginate: { first: '«', last: '»', next: '›', previous: '‹' }
-        },
-        responsive: true,
+    initTabella('#tabella-adhoc', {
         order: [[1, 'asc']],
-        pageLength: 25,
         columnDefs: [
             { orderable: false, targets: [-1], responsivePriority: 2 },
             { responsivePriority: 1, targets: 1 }

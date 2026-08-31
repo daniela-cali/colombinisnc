@@ -74,12 +74,13 @@ $this->extend('layouts/admin');
                     </table>
 
                 </div>
-                <div class="card-footer d-flex justify-content-between">
-                    <a href="<?= base_url('impostazioni/import-clienti') ?>" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-1"></i> Ricarica file
+                <div class="card-footer card-azioni">
+                    <a href="<?= base_url('impostazioni/import-clienti') ?>"
+                       class="btn btn-sm btn-outline-secondary azione-ritorno">
+                        <i class="bi bi-arrow-left me-1"></i>Ricarica file
                     </a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-play-fill me-1"></i> Avvia import
+                    <button type="submit" class="btn btn-sm btn-success azione-primaria">
+                        <i class="bi bi-play-fill me-1"></i>Avvia import
                     </button>
                 </div>
             </form>

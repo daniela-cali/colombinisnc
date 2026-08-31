@@ -328,7 +328,15 @@
 /* --- Utilità testo ------------------------------------- */
 .text-preline { white-space: pre-line; }
 
-/* --- Tabella materiali cliente: bordo sinistro sui group header ------ */
+/* --- Tabella materiali cliente ---------------------------------------
+   Larghezza massima della pagina: sono quattro sole colonne, e lasciate
+   libere su un monitor largo la colonna Note diventa una fascia vuota.
+   Il tetto stava come style="max-width:900px" nel markup della view. */
+.mat-pagina {
+    max-width: 1200px;
+}
+
+/* Bordo sinistro sui group header */
 .mat-spacer td {
     padding: 0;
     height: 10px;
@@ -707,45 +715,80 @@ tr:has(a.js-row-open) {
 }
 
 /* =========================================================
-   Scheda intervento — footer azioni: bottoni impilati e a
-   piena larghezza sotto i 576px, con priorità "Completa" per
-   primo e "Annulla"/"Elimina" per ultimo e staccati (touch
-   target 44px, mobile_ux_spec.md §2.2). Sopra i 576px nessun
-   effetto: il layout desktop resta quello di sempre.
+   Azioni di card — il footer che raccoglie le azioni sul
+   record della card (ui_azioni_coerenti_spec.md §2).
+
+   La posizione di un pulsante non dipende dall'ordine del
+   markup ma dalla sua classe semantica:
+     .azione-primaria     Salva, Completa intervento, Inizio lavoro
+     .azione-secondaria   Modifica
+     .azione-ritorno      Annulla, Scheda cliente, Torna all'elenco
+     .azione-distruttiva  Elimina, Annulla intervento
+
+   La classe va sul figlio diretto di .card-azioni: l'<a>, il
+   <button>, oppure il <form> che lo racchiude quando l'azione
+   è un POST.
    ========================================================= */
+.card-azioni {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+}
+/* Desktop: il ritorno a sinistra, tutto il resto spinto a destra,
+   con la distruttiva mai adiacente alla primaria. */
+.card-azioni .azione-ritorno     { order: 1; margin-right: auto; }
+.card-azioni .azione-distruttiva { order: 2; }
+.card-azioni .azione-secondaria  { order: 3; }
+.card-azioni .azione-primaria    { order: 4; }
+
+/* Sotto i 576px i pulsanti si impilano a piena larghezza e
+   l'ordine si ribalta per priorità d'uso: prima l'azione del
+   momento, la distruttiva per ultima e staccata (touch target
+   44px, mobile_ux_spec.md §2.2). */
 @media (max-width: 575.98px) {
-    .intervento-azioni {
+    .card-azioni {
         flex-direction: column;
         align-items: stretch;
-        /* Spazio per non far finire l'ultimo bottone sotto il CTA fisso (.azione-cta-mobile). */
+        /* Spazio per non far finire l'ultimo bottone sotto il CTA fisso (.azione-cta-mobile).
+           Vale per tutti i footer, non solo per quelli che il CTA ce l'hanno davvero: costa
+           un po' di vuoto in fondo alle altre pagine, ma non dipende da :has() e quindi
+           funziona anche sui telefoni più vecchi, dove il bottone coperto sarebbe un guaio. */
         padding-bottom: 4.5rem;
     }
-    .intervento-azioni > * {
+    .card-azioni > * {
         margin: 0 !important;
         width: 100%;
     }
-    .intervento-azioni .btn {
+    .card-azioni .btn {
         min-height: 44px;
     }
-    .intervento-azioni .btn-azione-inizia,
-    .intervento-azioni .btn-azione-completa       { order: 1; }
-    .intervento-azioni .btn-azione-modifica       { order: 2; }
-    .intervento-azioni .btn-azione-scheda-cliente { order: 3; }
-    .intervento-azioni .btn-azione-annulla,
-    .intervento-azioni .btn-azione-elimina {
+    .card-azioni .azione-primaria    { order: 1; }
+    .card-azioni .azione-secondaria  { order: 2; }
+    .card-azioni .azione-ritorno     { order: 3; }
+    .card-azioni .azione-distruttiva {
         order: 4;
         margin-top: .75rem !important;
     }
 
     /* Azione del momento (Inizio lavoro / Completa intervento): sempre raggiungibile
        senza scroll, ancorata in basso come i flash message qui sotto. */
-    .intervento-azioni .azione-cta-mobile {
+    .card-azioni .azione-cta-mobile {
         position: fixed;
         left: .75rem;
         right: .75rem;
         bottom: .75rem;
         z-index: 1040;
         box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .3);
+    }
+
+    /* Strumenti della card: restano in alto le azioni che aprono o creano un altro
+       record, più le icone sole (matita, PDF) delle schede in colonna stretta
+       (ui_azioni_coerenti_spec.md §2.2). Un'icona da sola è un bersaglio piccolo:
+       da telefono le si dà comunque l'area minima toccabile di 44px. */
+    .card-tools .btn {
+        min-height: 44px;
+        min-width: 44px;
     }
 }
 

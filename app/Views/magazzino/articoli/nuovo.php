@@ -31,11 +31,6 @@ $this->extend('layouts/admin');
         <div class="card card-outline card-primary">
             <div class="card-header">
                 <h3 class="card-title mb-0"><i class="bi bi-plus-circle me-2"></i>Nuovo articolo</h3>
-                <div class="card-tools">
-                    <a href="<?= esc($from ?: base_url('magazzino/articoli')) ?>" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i>Annulla
-                    </a>
-                </div>
             </div>
             <form action="<?= base_url('magazzino/articoli/store') ?>" method="post">
                 <?= csrf_field() ?>
@@ -109,8 +104,12 @@ $this->extend('layouts/admin');
                     </div>
 
                 </div>
-                <div class="card-footer text-end">
-                    <button type="submit" class="btn btn-primary">
+                <div class="card-footer card-azioni">
+                    <a href="<?= esc($from ?: base_url('magazzino/articoli')) ?>"
+                       class="btn btn-sm btn-outline-secondary azione-ritorno">
+                        <i class="bi bi-x-lg me-1"></i>Annulla
+                    </a>
+                    <button type="submit" class="btn btn-sm btn-primary azione-primaria">
                         <i class="bi bi-check-lg me-1"></i>Salva
                     </button>
                 </div>

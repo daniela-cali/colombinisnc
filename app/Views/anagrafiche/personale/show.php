@@ -41,8 +41,8 @@ $assenzeUrl  = base_url('anagrafiche/personale/' . $persona['id']) . '#sec-assen
                 </h3>
                 <div class="card-tools">
                     <a href="<?= base_url('anagrafiche/personale/' . $persona['id'] . '/edit') ?>"
-                       class="btn btn-sm">
-                        <i class="bi bi-pencil me-1"></i>Modifica
+                       class="btn btn-sm btn-outline-primary" title="Modifica">
+                        <i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Modifica</span>
                     </a>
                 </div>
             </div>

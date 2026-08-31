@@ -50,10 +50,10 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                         <?= esc($statiLabel[$stato] ?? $stato) ?>
                     </span>
                 </h3>
-                <div class="card-tools">
+                <div class="card-tools d-flex gap-2 flex-wrap">
                     <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/edit') ?>"
-                       class="btn btn-sm" title="Modifica">
-                        <i class="bi bi-pencil"></i>
+                       class="btn btn-sm btn-outline-primary" title="Modifica">
+                        <i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Modifica</span>
                     </a>
                 </div>
             </div>
@@ -242,8 +242,8 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                 <?php if ($stato === 'attivo'): ?>
                     <div class="card-tools">
                         <a href="<?= base_url('operativo/interventi/nuovo?abbonamento_id=' . $abbonamento['id'] . '&cliente_id=' . $abbonamento['cliente_id'] . '&extra=1&from=' . urlencode(base_url('abbonamenti/' . $abbonamento['id']))) ?>"
-                           class="btn btn-sm" title="Nuova visita extra">
-                            <i class="bi bi-plus-circle me-1"></i>Visita extra
+                           class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>Nuova visita extra
                         </a>
                     </div>
                 <?php endif ?>
