@@ -101,7 +101,30 @@ Così lo sviluppo si raggiunge da qualunque dispositivo, telefono compreso e anc
 Wi-Fi di casa. Ed essendo in HTTPS si può finalmente provare l'installazione come app su
 Android: uno dei tre limiti noti della v0.35.0 era che Chrome ignora il manifest su http.
 
-### 6. Il database di sviluppo parte dalla copia di quello di casa
+### 6. Il sito di sviluppo gira come `colombini-dev`, in un pool PHP-FPM suo
+
+Il gestionale scrive in `writable/` (sessioni, cache, log) e in `public/uploads/` (il logo). In
+sviluppo a scrivere sarebbero due utenti: PHP, che col pool condiviso gira come `www-data`, e
+`colombini-dev` quando lancia `php spark` dal terminale. I file dell'uno non sarebbero
+modificabili dall'altro: se il primo log del giorno lo crea un comando `spark`, il sito non
+riesce più a scriverci per tutta la giornata; `cache:clear` fallisce sui file creati dal sito.
+
+Il metodo di da-kimi (gruppo `www-data` con setgid su `writable/`) non basta, perché lì il
+terminale e il sito sono comunque due utenti diversi. Aggiungere `colombini-dev` al gruppo
+`www-data` risolverebbe, ma **è escluso**: il `.env` di produzione è leggibile dal gruppo
+`www-data`, e si riaprirebbe il buco chiuso nella Fase 0.
+
+Soluzione: un **pool PHP-FPM dedicato**, `colombini-dev`, che esegue il PHP del sito di
+sviluppo con l'utente `colombini-dev`. Sito e terminale diventano la stessa identità, e
+`writable/` resta semplicemente suo. In più il sito di sviluppo non può leggere la produzione
+nemmeno in caso di difetto, cosa che col pool condiviso (`www-data`) non sarebbe vera. Nginx
+continua a servire i file statici come `www-data`, grazie al gruppo sulla cartella; passa a
+PHP-FPM solo le richieste PHP, sul socket del nuovo pool.
+
+Era fra i miglioramenti suggeriti dal documento di da-kimi e inizialmente fuori scope: qui
+diventa necessario. Il pool è `ondemand`, quindi senza richieste non tiene processi in memoria.
+
+### 7. Il database di sviluppo parte dalla copia di quello di casa
 
 Il database locale contiene solo dati di prova (vedi "Go-live in produzione" in `CLAUDE.md`):
 copiarlo non sposta dati veri in un ambiente meno protetto, e si ritrova l'ambiente che si
@@ -122,6 +145,44 @@ dei clienti in sviluppo.
   diversi scriverebbero sugli stessi file.
 - **Replicare da-kimi così com'è**, lavorando come `nhildra`: account Claude sbagliato e
   produzione raggiungibile, vedi decisione 2.
+
+## Stato dei lavori
+
+**Al 02/10/2026: fasi 0-4 completate e verificate.** Si riprende dalla Fase 5.
+
+- **Fase 0**: `.env` di produzione e del vecchio gestionale a `640`; utente `colombini_old`
+  (solo dati, solo sul database `colombini`), usato dal vecchio gestionale; `colombini` non
+  vede più il vecchio database; password di `colombini` cambiata in `.env` e `~/.my.cnf` di
+  `nhildra`. Provati login in produzione, login nel vecchio gestionale e backup.
+- **Fase 1**: utente `colombini-dev` senza `sudo`, con le chiavi `mio-pc` (casa) e
+  `pc-ufficio`. Verificato che non legge `.env`, backup, home di `nhildra`, né scrive in
+  produzione.
+- **Fase 2**: `colombinisnc_dev` + `colombini_dev`, credenziali in `~/.my.cnf` di
+  `colombini-dev` con `database = colombinisnc_dev`. Vede solo il suo database.
+- **Fase 3**: deploy key `colombini-dev su metesoftware` (Read/write) e `~/.ssh/config` con
+  `Host github.com`; clone in `/var/www/colombini-dev` (`750`, gruppo `www-data`), identità
+  git `Daniela`, `composer install`, `public/uploads/` con il logo, `.env` (`600`).
+- **Fase 4**: dump del database di casa importato; conteggi identici su tutte le 25 tabelle.
+
+Da fare: Fase 5 (record DNS, pool PHP-FPM, virtual host, certificato, `auth_basic` anche sul
+vecchio gestionale), Fase 6 (Claude Code aziendale, copia delle memorie), Fase 7 (VS Code
+Remote-SSH), poi le modifiche ai documenti del repository elencate più sotto.
+
+Note emerse durante il lavoro, da non riscoprire:
+
+- **Comandi lunghi copiati dalla chat arrivano spezzati** nel terminale e partono a metà
+  (`install` senza destinazione, `REVOKE` senza virgolette di chiusura). Nei comandi Linux da
+  dare a mano: righe corte. Dentro `mariadb` il problema non esiste, perché esegue solo al `;`.
+- **Il dump da MySQL 8 va adattato per MariaDB**: le tre viste `v_*` portano
+  `collation_connection = utf8mb4_0900_ai_ci` (sconosciuta a MariaDB) e
+  `DEFINER=colombini@localhost` (che `colombini_dev` non può assegnare). Si correggono con
+  `sed` sul file prima dell'import: le tabelle erano già tutte in `utf8mb4_general_ci`.
+- **`php spark migrate:status` non è di sola lettura**: su un database vuoto crea la tabella
+  `migrations`.
+- **Il database di sviluppo contiene `clienti_adhoc`**, cioè l'anagrafica reale importata da
+  Ad Hoc, non solo dati di prova.
+- Dopo il `640` sul `.env` di produzione, il `grep` su quel file in `docs/deploy.md` richiede
+  `sudo`.
 
 ## Procedura
 
@@ -194,11 +255,13 @@ Credenziali in `~/.my.cnf` di `colombini-dev` (`600`, sezione `[client]`), come 
    `daniela-cali/colombinisnc`, e alias in `~/.ssh/config` come in da-kimi. Una deploy key
    apre un solo repository, a differenza di una chiave dell'account GitHub.
 3. `git clone` in `/var/www/colombini-dev`, `composer install`.
-4. `writable/` e le cartelle di upload in `public/` con gruppo `www-data` e permessi `2775`
-   (setgid: i file creati da PHP restano del gruppo giusto), come in da-kimi.
-5. `.env` di sviluppo: `CI_ENVIRONMENT = development`,
-   `app.baseURL = 'https://colombini-dev.metesoftware.it/'`, credenziali di `colombini_dev`.
-   Permessi `640` con gruppo `www-data`: lo legge PHP, non gli altri utenti.
+4. `writable/` resta di `colombini-dev` così come esce dal clone: con il pool dedicato
+   (decisione 6) è lui a scriverci, sia dal sito sia dal terminale. `public/uploads/` non è
+   nel repository: la crea `colombini-dev`, e ci si copia il logo dal PC di casa.
+5. `.env` di sviluppo, ricavato da quello di casa: `CI_ENVIRONMENT = development`,
+   `app.baseURL = 'https://colombini-dev.metesoftware.it/'`, credenziali di `colombini_dev`
+   (la password presa dal suo `~/.my.cnf`, senza passare dalla conversazione). Permessi
+   `600`: con il pool dedicato lo legge solo `colombini-dev`.
 
 ### Fase 4 — Dati
 
@@ -215,14 +278,19 @@ Credenziali in `~/.my.cnf` di `colombini-dev` (`600`, sezione `[client]`), come 
 ### Fase 5 — Sottodominio
 
 1. Record A `colombini-dev` → `87.106.195.249` nel pannello DNS di `metesoftware.it`.
-2. Virtual host `/etc/nginx/sites-available/colombini-dev.metesoftware.it`, copiato da quello
-   di produzione con `root /var/www/colombini-dev/public`, più il blocco dei file nascosti
+2. Pool PHP-FPM `/etc/php/8.4/fpm/pool.d/colombini-dev.conf` (decisione 6): `user` e
+   `group` `colombini-dev`, socket `/run/php/php8.4-fpm-colombini-dev.sock` di proprietà di
+   `www-data` (`0660`) perché Nginx possa usarlo, `pm = ondemand`. Verifica con
+   `sudo php-fpm8.4 -t`, poi `sudo systemctl reload php8.4-fpm`.
+3. Virtual host `/etc/nginx/sites-available/colombini-dev.metesoftware.it`, copiato da quello
+   di produzione con `root /var/www/colombini-dev/public` e `fastcgi_pass` sul socket del
+   nuovo pool, più il blocco dei file nascosti
    (`location ~ /\.(?!well-known) { deny all; }`) e `auth_basic` con un file di password in
    `/etc/nginx/`.
-3. `sudo certbot --nginx -d colombini-dev.metesoftware.it`.
-4. Lo stesso `auth_basic`, con lo stesso file di password, nel virtual host di
+4. `sudo certbot --nginx -d colombini-dev.metesoftware.it`.
+5. Lo stesso `auth_basic`, con lo stesso file di password, nel virtual host di
    `colombini-old.metesoftware.it`: una sola password da ricordare per i due siti di servizio.
-5. Verifica, su entrambi i siti: senza password Nginx risponde 401; con la password compare il
+6. Verifica, su entrambi i siti: senza password Nginx risponde 401; con la password compare il
    login; http viene rediretto su https.
 
 ### Fase 6 — Claude Code aziendale
@@ -278,7 +346,8 @@ Da fare **dopo** il passaggio, già con il Claude aziendale sul server:
   lasci la password solo a lui, oppure fail2ban, oppure il passaggio di `whitedragon` alla
   chiave. `colombini-dev` non ha password, quindi non è esposto.
 - Utenti MariaDB separati admin/app sulla produzione.
-- Un pool PHP-FPM dedicato per sito (oggi `www-data` è unico per tutti i siti del server).
+- Un pool PHP-FPM dedicato anche per la produzione e gli altri siti (oggi `www-data` è unico
+  per tutti tranne lo sviluppo di Colombini, vedi decisione 6).
 - Il vecchio gestionale: resta online e consultabile, nessuna modifica al codice né al
   database `colombini`. Cambiano solo l'utente con cui si collega e la password Nginx davanti.
 - Il destino della copia locale sul PC di casa: resta come clone git, da decidere dopo.
