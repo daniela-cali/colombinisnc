@@ -21,8 +21,6 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
     4.0.2 → 4.10.0, Font Awesome, Tom Select.
   - Versioni major, da valutare una per una: DataTables 2 → 3, FullCalendar 6 → 7, PHPUnit
     10 → 13.
-  - I pacchetti frontend richiedono Node, che sul server non c'è ancora: Fase 8 di
-    `docs/spec/ambiente_dev_server_spec.md`.
 - **SSH con password ancora attivo sul server** (sistemista).
   `/etc/ssh/sshd_config.d/50-cloud-init.conf` contiene `PasswordAuthentication yes`, che
   prevale sul `no` di `sshd_config`, e i bot ci provano di continuo. Gli esposti sono gli

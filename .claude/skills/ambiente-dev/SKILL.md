@@ -35,9 +35,24 @@ davanti ai comandi, a differenza della produzione (vedi `docs/deploy.md`).
   modificati (default di Debian), quindi una modifica PHP arriva al browser al massimo dopo
   un paio di secondi. Se un cambio a `.env` o a `app/Config` sembra ignorato, ricaricare la
   pagina dopo qualche secondo prima di cercare altre cause;
-- **niente `npm`**: Node non è installato (Fase 8 della spec, facoltativa). Gli asset sono
-  committati in `public/assets/vendor/`, quindi serve solo per aggiornare i pacchetti
-  frontend. Quando servirà, si installa per il solo `colombini-dev` con nvm, senza `sudo`.
+## Node e i pacchetti frontend
+
+Node è installato con **nvm**, solo per `colombini-dev`, in `~/.nvm`: Node 24 LTS, attivato
+dalle righe che nvm ha aggiunto a `~/.bashrc`. Una shell non interattiva (script, comandi
+lanciati da Claude) non legge `~/.bashrc`, quindi lì va caricato a mano:
+`export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"`.
+
+Serve solo per aggiornare o aggiungere pacchetti frontend: `package.json` → `npm install` →
+`php spark assets:publish` → commit di `public/assets/vendor/`. Per ricreare `node_modules/`
+senza aggiornare niente si usa `npm ci`, che installa le versioni esatte del
+`package-lock.json`.
+
+**Fine riga dei pacchetti.** Alcuni pacchetti npm arrivano con i fine riga Windows (CRLF),
+per esempio `leaflet.css`, mentre il repository li ha in LF. Sul PC di casa li convertiva
+`core.autocrlf`; qui lo fa `.gitattributes` (`public/assets/vendor/** text=auto`). Così un
+`assets:publish` senza cambi di versione non fa risultare modificato niente. Se un file
+copiato dovesse comparire come modificato con tutte le righe cambiate, il controllo è
+`git diff --ignore-cr-at-eol`.
 
 ## Log e database
 

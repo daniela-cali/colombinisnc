@@ -1,0 +1,3 @@
+# I pacchetti npm arrivano con fini riga misti (es. leaflet.css in CRLF): git li salva in LF,
+# così php spark assets:publish non fa risultare modificati file con lo stesso contenuto.
+public/assets/vendor/** text=auto

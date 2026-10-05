@@ -148,8 +148,7 @@ dei clienti in sviluppo.
 
 ## Stato dei lavori
 
-**Al 05/10/2026: fasi 0-7 completate, passaggio concluso.** Lo sviluppo si fa sul server; la
-Fase 8 (Node) resta facoltativa e non è stata eseguita.
+**Al 05/10/2026: tutte le fasi completate, passaggio concluso.** Lo sviluppo si fa sul server.
 
 - **Fase 0**: `.env` di produzione e del vecchio gestionale a `640`; utente `colombini_old`
   (solo dati, solo sul database `colombini`), usato dal vecchio gestionale; `colombini` non
@@ -176,6 +175,9 @@ Fase 8 (Node) resta facoltativa e non è stata eseguita.
   copiate in `~/.claude/projects/-var-www-colombini-dev/memory/` e poi ripulite (vedi
   riepilogo più sotto); `/var/www/colombini-old` leggibile come riferimento.
 - **Fase 7**: VS Code Remote-SSH sulla cartella `/var/www/colombini-dev`, in uso dal 05/10/2026.
+- **Fase 8**: nvm 0.40.8 e Node 24 LTS per il solo `colombini-dev`. Collaudo: `npm ci` dal
+  lock e poi `assets:publish` producono file identici a quelli committati, a parte i fine
+  riga di `leaflet.css` (CRLF nel pacchetto npm, LF nel repository).
 - **Documenti del repository** aggiornati il 05/10/2026, come da riepilogo più sotto.
 
 Note emerse durante il lavoro, da non riscoprire:
