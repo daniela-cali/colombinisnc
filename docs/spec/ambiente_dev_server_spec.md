@@ -148,7 +148,7 @@ dei clienti in sviluppo.
 
 ## Stato dei lavori
 
-**Al 02/10/2026: fasi 0-4 completate e verificate.** Si riprende dalla Fase 5.
+**Al 05/10/2026: fasi 0-5 completate e verificate.** Si riprende dalla Fase 6.
 
 - **Fase 0**: `.env` di produzione e del vecchio gestionale a `640`; utente `colombini_old`
   (solo dati, solo sul database `colombini`), usato dal vecchio gestionale; `colombini` non
@@ -163,10 +163,16 @@ dei clienti in sviluppo.
   `Host github.com`; clone in `/var/www/colombini-dev` (`750`, gruppo `www-data`), identità
   git `Daniela`, `composer install`, `public/uploads/` con il logo, `.env` (`600`).
 - **Fase 4**: dump del database di casa importato; conteggi identici su tutte le 25 tabelle.
+- **Fase 5**: record A già presente; pool `colombini-dev` (`ondemand`, socket
+  `php8.4-fpm-colombini-dev.sock` di `www-data`, `0660`); virtual host con blocco dei file
+  nascosti e certificato Let's Encrypt; `auth_basic` su `colombini-dev` e `colombini-old` con
+  lo stesso file `/etc/nginx/htpasswd-servizio` (`root:www-data`, `640`). Verificati: http →
+  https, `401` senza password, `403` su `/.env` e `/.git/`, login e navigazione nel gestionale
+  di sviluppo, `certbot renew --dry-run` riuscito su entrambi i certificati, produzione
+  invariata.
 
-Da fare: Fase 5 (record DNS, pool PHP-FPM, virtual host, certificato, `auth_basic` anche sul
-vecchio gestionale), Fase 6 (Claude Code aziendale, copia delle memorie), Fase 7 (VS Code
-Remote-SSH), poi le modifiche ai documenti del repository elencate più sotto.
+Da fare: Fase 6 (Claude Code aziendale, copia delle memorie), Fase 7 (VS Code Remote-SSH), poi
+le modifiche ai documenti del repository elencate più sotto.
 
 Note emerse durante il lavoro, da non riscoprire:
 
@@ -183,6 +189,18 @@ Note emerse durante il lavoro, da non riscoprire:
   Ad Hoc, non solo dati di prova.
 - Dopo il `640` sul `.env` di produzione, il `grep` su quel file in `docs/deploy.md` richiede
   `sudo`.
+- **`auth_basic` sta dentro le `location`, non nel blocco `server`.** Per i rinnovi certbot
+  aggiunge una propria location per `/.well-known/acme-challenge/`: a livello `server` la
+  password verrebbe ereditata anche lì, Let's Encrypt riceverebbe `401` e il certificato
+  scadrebbe senza avvisi. Il `--dry-run` lo conferma.
+- **`htpasswd` non è installato** (`apache2-utils` assente): l'impronta si genera con
+  `openssl passwd -apr1`, che Nginx legge. Il file si riscrive senza ricaricare Nginx, perché
+  viene letto a ogni richiesta.
+- **Due password diverse sul sito di sviluppo**: prima quella di Nginx (utente `daniela`,
+  nel gestore di password), poi quella del gestionale, che è la stessa di casa perché il
+  database è il dump importato in Fase 4.
+- I log di Nginx (gruppo `adm`) e quelli del gestionale di sviluppo (di `colombini-dev`) non
+  sono leggibili da `nhildra` senza `sudo`: per diagnosticare dal browser serve l'utente.
 
 ## Procedura
 
