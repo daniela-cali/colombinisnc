@@ -734,9 +734,15 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Limiti noti e voluti: su `http` in sviluppo Chrome ignora il manifest (prova completa solo col deploy su HTTPS), `standalone` toglie il pulsante Indietro, e **non c'è funzionamento offline** — servirebbe un service worker, fuori scope
 - Con questa versione `docs/spec/mobile_ux_spec.md` è chiusa: nessun punto aperto
 
+#### ✅ v0.35.1 — Librerie aggiornate, con le correzioni di sicurezza di CodeIgniter
+- Primo passo dell'aggiornamento dello stack, fatto nel nuovo ambiente di sviluppo sul server: solo versioni minori e patch (CodeIgniter 4.7.4, Shield 1.4.1, Settings 2.4.0, dompdf, Tom Select, Font Awesome), `php ^8.4` in `composer.json`
+- CodeIgniter 4.7.4 è un rilascio di sicurezza: SQL injection in `deleteBatch()`, nome dei file caricati, `is_image`/`mime_in` che ora confrontano estensione e contenuto
+- `docs/deploy.md` non prevedeva `composer install`: senza, un aggiornamento dei pacchetti PHP non sarebbe mai arrivato in produzione
+- Restano da valutare una per una le versioni major (DataTables 3, FullCalendar 7) e AdminLTE 4.10, vedi `docs/backlog.md`
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
-- Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database contiene dati veri in caricamento, non più una demo
+- Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo
 - Test e fix generali
 - Ottimizzazione percorsi con OpenRouteService (VRP giornaliero per tecnico)
 - Deploy su Nginx, VPS dedicata (dominio colombini.metesoftware.it — colombini-snc.it resta il sito aziendale)

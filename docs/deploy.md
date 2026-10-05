@@ -10,12 +10,34 @@ schema da un database vuoto. Vale sia per il go-live sia per ogni ripartenza pul
 ~/backup-db.sh                                 # vedi "Backup del database"
 cd /var/www/colombini
 sudo -u www-data git pull
+sudo -u www-data composer install --no-dev -o
 sudo -u www-data php spark migrate --all
 sudo -u www-data php spark db:seed AdminSeeder
 ```
 
 Il `cd` viene **dopo** il backup, non prima: `mariadb-dump` parla con il database e non legge un
 solo file del progetto. La cartella serve ai comandi `php spark`, che vanno dati lì dentro.
+
+**`composer install` non è facoltativo.** `vendor/` non è in git: il `git pull` porta un
+`composer.lock` nuovo, ma CodeIgniter, Shield, dompdf e il resto restano alla versione
+precedente finché qualcuno non li installa. Il sintomo non è un errore: il server continua a
+girare sulle versioni vecchie, comprese le correzioni di sicurezza che si credevano già online.
+Va **dopo** il `pull`, perché legge il lock appena arrivato, e **prima** del `migrate`, perché
+un pacchetto aggiornato può portare migration proprie (Settings 2.4.0 ne ha aggiunta una).
+
+- `install` e non `update`: installa esattamente le versioni del lock, quelle provate in
+  sviluppo. `update` sceglierebbe da sé versioni nuove, mai provate.
+- `--no-dev` lascia fuori PHPUnit, Faker e vfsStream, che servono solo in sviluppo.
+- `-o` genera l'autoload ottimizzato.
+- Se composer avvisa che non può creare la cartella della cache, non è un errore: `www-data`
+  non ha una home scrivibile, e composer prosegue scaricando senza cache.
+
+Con un lock che non è cambiato, il comando non fa nulla e lo dice («Nothing to install»):
+si può quindi lanciare a ogni deploy, senza chiedersi se serve.
+
+I pacchetti **frontend** sono un caso diverso: i file di `public/assets/vendor/` sono
+committati, quindi arrivano già col `git pull`. Sul server non servono né Node né
+`assets:publish`.
 
 Fatto questo si entra nel gestionale con le credenziali del `.env`, e il resto della
 configurazione — tipi intervento, parametri azienda — si fa dall'interfaccia.

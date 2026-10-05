@@ -1,5 +1,23 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.35.1] - 2026-10-05
+
+### Librerie aggiornate, con le correzioni di sicurezza di CodeIgniter
+
+- [APP] **Aggiornate le librerie su cui gira il gestionale**, fra cui quella dell'accesso: niente cambia nell'uso, ma sono comprese diverse correzioni di sicurezza. Il logo aziendale si carica come prima; un file che si spaccia per immagine con un'estensione diversa dal suo contenuto ora viene rifiutato
+- [DEV] **CodeIgniter 4.7.3 → 4.7.4**, rilascio di sicurezza:
+  - SQL injection in `deleteBatch()` combinato con `where()`;
+  - `UploadedFile::move()` ripulisce il nome del client;
+  - `is_image`/`mime_in` verificano anche che l'estensione corrisponda al contenuto: tocca l'upload del logo in `GeneraleController`, che li usa entrambi;
+  - `isSecure()` non si fida più di `X-Forwarded-Proto` senza un proxy dichiarato in `proxyIPs`. Qui non serve dichiararlo, perché Nginx passa le richieste direttamente a PHP-FPM.
+
+  Nessun file di `app/` da riallineare: la guida di aggiornamento non ne elenca.
+- [DEV] **Shield 1.3.0 → 1.4.1**: corretto il refresh del token "Ricordami" in `loginView()`, permessi con wildcard gerarchiche. Le wildcard di `AuthGroups.php` (`personale.*`, `impostazioni.*`…) danno gli stessi risultati di prima, verificato con `PermissionMatcher::matches()` su tutti i permessi usati nel codice
+- [DEV] **Settings 2.3.0 → 2.4.0**, arrivato con Shield. Porta la migration `ConvertSqlsrvValueColumn`, che su MariaDB esce subito senza fare nulla, ma va eseguita: senza, `migrate:status` resta con una riga incompleta
+- [DEV] dompdf 3.1.5 → 3.1.6, Tom Select 2.6.1 → 2.6.2, Font Awesome 7.2.0 → 7.3.1; PHPUnit resta sulla 10 (10.5.66). `thecodingmachine/safe` esce dalle dipendenze, perché la nuova dompdf non lo usa più
+- [DEV] `composer.json` richiede `php ^8.4` invece di `^8.2`: è la versione che gira in tutti gli ambienti, e composer non sceglierà più pacchetti pensati per un PHP che non si usa
+- [DEV] **`docs/deploy.md`: la sequenza di deploy non installava i pacchetti PHP.** `vendor/` non è in git, quindi con il solo `git pull` il server sarebbe rimasto sulle versioni vecchie, comprese le falle appena corrette, senza nessun errore a segnalarlo. Aggiunto `composer install --no-dev -o` dopo il `pull` (legge il lock appena arrivato) e prima del `migrate` (un pacchetto può portare migration proprie, come Settings qui)
+
 ## [0.35.0] - 2026-08-31
 
 ### Il gestionale si installa sul telefono come un'app

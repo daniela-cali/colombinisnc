@@ -15,12 +15,18 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
 
 ## Infrastruttura
 
-- **Aggiornamento dello stack**: è il primo lavoro previsto nel nuovo ambiente di sviluppo.
-  - PHP 8.4 gira ovunque, ma `composer.json` dichiara ancora `^8.2`.
-  - Aggiornamenti minori: CodeIgniter 4.7.3 → 4.7.4, Shield 1.3.0 → 1.4.1, dompdf, AdminLTE
-    4.0.2 → 4.10.0, Font Awesome, Tom Select.
-  - Versioni major, da valutare una per una: DataTables 2 → 3, FullCalendar 6 → 7, PHPUnit
-    10 → 13.
+- **Aggiornamento dello stack.** Le minori e le patch sono fatte in v0.35.1. L'ordine deciso
+  nel brainstorming del 05/10/2026 per il resto:
+  - **AdminLTE 4.0.2 → 4.10.0**, in un passaggio a sé. Formalmente è una minor, ma il rischio
+    è nell'aspetto: `custom.css` sovrascrive regole di AdminLTE, e se un selettore cambia la
+    nostra regola smette di applicarsi senza errori. Serve un giro visivo di tutte le
+    sezioni, desktop e telefono, prima del commit.
+  - **DataTables 2 → 3** (con Responsive 4 e RowGroup 2) e **FullCalendar 6 → 7**: prima si
+    leggono le guide alla migrazione e si stima, file per file, cosa si rompe. Poi si decide
+    una alla volta. Mezza giornata: si fa prima del go-live; se tocca mezzo `calendario.js`,
+    si rimanda finché non porta un vantaggio vero.
+  - **PHPUnit 10 → 13**: lasciato com'è. Ci sono solo i tre test d'esempio dello scaffolding.
+    Se ne riparla se e quando si decide di scrivere test, che la v1.0.0 prevede.
 - **SSH con password ancora attivo sul server** (sistemista).
   `/etc/ssh/sshd_config.d/50-cloud-init.conf` contiene `PasswordAuthentication yes`, che
   prevale sul `no` di `sshd_config`, e i bot ci provano di continuo. Gli esposti sono gli
