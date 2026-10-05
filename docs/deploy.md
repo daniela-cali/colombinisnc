@@ -70,11 +70,14 @@ Utente e nome del database non si tirano a indovinare — con quelli sbagliati s
 `Access denied for user ... (using password: YES)`, che sembra un problema di password:
 
 ```bash
-grep -i '^database' /var/www/colombini/.env
+sudo grep -i '^database' /var/www/colombini/.env
 ```
 
 `database.default.username` e `database.default.database` sono i due valori da passare al
 comando. Il file mostra anche la password in chiaro: serve solo per digitarla al prompt.
+Dal 02/10/2026 il `.env` è a `640` (`www-data` e il suo gruppo), quindi senza `sudo` il
+`grep` risponde `Permission denied`: è voluto, perché prima qualunque utente del server ne
+leggeva la password.
 
 ### Le opzioni, e la password
 
@@ -204,7 +207,12 @@ girare da solo alle tre di notte, quindi questo è il prerequisito del cron, non
 Da notare che il file vale per **tutti** i comandi MariaDB dati da quell'utente, non solo per il
 backup: da lì in poi anche un `mariadb` nudo si collega con quelle credenziali.
 
-### Portarne una copia sul PC di sviluppo
+**La password di `colombini` sta quindi in due posti**: nel `.env` della produzione e nel
+`~/.my.cnf` di `nhildra`. Se la si cambia, come è successo il 02/10/2026, vanno aggiornati
+entrambi. Altrimenti il gestionale funziona e il backup fallisce con `Access denied`, o il
+contrario, e lo si scopre solo quando serve il dump.
+
+### Portarne una copia sul PC
 
 Un backup che vive sullo stesso disco che sta proteggendo non è un backup. Sul PC gira uno script
 PowerShell che scarica l'ultimo dump dal server e verifica che sia arrivato intero.
@@ -415,9 +423,19 @@ mancano delle migration e l'applicazione andrà in errore su colonne che si aspe
 
 ### Il motore è MariaDB, non MySQL
 
-In produzione gira **MariaDB 10.11**, in sviluppo MySQL 8: il dump è un dump MariaDB. Ripristinarlo
-sul PC di sviluppo può funzionare, ma non è la stessa prova — un test di ripristino serio va fatto
-su MariaDB. Il binario si chiama `mariadb-dump`; `mysqldump` esiste ancora come alias.
+Sul server gira **MariaDB 10.11**, per la produzione e, da ottobre 2026, anche per lo sviluppo.
+Il binario si chiama `mariadb-dump`; `mysqldump` esiste ancora come alias.
+
+Una prova di ripristino **non** si fa sul database di sviluppo `colombinisnc_dev`, anche se
+ora il motore è lo stesso. Lo sovrascriverebbe, e porterebbe i dati veri dei clienti in un
+ambiente meno protetto: è il motivo per cui lo sviluppo non parte da una copia della
+produzione (decisione 7 di `docs/spec/ambiente_dev_server_spec.md`). Si usa un database vuoto
+creato apposta da `nhildra` e cancellato a prova finita. I dump stanno comunque in
+`/var/backups/colombini` (`700`), che `colombini-dev` non legge.
+
+Un dump preso dal vecchio sviluppo su MySQL 8 va invece adattato prima dell'import. Le viste
+`v_*` portano `collation_connection = utf8mb4_0900_ai_ci`, che MariaDB non conosce, e un
+`DEFINER` che l'utente di destinazione non può assegnare. Si correggono con `sed` sul file.
 
 ## Sempre come `www-data`, mai `sudo` e basta
 
@@ -503,3 +521,26 @@ sviluppo, non a svuotare un ambiente.
 
 `php spark migrate:status` deve mostrare ogni riga con data e batch, comprese quelle di
 Shield e Settings. Se una resta `--- ---`, la migrazione non è completa.
+
+## Gli altri due ambienti sullo stesso server
+
+Dal 05/10/2026 il server ospita tre installazioni del gestionale. Ognuna ha un proprio utente
+MariaDB, che vede soltanto il proprio database:
+
+| | Cartella | Sito | Database / utente MariaDB | PHP gira come |
+|---|---|---|---|---|
+| Produzione | `/var/www/colombini` | `colombini.metesoftware.it` | `colombinisnc` / `colombini` | `www-data` |
+| Sviluppo | `/var/www/colombini-dev` | `colombini-dev.metesoftware.it` | `colombinisnc_dev` / `colombini_dev` | `colombini-dev` |
+| Vecchio gestionale | `/var/www/colombini-old` | `colombini-old.metesoftware.it` | `colombini` / `colombini_old` | `www-data` |
+
+- **Lo sviluppo non fa deploy.** L'utente `colombini-dev` non ha `sudo` e non legge niente
+  della produzione. La produzione si aggiorna sempre da `nhildra`, con la sequenza minima
+  qui sopra, dopo aver pushato da sviluppo.
+- **Sviluppo e vecchio gestionale sono dietro `auth_basic`** (`/etc/nginx/htpasswd-servizio`),
+  prima ancora del login. La produzione no: è il sito che usano i dipendenti.
+- **Il vecchio gestionale resta online** per poter vedere come funzionava una feature, ma non
+  si sviluppa più. `colombini_old` legge e scrive i dati del database `colombini` ma non ne
+  cambia la struttura; `colombini` non vede più quel database.
+
+Il dettaglio, compresi i permessi e il perché di ogni scelta, è in
+`docs/spec/ambiente_dev_server_spec.md`.

@@ -21,17 +21,47 @@ Prima di iniziare qualsiasi feature nuova o non banale, proporre sempre un brain
 ## Spec scritta prima di implementare (feature non banali)
 Una volta concordato l'approccio nel brainstorming, per le feature non banali scrivere uno spec in `docs/spec/<nome>_spec.md` **prima** di scrivere codice — segue la traccia degli spec già esistenti nella cartella (es. `abbonamenti_next_visita_spec.md`): contesto/problema, soluzione con le decisioni chiave e il *perché*, eventuali alternative scartate, riepilogo puntuale delle modifiche file per file, sezione esplicita "fuori scope". Serve a tenere traccia dei ragionamenti fatti insieme, non solo del risultato finale. Non serve per fix di una riga o modifiche ovvie — solo per feature con più decisioni di design da ricordare.
 
+## Modo di lavorare
+Regole nate da correzioni esplicite nel corso del progetto. Ognuna ha avuto un caso concreto dietro.
+
+**Bug e difetti**
+- **Un bug trovato si corregge subito**, anche se è collaterale al lavoro in corso e sta in un file che il task non tocca. Non va annotato "per dopo". Si chiede prima solo se la correzione è a sua volta un lavoro grosso o ha decisioni di design aperte. È l'eccezione alla regola sul branch qui sotto.
+- **Sanare la classe di difetto, non il caso segnalato.** Le incoerenze visive emergono usando l'app, una alla volta. Alla prima segnalazione cercare la causa in tutto il progetto, presentare il censimento con i numeri e correggere l'intera classe, dicendo quali file si toccano fuori dalla richiesta.
+- **Accentrare invece di ripetere.** Se la stessa modifica va fatta su più di tre o quattro file, dirlo e proporre un punto unico: il criterio è «se cambia una cosa si modifica un punto solo». Il punto unico va agganciato dove non si può dimenticare: un partial già incluso, un metodo base. Una convenzione da ricordare a ogni uso non risolve il problema.
+- **Spec contro codice.** Prima di applicare un passo di uno spec che riscrive qualcosa di diffuso, contare le occorrenze delle due forme. Se la forma da eliminare è maggioritaria, fermarsi e riportare i numeri: probabilmente sbaglia lo spec. Una domanda come «non va bene così?» va trattata come un dato da verificare, non come una preferenza.
+- **Niente guard difensivi copiati per simmetria.** Quando una modifica si replica in due file simili, verificare in ciascuno se la condizione può davvero verificarsi. Un controllo che serve in un solo file resta solo lì.
+- **Un vincolo oggettivo si blocca lato server** (es. tecnico assente: «se uno non c'è non c'è»). L'avviso "puoi procedere comunque" è per i vincoli morbidi, come una scadenza superata.
+- **`dd()` commentati** sono il normale metodo di debug: vanno elencati nella pulizia prima del commit, mai trattati come possibile causa di un bug.
+- **Bug solo su mobile**, senza devtools: dopo uno o due tentativi falliti, smettere di indovinare. Iniettare un pannello di log `position:fixed` in pagina e chiedere uno screenshot, poi rimuoverlo prima del commit.
+
+**Design**
+- **Brainstorming con domande aperte.** In un design ancora fluido non usare `AskUserQuestion`: chiedere a parole e lasciare esporre l'idea propria, che spesso non sta fra le opzioni. Lo strumento va bene per formalizzare una scelta fra alternative già discusse.
+- **Elenco scritto a mano o query sullo schema.** Quando un controllo dipende da un insieme di tabelle destinato a crescere (es. FK verso `clienti.id`), preferire `information_schema` a un elenco scritto a mano, che diventa incompleto in silenzio.
+- **Tracciamento per analisi future**: se nessuna funzionalità dipende dal dato a breve, bastano poche colonne timestamp sulla tabella esistente, non una tabella di log generica.
+- **Codice versionato non è "debug"**: migration, view e classi nel repo si descrivono per la loro funzione. "Debug" o "temporaneo" vanno solo su ciò che verrà davvero rimosso a breve.
+- **Prima di introdurre una struttura dati nuova** (oggetto di config, formato JSON, firma di endpoint) mostrare uno snippet isolato di quella sola forma e farla confermare. Non vale per il file intero, che si rivede come diff.
+
+**Git e comandi**
+- **Si lavora da soli**: amend e force push su main sono ordinari. Niente avvertenze su storia condivisa o altre copie del repo; `--force-with-lease` resta il default tecnico, senza spiegarlo ogni volta.
+- **Un branch alla volta.** Un refactor o una migliorìa applicabile anche altrove si propone a parole e si annota in `docs/backlog.md`, ma non si implementa nel branch corrente. I bug sono l'eccezione, vedi sopra.
+- **Commit intermedi su un branch con più parti**: sono checkpoint senza versione, senza `CHANGELOG.md` e senza §7.1 di `ANALISI.md`. Questi si aggiornano solo nel commit finale.
+- **Feature con file intrecciati**: se le modifiche pendenti di più sotto-feature condividono gli stessi file, niente commit intermedi ricavati con patch parziali. Si fa un commit unico a feature finita, testando lungo il percorso.
+- **Le scritture sul database le lancia l'utente.** `php spark migrate`, `db:seed` e simili si propongono nella forma `! <comando>`, dicendo cosa aspettarsi. Le letture restano normali.
+- **Controllo finale dopo un'iterazione manuale**: se l'utente ha appena sistemato a mano un file, i problemi trovati in quel file si segnalano e si lasciano testare prima di correggerli. Fix, changelog e commit non vanno incatenati nello stesso turno.
+- **Amministrazione di sistema** (cron, rotazione e copia off-site dei backup, SSH, pool PHP) è materia del sistemista. Non proporla come prossimo passo; se serve, scrivere le istruzioni per lui.
+
 ## Roadmap — non proporre la v1.0.0
 La v1.0.0 (release finale: test, deploy su colombini.metesoftware.it, ottimizzazione percorsi OpenRouteService) è prevista per **gennaio 2027**, non è imminente. La data non è tecnica ma operativa: si cambia gestionale all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso.
 
 Non proporla come prossimo passo a inizio sessione. Al momento si aggiungono le funzionalità che vengono in mente via via, senza un ordine rigido pianificato — chiedere all'utente cosa vuole affrontare piuttosto che assumere si proceda verso v1.0.0.
 
-**Il database di produzione contiene dati veri in caricamento** dal 26/08/2026, quando è stato svuotato e ricostruito da zero. Non è più un ambiente demo sacrificabile: il caricamento dell'anagrafica avviene lì, progressivamente, fino al go-live. Le operazioni distruttive su quel database vanno trattate di conseguenza.
+**Il database di produzione è destinato ai dati veri.** Il 26/08/2026 è stato svuotato e ricostruito da zero, e a inizio ottobre è ancora vuoto; il caricamento dell'anagrafica avverrà lì, progressivamente, fino al go-live. Non è un ambiente demo sacrificabile: le operazioni distruttive su quel database vanno trattate di conseguenza.
+
+I punti aperti, le idee rimandate e le rifiniture stanno in `docs/backlog.md`.
 
 ## Stack tecnologico
-- **Il motore del database non è lo stesso nei due ambienti**: **MySQL 8.x** in sviluppo, **MariaDB 10.11** (LTS, Debian 12) in produzione. Nessun manifest lo dichiara, quindi va ricordato qui. Il vincolo vero non è una versione ma una feature: le colonne generate (`GENERATED ALWAYS AS ... STORED`, usate su `clienti.denominazione`) richiedono MySQL 5.7+ **oppure** MariaDB 10.2+, e la sintassi è identica nei due. Il resto del codice non usa niente di specifico di un dialetto.
-- **Non cambiare la collation.** `app/Config/Database.php` fissa `DBCollat` a `utf8mb4_general_ci`, che esiste in entrambi i motori e coincide con il `collation_server` della produzione. Il default di MySQL 8 è invece `utf8mb4_0900_ai_ci`, che in MariaDB **non esiste**: adottarlo spaccherebbe sia i dump sia la coerenza degli ordinamenti fra i due ambienti.
-- **`sql_mode`: lo sviluppo è il più severo dei due.** MySQL 8 ha di default `ONLY_FULL_GROUP_BY`, `NO_ZERO_DATE` e `NO_ZERO_IN_DATE`, che in produzione mancano. Quindi ciò che passa in dev passa anche online, ma non il contrario: una data `0000-00-00` entrata in produzione da un import viene accettata lì e rifiutata al rientro in dev o in un ripristino su MySQL 8.
+- **Sviluppo e produzione girano sullo stesso server e sugli stessi motori**: **MariaDB 10.11** (LTS, Debian 12) e **PHP 8.4**. Nessun manifest dichiara il motore del database, quindi va ricordato qui. Fino a ottobre 2026 lo sviluppo girava su MySQL 8 in locale: il codice non usa niente di specifico di un dialetto, e le colonne generate (`GENERATED ALWAYS AS ... STORED`, su `clienti.denominazione`) hanno la stessa sintassi nei due.
+- **Non cambiare la collation.** `app/Config/Database.php` fissa `DBCollat` a `utf8mb4_general_ci`, che coincide con il `collation_server` di MariaDB. È anche ciò che ha reso portabile il dump da MySQL 8, il cui default `utf8mb4_0900_ai_ci` in MariaDB **non esiste**.
 - Versioni di PHP, CodeIgniter e Shield: `composer.json`. Versioni di AdminLTE, Bootstrap e degli altri pacchetti frontend: `package.json`.
 
 ## Asset frontend — gestione dipendenze
@@ -42,13 +72,25 @@ Il comando `app/Commands/AssetsPublish.php` legge un manifest e copia i file `di
 **jQuery c'è, ma non per AdminLTE.** AdminLTE 4 non ha jQuery come dipendenza — è un rewrite su Bootstrap 5 puro. `jquery` sta in `package.json` perché lo richiede **DataTables**: va usato solo lì. Per tutto il resto dell'interfaccia si usa Bootstrap 5 nativo, non jQuery.
 
 ## Go-live in produzione
-Il database di sviluppo dovrà essere **completamente svuotato** prima del go-live. Tutti i dati attuali sono dati di test — clienti, interventi, materiali. Non migrare nessun record dal dev al prod.
+Non migrare nessun record dal database di sviluppo a quello di produzione: clienti, interventi, materiali, abbonamenti sono dati di test. L'unica eccezione nel contenuto, non nella regola, è `clienti_adhoc`: è l'anagrafica reale importata da Ad Hoc, quindi il database di sviluppo non è del tutto sacrificabile. In produzione l'import si rifà da capo dall'interfaccia.
+
+**Il 2027 parte dalle proposte, non dai rinnovi.** Gli abbonamenti reali del 2027 si caricano come proposte con "Nuovo abbonamento"; il 2026 non si carica. Al primo avvio non esiste nessun abbonamento da cui rinnovare: un vincolo messo su `rinnova()` non deve toccare la creazione da zero di un abbonamento con date future.
+
+## Codice cliente — numerico o `INT-`
+`clienti.codice` porta un'informazione: un codice **numerico** è l'`ANCODICE` del gestionale contabile Ad Hoc, conservato alla promozione da `clienti_adhoc`; un codice **`INT-xxx`** (da `NumeratoriModel`) indica un cliente interno, non presente in contabilità. **Non normalizzare mai** tutti i codici a `INT-`, né spostare il codice Ad Hoc in `codice_esterno`.
+
+`codice_esterno` non è un doppione: `codice` dice *come* il cliente è entrato (storico, non modificabile da nessuna UI), `codice_esterno` dice *se oggi* è in contabilità ed è aggiornabile dalla scheda. `normalizza()` lo converte da `''` a `NULL`, così `codice_esterno IS NULL` funziona come criterio.
 
 ## ID utente loggato — usare `user_id()`, non `session()->get('user_id')`
-Shield salva i dati dell'utente in sessione sotto la chiave `'user'` (array con `id`, email, ecc. — vedi `Config\Auth::$sessionConfig['field']`), non sotto una chiave piatta `'user_id'`. `session()->get('user_id')` restituisce quindi sempre `null`, silenziosamente (nessun errore). Per ottenere l'ID dell'utente loggato usare l'helper Shield **`user_id()`** (o `auth()->id()`), già autoloadato. Bug noto: `PromemoriaModel::normalizza()` usa ancora il pattern sbagliato → `created_by`/`updated_by` dei promemoria sono sempre `NULL`.
+Shield salva i dati dell'utente in sessione sotto la chiave `'user'` (array con `id`, email, ecc. — vedi `Config\Auth::$sessionConfig['field']`), non sotto una chiave piatta `'user_id'`. `session()->get('user_id')` restituisce quindi sempre `null`, silenziosamente (nessun errore). Per ottenere l'ID dell'utente loggato usare l'helper Shield **`user_id()`** (o `auth()->id()`), già autoloadato.
 
 ## Ambiente di sviluppo e troubleshooting
-Le note tecniche sull'ambiente di sviluppo e i rimedi ai problemi ricorrenti (server `php -S` piantato o irraggiungibile, `Not Found` in pagina bianca, accesso da smartphone in LAN, `dd()`/Kint, diff VSCode, doppio login Shield) stanno nella skill `ambiente-dev` — `.claude/skills/ambiente-dev/SKILL.md`. Si caricano da sole quando serve, invece di stare in contesto a ogni sessione.
+Si sviluppa sul server, in `/var/www/colombini-dev`, come utente `colombini-dev` (senza `sudo`), via VS Code Remote-SSH; il sito di sviluppo è `https://colombini-dev.metesoftware.it`. Le note pratiche — cosa si può fare da qui e cosa no, log, database, password, `dd()`/Kint, diff VS Code, doppio login Shield — stanno nella skill `ambiente-dev` (`.claude/skills/ambiente-dev/SKILL.md`), che si carica da sola quando serve. Il perché dell'assetto è in `docs/spec/ambiente_dev_server_spec.md`.
+
+## Vecchio progetto — guardarlo prima di progettare
+Il gestionale precedente è in `/var/www/colombini-old`, in sola lettura, ed è anch'esso **CodeIgniter 4**. Il suo sito (`colombini-old.metesoftware.it`) è ancora online, dietro password, per vedere come funzionava una feature. Prima di progettare da zero una feature di logica di business (pianificazione, calcoli, flussi UI), proporre di guardare come era risolta lì: spesso c'è un pattern riusabile, o il motivo per cui non si fece in un certo modo. Esempio: per le sovrapposizioni orarie dei tecnici, lì c'era un suggerimento d'orario e non un blocco, ed è stato ripreso così.
+
+Le **stampe PDF** riprendono lo stile dei suoi template dompdf (`app/Views/viaggi/pdf_viaggio.php`, `pdf_giornata.php`, `app/Views/interventi/pdf_rapportino.php`), già applicato in `anagrafiche/clienti/pdf_scheda_cliente.php`: leggere il template corrispondente prima di scrivere la view. Il logo va incorporato come data URI base64, perché `isRemoteEnabled` resta `false`.
 
 ## Sistema di ritorno "from"
 Quando un form (edit o nuovo) può essere aperto da contesti diversi (lista, scheda cliente, ecc.), si usa il parametro `from` per tornare alla pagina di origine dopo salvataggio o eliminazione.

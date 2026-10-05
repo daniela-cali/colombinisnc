@@ -148,7 +148,8 @@ dei clienti in sviluppo.
 
 ## Stato dei lavori
 
-**Al 05/10/2026: fasi 0-5 completate e verificate.** Si riprende dalla Fase 6.
+**Al 05/10/2026: fasi 0-7 completate, passaggio concluso.** Lo sviluppo si fa sul server; la
+Fase 8 (Node) resta facoltativa e non è stata eseguita.
 
 - **Fase 0**: `.env` di produzione e del vecchio gestionale a `640`; utente `colombini_old`
   (solo dati, solo sul database `colombini`), usato dal vecchio gestionale; `colombini` non
@@ -171,8 +172,11 @@ dei clienti in sviluppo.
   di sviluppo, `certbot renew --dry-run` riuscito su entrambi i certificati, produzione
   invariata.
 
-Da fare: Fase 6 (Claude Code aziendale, copia delle memorie), Fase 7 (VS Code Remote-SSH), poi
-le modifiche ai documenti del repository elencate più sotto.
+- **Fase 6**: Claude Code installato per `colombini-dev` con l'account aziendale; memorie
+  copiate in `~/.claude/projects/-var-www-colombini-dev/memory/` e poi ripulite (vedi
+  riepilogo più sotto); `/var/www/colombini-old` leggibile come riferimento.
+- **Fase 7**: VS Code Remote-SSH sulla cartella `/var/www/colombini-dev`, in uso dal 05/10/2026.
+- **Documenti del repository** aggiornati il 05/10/2026, come da riepilogo più sotto.
 
 Note emerse durante il lavoro, da non riscoprire:
 
@@ -335,7 +339,7 @@ quando servirà la prima volta.
 
 ## Riepilogo modifiche nel repository
 
-Da fare **dopo** il passaggio, già con il Claude aziendale sul server:
+Da fare **dopo** il passaggio, già con il Claude aziendale sul server — **fatto il 05/10/2026**:
 
 - `CLAUDE.md`: sezione Stack (sviluppo su MariaDB 10.11 sul server, non più MySQL 8 in locale:
   sparisce la nota sullo sviluppo "più severo" della produzione); produzione oggi ancora vuota
@@ -344,7 +348,8 @@ Da fare **dopo** il passaggio, già con il Claude aziendale sul server:
 - `.claude/skills/ambiente-dev/SKILL.md`: quasi interamente da riscrivere (niente più
   `php -S` locale né accesso dal telefono in LAN).
 - `docs/deploy.md`: sezione sull'ambiente di sviluppo, `.env` di produzione a `640`, password
-  di `colombini` cambiata, vecchio gestionale offline.
+  di `colombini` cambiata, vecchio gestionale online dietro password con l'utente
+  `colombini_old` (non offline: vedi decisione 4).
 - Pulizia delle memorie: regole stabili in `CLAUDE.md`, punti aperti in `docs/backlog.md`
   (che sostituisce `docs/spec/idee.txt`), memorie scadute cancellate.
 
