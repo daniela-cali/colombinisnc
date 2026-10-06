@@ -750,6 +750,12 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `asset_url()` aggiunge agli indirizzi di JS e CSS la data di modifica del file, così il browser non usa copie vecchie dopo un aggiornamento
 - FullCalendar 7 rimandato: una giornata di lavoro senza vantaggi funzionali, stima in `docs/backlog.md`
 
+#### ✅ v0.36.0 — La proposta di abbonamento si genera in Word
+- Fase 2 di `abbonamenti_proposte_spec.md`, spec in `abbonamenti_proposte_word_spec.md`: proposta degli addolcitori in Word dalla scheda, e in zip per le proposte selezionate nell'elenco
+- Motore Word condiviso (`DocumentoWord`, PhpWord 1.4) che riuseranno i preventivi; modelli in `app/Templates/word/`
+- Apparecchiature installate sugli abbonamenti addolcitori, obbligatorie; data dell'ultima generazione della proposta
+- Restano la proposta delle piscine e il prezzo dei rinnovi a +2%, vedi `docs/backlog.md`
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo

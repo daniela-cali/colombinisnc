@@ -34,8 +34,30 @@
     sistema calcola le <strong>scadenze</strong> delle visite successive. Puoi anche indicare le
     <strong>operazioni incluse</strong> (precompilate dal tipo scelto, modificabili caso per
     caso) e le <strong>modalità di pagamento</strong> concordate — informazioni utili per il
-    documento da consegnare al cliente. Un abbonamento appena creato nasce sempre come
-    <strong>Proposta</strong>: non genera ancora nessuna visita.
+    documento da consegnare al cliente. Per gli <strong>addolcitori</strong> va indicato anche
+    l'elenco delle <strong>apparecchiature installate</strong>, che è obbligatorio. Un abbonamento
+    appena creato nasce sempre come <strong>Proposta</strong>: non genera ancora nessuna visita.
+</p>
+
+<h6 class="border-bottom pb-1 mt-4"><i class="bi bi-file-earmark-word me-1"></i>Proposta in Word</h6>
+<p>
+    Dalla scheda, il pulsante <strong>Proposta Word</strong> scarica il documento da mandare al
+    cliente: due pagine uguali, una per lui e una da restituire firmata. Il documento si compone
+    in quel momento con i dati salvati, quindi se correggi l'abbonamento basta scaricarlo di nuovo.
+    Per ora c'è il modello degli addolcitori; per le piscine il pulsante non compare ancora.
+</p>
+<p>
+    Nell'elenco, sulle proposte, lo stesso pulsante è <strong>pieno</strong> se la proposta è già
+    stata scaricata e <strong>contornato</strong> se non ancora. Per prepararne molte insieme
+    seleziona le righe con le caselle e premi <strong>Scarica proposte</strong>: arriva un unico
+    file zip con un documento per cliente. Se qualcuna non si può generare, nello zip trovi
+    <em>NON GENERATE.txt</em> con il motivo.
+</p>
+<p>
+    Perché si possa generare servono il <strong>prezzo</strong>, le <strong>operazioni
+    incluse</strong> e le <strong>apparecchiature</strong>. Operazioni e apparecchiature si
+    scrivono <strong>una per riga, senza trattino</strong>: il simbolo dell'elenco lo mette il
+    documento.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-clipboard-check me-1"></i>Accettare o rifiutare una proposta</h6>

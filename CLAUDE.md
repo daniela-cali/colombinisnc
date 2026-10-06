@@ -94,6 +94,20 @@ Il gestionale precedente è in `/var/www/colombini-old`, in sola lettura, ed è 
 
 Le **stampe PDF** riprendono lo stile dei suoi template dompdf (`app/Views/viaggi/pdf_viaggio.php`, `pdf_giornata.php`, `app/Views/interventi/pdf_rapportino.php`), già applicato in `anagrafiche/clienti/pdf_scheda_cliente.php`: leggere il template corrispondente prima di scrivere la view. Il logo va incorporato come data URI base64, perché `isRemoteEnabled` resta `false`.
 
+## Documenti Word — un motore, modelli nel repository
+I documenti in Word (oggi la proposta di abbonamento, domani i preventivi) passano tutti da
+`app/Libraries/DocumentoWord.php`, sopra il `TemplateProcessor` di PhpWord: segnaposto
+`${nome}` ed elenchi a blocchi `${blocco}` / `- ${voce}` / `${/blocco}`, ogni marcatore in un
+paragrafo suo e con un nome diverso dalla riga che contiene. Il motore fa l'escape dei valori
+(PhpWord non lo fa nei blocchi), si ferma se resta un segnaposto non compilato e non lascia
+file sul server: il documento si genera e si scarica. Cosa mettere nei segnaposto lo decide una
+classe di dominio, come `PropostaAbbonamento`.
+
+I modelli stanno in `app/Templates/word/`. **I segnaposto non si scrivono a mano in Word**: il
+controllo ortografico e le revisioni li spezzano in pezzi invisibili e PhpWord non li trova
+più, senza errori. Stile e testi fissi si cambiano in Word; per i segnaposto il modello si
+prepara via XML, come spiegato in `docs/spec/abbonamenti_proposte_word_spec.md`, decisione 10.
+
 ## Sistema di ritorno "from"
 Quando un form (edit o nuovo) può essere aperto da contesti diversi (lista, scheda cliente, ecc.), si usa il parametro `from` per tornare alla pagina di origine dopo salvataggio o eliminazione.
 

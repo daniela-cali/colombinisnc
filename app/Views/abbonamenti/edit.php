@@ -73,6 +73,7 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                                 <?php foreach ($tipi as $t): ?>
                                     <option value="<?= $t['id'] ?>"
                                             data-ha-pulizia-fondo="<?= (int) $t['ha_pulizia_fondo'] ?>"
+                                            data-categoria="<?= esc($t['categoria']) ?>"
                                             <?= old('tipo_intervento_id', $abbonamento['tipo_intervento_id']) == $t['id'] ? 'selected' : '' ?>>
                                         <?= esc($t['nome']) ?>
                                     </option>
@@ -81,11 +82,23 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                         </div>
                     </div>
 
+                    <!-- Apparecchiature installate: solo addolcitori, mostrate dallo script in fondo -->
+                    <div id="blocco-apparecchiature">
+                        <p class="text-muted section-header mb-3"><i class="bi bi-cpu me-1"></i> Apparecchiature installate <span class="text-danger">*</span></p>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <textarea name="apparecchiature" id="apparecchiature" class="form-control" rows="3"><?= esc(old('apparecchiature', $abbonamento['apparecchiature'] ?? '')) ?></textarea>
+                                <div class="form-text">Una riga per apparecchiatura, senza trattino iniziale: es. N. 1 ADDOLCITORE</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Operazioni incluse -->
                     <p class="text-muted section-header mb-3"><i class="bi bi-list-check me-1"></i> Operazioni incluse</p>
                     <div class="row g-3 mb-4">
                         <div class="col-12">
                             <textarea name="operazioni_incluse" id="operazioni_incluse" class="form-control" rows="6"><?= esc(old('operazioni_incluse', $abbonamento['operazioni_incluse'] ?? '')) ?></textarea>
+                            <div class="form-text">Una riga per operazione, senza trattino iniziale</div>
                         </div>
                     </div>
 
@@ -179,11 +192,21 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
         }
     }
 
+    // Le apparecchiature servono solo agli addolcitori. Nascondere il campo non lo svuota:
+    // tornando a un tipo addolcitori il testo è ancora lì.
+    function aggiornaApparecchiature() {
+        const opt = sel.options[sel.selectedIndex];
+        const show = opt && opt.dataset.categoria === <?= json_encode(\App\Models\TipiInterventoModel::CATEGORIA_ADDOLCITORI) ?>;
+        document.getElementById('blocco-apparecchiature').classList.toggle('d-none', ! show);
+    }
+
     sel.addEventListener('change', function () {
         aggiornaPulizia();
         aggiornaOperazioniIncluse();
+        aggiornaApparecchiature();
     });
     aggiornaPulizia();
+    aggiornaApparecchiature();
 })();
 </script>
 <script src="<?= asset_url('js/currency-input.js') ?>"></script>

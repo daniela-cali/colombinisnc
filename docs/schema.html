@@ -34,7 +34,7 @@
 </head>
 <body>
 
-<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.27.1 · 2026-08-16</span></h1>
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.36.0 · 2026-10-06</span></h1>
 
 <div class="toc">
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
@@ -302,7 +302,9 @@
   <tr><td><code>durata_mesi</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Calcolato automaticamente dal model al salvataggio</td></tr>
   <tr><td><code>prezzo</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td></td><td>Totale abbonamento per il periodo intero (non per visita)</td></tr>
   <tr><td><code>operazioni_incluse</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Precompilato da <code>tipi_intervento.operazioni_standard</code> alla scelta del tipo, poi libero per il singolo cliente · aggiunto v0.26.0</td></tr>
+  <tr><td><code>apparecchiature</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Una riga per apparecchiatura (es. N. 1 ADDOLCITORE), finisce nella proposta in Word · obbligatorio a livello applicativo per i tipi della categoria <code>addolcitori</code> · aggiunto v0.36.0</td></tr>
   <tr><td><code>modalita_pagamento</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Testo libero, specifico dell'accordo col cliente · aggiunto v0.26.0</td></tr>
+  <tr><td><code>proposta_generata_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Ultima generazione della proposta in Word · scritto senza toccare <code>updated_at</code>/<code>updated_by</code>, perché generare un documento non modifica l'abbonamento · aggiunto v0.36.0</td></tr>
   <tr><td><code>stato</code></td><td>VARCHAR(20)</td><td></td><td>proposta</td><td>Valori: <code>proposta</code> · <code>attivo</code> · <code>sospeso</code> · <code>scaduto</code> · <code>disdetto</code> · <code>rifiutata</code> · default cambiato da <code>attivo</code> v0.26.0</td></tr>
   <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -523,6 +525,27 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.36.0</td>
+    <td><code>AddApparecchiatureToAbbonamenti</code></td>
+    <td>
+      Su <code>abbonamenti</code>: <code>apparecchiature TEXT NULL</code> dopo <code>operazioni_incluse</code> e
+      <code>proposta_generata_at DATETIME NULL</code> dopo <code>modalita_pagamento</code>, per la proposta in Word.
+      Le apparecchiature sono nullable perché l'obbligo vale solo per gli addolcitori e lo controlla
+      l'applicazione. Nessuna colonna di collegamento agli impianti futuri dei clienti: sarà una relazione
+      molti-a-molti con una tabella sua. Vedi <code>docs/spec/abbonamenti_proposte_word_spec.md</code>, decisione 2.
+    </td>
+  </tr>
+  <tr>
+    <td>v0.30.0</td>
+    <td><code>ContatoreCodiciClienti</code><br><code>AddPotenzialeToClienti</code></td>
+    <td>
+      <em>Riga aggiunta in v0.36.0: la versione aveva applicato le migrazioni senza aggiornare il log.</em>
+      I codici dei clienti interni passano dal prefisso <code>INT-</code> a <code>CLI-</code>, con 4 cifre, e in
+      <code>settings</code> nasce il contatore <code>class=Clienti, key=seq_CLI</code>, inizializzato al massimo
+      già assegnato. Su <code>clienti</code>: <code>potenziale TINYINT NOT NULL DEFAULT 0</code>.
+    </td>
+  </tr>
   <tr>
     <td>v0.29.0</td>
     <td><code>AbbonamentoPrecedenteRestrict</code></td>

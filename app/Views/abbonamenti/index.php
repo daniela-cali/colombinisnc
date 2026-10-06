@@ -48,8 +48,14 @@ $statoOrdine = [
         </h3>
         <div class="card-tools ms-auto">
             <button type="submit" form="form-accetta-multiplo" id="btn-accetta-multiplo"
-                    class="btn btn-sm btn-success" disabled>
+                    class="btn btn-sm btn-success" disabled
+                    onclick="return confirm('Accettare le proposte selezionate? Verranno generati gli interventi.')">
                 <i class="bi bi-clipboard-check-fill me-1"></i>Accetta selezionati
+            </button>
+            <button type="submit" form="form-accetta-multiplo" id="btn-proposte-word"
+                    formaction="<?= base_url('abbonamenti/proposte-word') ?>"
+                    class="btn btn-sm btn-outline-secondary" disabled title="Proposte in Word delle righe selezionate, in un unico zip">
+                <i class="bi bi-file-earmark-word me-1"></i>Scarica proposte
             </button>
             <a href="<?= base_url('abbonamenti/nuovo') ?>" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-lg me-1"></i>Nuovo abbonamento
@@ -111,9 +117,14 @@ $statoOrdine = [
                     'voci'      => $vociAnno,
                 ]) ?>
             </div>
-            <form id="form-accetta-multiplo" method="post" action="<?= base_url('abbonamenti/accetta-multiplo') ?>"
-                  onsubmit="return confirm('Accettare le proposte selezionate? Verranno generati gli interventi.')">
+            <?php /* Il form della selezione multipla è vuoto e sta fuori dalla tabella: caselle e
+                     bottoni gli si collegano con l'attributo form. Se racchiudesse la tabella, i
+                     form Accetta/Rifiuta di ogni riga sarebbero annidati, cosa che l'HTML non
+                     ammette: il parser scarta il primo form interno, e l'Accetta della prima
+                     proposta finiva per inviare la selezione multipla. */ ?>
+            <form id="form-accetta-multiplo" method="post" action="<?= base_url('abbonamenti/accetta-multiplo') ?>">
                 <?= csrf_field() ?>
+            </form>
                 <div class="table-responsive">
                     <table id="tabella-abbonamenti" class="table table-hover align-middle mb-0">
                         <thead>
@@ -137,7 +148,7 @@ $statoOrdine = [
                                     <!-- 0 Checkbox selezione -->
                                     <td class="text-center">
                                         <?php if ($a['stato_calcolato'] === 'proposta'): ?>
-                                            <input type="checkbox" name="ids[]" value="<?= (int) $a['id'] ?>" class="check-riga">
+                                            <input type="checkbox" name="ids[]" value="<?= (int) $a['id'] ?>" class="check-riga" form="form-accetta-multiplo">
                                         <?php endif ?>
                                     </td>
                                     <!-- 1 Rif. -->
@@ -197,6 +208,16 @@ $statoOrdine = [
                                             </a>
                                         <?php endif ?>
                                         <?php if (in_array($a['stato_calcolato'], ['proposta'], true)): ?>
+                                            <?php if (\App\Libraries\PropostaAbbonamento::haModello($a['tipo_categoria'])): ?>
+                                                <?php /* Scarica la proposta e dice se è già stata generata: pieno sì, contornato no */ ?>
+                                                <a href="<?= base_url('abbonamenti/' . $a['id'] . '/proposta') ?>"
+                                                   class="btn btn-sm <?= $a['proposta_generata_at'] ? 'btn-secondary' : 'btn-outline-secondary' ?>"
+                                                   title="<?= $a['proposta_generata_at']
+                                                       ? 'Proposta generata il ' . date('d/m/Y H:i', strtotime($a['proposta_generata_at'])) . ' — scarica di nuovo'
+                                                       : 'Genera la proposta Word' ?>">
+                                                    <i class="bi bi-file-earmark-word"></i>
+                                                </a>
+                                            <?php endif ?>
                                             <form action="<?= base_url('abbonamenti/' . $a['id'] . '/accetta') ?>" method="post" class="d-inline">
                                                 <?= csrf_field() ?>
                                                 <button type="submit" class="btn btn-sm btn-outline-success" title="Accetta"
@@ -222,7 +243,6 @@ $statoOrdine = [
                         </tbody>
                     </table>
                 </div>
-            </form>
         <?php endif ?>
     </div>
 </div>
@@ -256,10 +276,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // Filtri iniziali: quelli ricordati dalla sessione, altrimenti i default — vedi search-bar.js
     filtriIniziali('tabella-abbonamenti');
 
-    // Selezione multipla proposte: "seleziona tutte" + abilitazione bottone "Accetta selezionati"
+    // Selezione multipla proposte: "seleziona tutte" + abilitazione dei bottoni che la usano
     function aggiornaBottoneAccetta() {
-        var selezionate = document.querySelectorAll('.check-riga:checked').length;
-        document.getElementById('btn-accetta-multiplo').disabled = selezionate === 0;
+        var nessuna = document.querySelectorAll('.check-riga:checked').length === 0;
+        document.getElementById('btn-accetta-multiplo').disabled = nessuna;
+        document.getElementById('btn-proposte-word').disabled = nessuna;
     }
 
     document.getElementById('check-tutti').addEventListener('change', function () {

@@ -55,6 +55,12 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                        class="btn btn-sm btn-outline-primary" title="Modifica">
                         <i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Modifica</span>
                     </a>
+                    <?php if (\App\Libraries\PropostaAbbonamento::haModello($abbonamento['tipo_categoria'])): ?>
+                        <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/proposta') ?>"
+                           class="btn btn-sm btn-outline-secondary" title="Proposta Word">
+                            <i class="bi bi-file-earmark-word"></i><span class="d-none d-sm-inline ms-1">Proposta Word</span>
+                        </a>
+                    <?php endif ?>
                 </div>
             </div>
             <div class="card-body">
@@ -83,6 +89,11 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                         <dd class="col-7"><?= esc($abbonamento['modalita_pagamento']) ?></dd>
                     <?php endif ?>
 
+                    <?php if ($abbonamento['proposta_generata_at']): ?>
+                        <dt class="col-5 text-muted">Proposta generata</dt>
+                        <dd class="col-7"><?= date('d/m/Y H:i', strtotime($abbonamento['proposta_generata_at'])) ?></dd>
+                    <?php endif ?>
+
                     <?php if ($abbonamento['abbonamento_precedente_id']): ?>
                         <dt class="col-5 text-muted">Rinnovo di</dt>
                         <dd class="col-7">
@@ -97,6 +108,12 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                         <dd class="col-7"><?= nl2br(esc($abbonamento['note'])) ?></dd>
                     <?php endif ?>
                 </dl>
+
+                <?php if ($abbonamento['apparecchiature']): ?>
+                    <hr class="my-3">
+                    <p class="text-muted small fw-semibold mb-2"><i class="bi bi-cpu me-1"></i>Apparecchiature installate</p>
+                    <p class="small mb-0"><?= nl2br(esc($abbonamento['apparecchiature'])) ?></p>
+                <?php endif ?>
 
                 <?php if ($abbonamento['operazioni_incluse']): ?>
                     <hr class="my-3">

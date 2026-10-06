@@ -101,6 +101,9 @@ $routes->group('abbonamenti', function ($routes) {
         $routes->post('(:num)/accetta', 'AbbonamentiController::accetta/$1');
         $routes->post('(:num)/rifiuta', 'AbbonamentiController::rifiuta/$1');
         $routes->post('accetta-multiplo', 'AbbonamentiController::accettaMultiplo');
+        // la generazione scrive proposta_generata_at sull'abbonamento
+        $routes->get('(:num)/proposta',  'AbbonamentiController::proposta/$1');
+        $routes->post('proposte-word',   'AbbonamentiController::proposteWord');
         $routes->post('(:num)/annulla-accettazione', 'AbbonamentiController::annullaAccettazione/$1');
         $routes->post('(:num)/elimina',  'AbbonamentiController::elimina/$1');
     });

@@ -1,5 +1,22 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.36.0] - 2026-10-06
+
+### La proposta di abbonamento si genera in Word
+
+- [APP] **La proposta da mandare al cliente si scarica già pronta in Word.** Dalla scheda di un abbonamento addolcitori il pulsante **Proposta Word** produce il documento con il modello aziendale: due pagine, una per il cliente e una da restituire firmata, con destinatario, apparecchiature, operazioni, durata, prezzo e data già compilati. Si genera in quel momento con i dati salvati, quindi dopo una correzione basta scaricarlo di nuovo. Per le piscine arriverà più avanti
+- [APP] **Tante proposte in un colpo solo.** Nell'elenco abbonamenti si spuntano le proposte e **Scarica proposte** restituisce un unico zip con un documento per cliente, da allegare alle email o da stampare tutti insieme. Quelle che non si possono generare sono elencate con il motivo in `NON GENERATE.txt`, dentro lo zip
+- [APP] **Si vede quali proposte sono già pronte**: sulle righe in proposta il pulsante Word è pieno se il documento è già stato scaricato, contornato se no. La scheda riporta la data dell'ultima generazione
+- [APP] **Apparecchiature installate** negli abbonamenti addolcitori: un campo nuovo, obbligatorio, una riga per apparecchiatura. Il rinnovo lo riporta all'anno dopo
+- [APP] **Corretto il pulsante Accetta della prima proposta in elenco**, che invece di accettare quella proposta inviava «Accetta selezionati»
+- [DEV] **PhpWord 1.4** (`phpoffice/phpword`, con `phpoffice/math`). In produzione arriva con il `composer install` della sequenza di deploy
+- [DEV] **Motore Word condiviso**, `app/Libraries/DocumentoWord.php`: segnaposto semplici ed elenchi a blocchi, che lo useranno anche i preventivi. Tre accorgimenti scoperti sul sorgente di PhpWord: `cloneBlock()` non fa l'escape dei valori, quindi lo fa il motore; elabora un blocco per chiamata, quindi si ripete finché il blocco c'è, con un tetto; la copia temporanea del modello nasce all'apertura e PhpWord non la cancella, quindi il motore salva, legge e cancella sempre, anche quando poi segnala un segnaposto non compilato
+- [DEV] `app/Libraries/PropostaAbbonamento.php` compone i valori: «Spett.le» o «Gentile Sig./Sig.ra», nome prima del cognome, contatti solo se ci sono, data per intero con i mesi in italiano, nome del file `DENOMINAZIONE ANNO TIPO.docx`. Non genera senza prezzo, operazioni o apparecchiature. La mappa categoria → modello sta lì: oggi solo addolcitori
+- [DEV] Migration `AddApparecchiatureToAbbonamenti`: `apparecchiature TEXT NULL` e `proposta_generata_at DATETIME NULL`. La data si scrive con `builder()` e non con `update()`, perché generare un documento non deve toccare `updated_at` né `updated_by`. Nessuna colonna di collegamento agli impianti futuri: sarà una relazione molti-a-molti
+- [DEV] Il modello `app/Templates/word/proposta_addolcitori.docx` è il modello impianti di Daniela preparato via XML: segnaposto interi, tutto in Verdana, dati aziendali spostati nel piè di pagina, data anche sulla prima copia, loghi e numero di pagina sistemati e spazi ricalibrati perché ogni copia stia nella sua pagina. Lo script è servito una volta e resta fuori dal repo, come quello delle icone della v0.35.0. Dettagli nello spec, decisione 10
+- [DEV] **Form annidati nell'elenco abbonamenti**: la tabella stava dentro `form-accetta-multiplo`, e i form Accetta/Rifiuta delle righe risultavano annidati. Il parser HTML scarta il primo form interno, così l'Accetta della prima proposta apparteneva al form multiplo (verificato con jsdom). Ora il form multiplo è vuoto e fuori dalla tabella, le caselle gli si collegano con l'attributo `form`, e la conferma di accettazione è passata sul bottone, così lo zip non la chiede
+- [DEV] `docs/schema.html`: aggiunte le colonne nuove e la riga di log della v0.30.0, che mancava
+
 ## [0.35.3] - 2026-10-06
 
 ### DataTables 3, e il browser non usa più file vecchi dopo un aggiornamento

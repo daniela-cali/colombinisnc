@@ -15,7 +15,7 @@ class AbbonamentiModel extends Model
         'cliente_id', 'tipo_intervento_id', 'abbonamento_precedente_id',
         'data_inizio', 'data_fine', 'durata_mesi',
         'prezzo', 'stato', 'note',
-        'operazioni_incluse', 'modalita_pagamento',
+        'operazioni_incluse', 'apparecchiature', 'modalita_pagamento',
         'created_by', 'updated_by',
     ];
 
@@ -102,7 +102,7 @@ class AbbonamentiModel extends Model
             $data['data']['durata_mesi'] = $diff->y * 12 + $diff->m;
         }
 
-        foreach (['abbonamento_precedente_id', 'prezzo', 'note'] as $campo) {
+        foreach (['abbonamento_precedente_id', 'prezzo', 'note', 'apparecchiature'] as $campo) {
             if (array_key_exists($campo, $data['data']) && $data['data'][$campo] === '') {
                 $data['data'][$campo] = null;
             }
@@ -211,6 +211,7 @@ class AbbonamentiModel extends Model
 
     /**
      * Trova un singolo abbonamento con denominazione cliente, tipo e stato calcolato.
+     * La categoria del tipo decide quale modello di proposta in Word si può generare.
      * Restituisce null se non trovato.
      */
     public function trovaConDettagli(int $id): ?array
@@ -219,6 +220,7 @@ class AbbonamentiModel extends Model
                 'abbonamenti.*',
                 "c.denominazione AS cliente_denominazione",
                 'ti.nome AS tipo_nome',
+                'ti.categoria AS tipo_categoria',
                 $this->selectStatoCalcolato(),
                 '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
@@ -242,6 +244,7 @@ class AbbonamentiModel extends Model
                 'abbonamenti.*',
                 "c.denominazione AS cliente_denominazione",
                 'ti.nome AS tipo_nome',
+                'ti.categoria AS tipo_categoria',
                 $this->selectStatoCalcolato(),
                 '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
@@ -279,6 +282,21 @@ class AbbonamentiModel extends Model
         $this->whereIn('id', $ids)->update(null, ['stato' => self::STATO_SCADUTO]);
 
         return $this->db->affectedRows();
+    }
+
+    /**
+     * Registra in proposta_generata_at il momento in cui è stata generata la proposta in Word.
+     *
+     * Passa da builder() e non da $this->update() di proposito: generare un documento non
+     * modifica l'abbonamento, quindi updated_at e updated_by (scritti dai timestamp e da
+     * normalizza()) devono restare quelli dell'ultima modifica vera. builder() è il Query
+     * Builder della stessa tabella, senza timestamp né callback del model.
+     */
+    public function segnaPropostaGenerata(array $ids): void
+    {
+        $this->builder()
+            ->whereIn('id', $ids)
+            ->update(['proposta_generata_at' => date('Y-m-d H:i:s')]);
     }
 
     /**

@@ -65,10 +65,19 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   - Poi un brainstorming fra tre strade: fix mirati, meccanismo unico, oppure una pila delle
     pagine visitate (idea di Daniela, da pensare).
   - Tocca tutte le pagine: probabilmente serve un branch.
-- **Proposte di abbonamento in Word (fase 2 di `abbonamenti_proposte_spec.md`).** Viene per
-  prima: il 2027 parte dalle proposte, e il modello `.docx` è già pronto. Costruisce il motore
-  di generazione Word che poi useranno anche i preventivi. Spec scritta il 06/10/2026:
-  `docs/spec/abbonamenti_proposte_word_spec.md`. Si parte dal modello impianti (addolcitori).
+- **Proposta in Word per le piscine.** Gli addolcitori sono fatti in v0.36.0 e il motore
+  (`DocumentoWord`) c'è. Il modello di partenza è `docs/spec/2026 PISCINE MODELLO-PROVA-ABBONAMENTO.docx`,
+  più complesso di quello impianti: periodi con le loro date, «senza pulizia del fondo», durata
+  che non è un anno, secondo prezzo per la pulizia del fondo a richiesta, che nel gestionale
+  non esiste. Le note sono in `docs/spec/abbonamenti_proposte_word_spec.md`, «Fuori scope».
+  Il modello va preparato con lo stesso criterio di quello addolcitori (decisione 10).
+- **Prezzo del rinnovo: +2% arrotondato ai 5 euro superiori.** Regola di Daniela del
+  06/10/2026: a ogni rinnovo il prezzo sale del 2% e si arrotonda per eccesso al multiplo di 5,
+  così non restano numeri con i centesimi. In formula `ceil(prezzo * 1.02 / 5) * 5`: 500 → 510,
+  1.190 → 1.215. Oggi `AbbonamentiController::rinnova()` ricopia il prezzo dell'anno prima così
+  com'è. Applicarla lì, nel precompilato, lasciando il campo correggibile nel form; un prezzo
+  vuoto resta vuoto. Le proposte del 2027 nascono da «Nuovo abbonamento», quindi la regola
+  serve dai rinnovi del 2028.
 - **Preventivi e clienti potenziali**, insieme: il potenziale esiste perché ha un preventivo.
   Decisioni del brainstorming del 06/10/2026 in `docs/spec/preventivi_impianti_spec.md` §8.
   Si fa dopo le proposte in Word. Restano aperti:

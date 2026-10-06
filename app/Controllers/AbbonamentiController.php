@@ -2,12 +2,16 @@
 
 namespace App\Controllers;
 
+use App\Libraries\PropostaAbbonamento;
 use App\Models\AbbonamentiModel;
 use App\Models\AbbonamentiPeriodiModel;
 use App\Models\ClientiModel;
 use App\Models\InterventiModel;
 use App\Models\TipiInterventoModel;
+use CodeIgniter\HTTP\DownloadResponse;
 use CodeIgniter\HTTP\RedirectResponse;
+use RuntimeException;
+use ZipArchive;
 
 class AbbonamentiController extends BaseController
 {
@@ -469,6 +473,114 @@ class AbbonamentiController extends BaseController
         return redirect()->to('abbonamenti')->with($falliti > 0 ? 'warning' : 'success', $msg);
     }
 
+    /**
+     * Proposta in Word dell'abbonamento, da scaricare. Si genera in qualunque stato, anche per
+     * ristampare quella di un abbonamento già attivo; il file non resta sul server.
+     *
+     * È un GET pur scrivendo proposta_generata_at: è un'annotazione innocua, e il bottone della
+     * scheda resta un semplice link.
+     */
+    public function proposta(int $id): DownloadResponse|RedirectResponse
+    {
+        $model       = new AbbonamentiModel();
+        $abbonamento = $model->trovaConDettagli($id);
+
+        if (! $abbonamento) {
+            return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
+        }
+
+        try {
+            $proposta = (new PropostaAbbonamento())->genera($abbonamento);
+        } catch (RuntimeException $e) {
+            return redirect()->to('abbonamenti/' . $id)->with('error', $e->getMessage());
+        }
+
+        $model->segnaPropostaGenerata([$id]);
+
+        return $this->response->download($proposta['nome'], $proposta['contenuto'], true);
+    }
+
+    /**
+     * Proposte in Word delle righe selezionate nell'index, in un unico zip: un file per
+     * proposta, da allegare all'email o da stampare tutti insieme.
+     *
+     * Una proposta che non si può generare non blocca le altre: finisce in NON GENERATE.txt con
+     * il motivo, perché una risposta che scarica un file non può portare un messaggio flash.
+     * Se non se ne genera nessuna non c'è zip, si torna all'elenco con l'errore.
+     */
+    public function proposteWord(): DownloadResponse|RedirectResponse
+    {
+        $ids = array_map('intval', $this->request->getPost('ids') ?? []);
+
+        if (empty($ids)) {
+            return redirect()->to('abbonamenti')->with('error', 'Nessuna proposta selezionata.');
+        }
+
+        $model      = new AbbonamentiModel();
+        $generatore = new PropostaAbbonamento();
+        $file       = tempnam(sys_get_temp_dir(), 'proposte');
+        $zip        = new ZipArchive();
+        $zip->open($file, ZipArchive::OVERWRITE);
+
+        $nomiUsati = [];
+        $generate  = [];
+        $scartate  = [];
+
+        foreach ($ids as $id) {
+            $abbonamento = $model->trovaConDettagli($id);
+            if (! $abbonamento) {
+                continue;
+            }
+
+            try {
+                $proposta = $generatore->genera($abbonamento);
+            } catch (RuntimeException $e) {
+                $scartate[] = $abbonamento['cliente_denominazione'] . " (abbonamento {$id}): " . $e->getMessage();
+                continue;
+            }
+
+            $zip->addFromString($this->nomeLibero($proposta['nome'], $nomiUsati), $proposta['contenuto']);
+            $generate[] = $id;
+        }
+
+        if ($scartate !== [] && $generate !== []) {
+            $zip->addFromString('NON GENERATE.txt', implode("\r\n", $scartate) . "\r\n");
+        }
+        $zip->close();
+
+        // Uno zip chiuso senza file non viene scritto: il file di tempnam() può esserci o no.
+        $contenuto = is_file($file) ? file_get_contents($file) : '';
+        if (is_file($file)) {
+            unlink($file);
+        }
+
+        if ($generate === []) {
+            return redirect()->to('abbonamenti')->with('error', 'Nessuna proposta generata. ' . implode(' ', $scartate));
+        }
+
+        $model->segnaPropostaGenerata($generate);
+
+        return $this->response->download('Proposte abbonamento ' . date('Y-m-d') . '.zip', $contenuto, true);
+    }
+
+    /**
+     * Il nome del file nello zip, con « (2)», « (3)»… se è già stato usato: due abbonamenti
+     * dello stesso cliente, anno e tipo (una proposta rifiutata e rifatta) avrebbero lo stesso
+     * nome, e il secondo sovrascriverebbe il primo.
+     */
+    private function nomeLibero(string $nome, array &$usati): string
+    {
+        $base   = substr($nome, 0, -strlen('.docx'));
+        $libero = $nome;
+
+        for ($n = 2; isset($usati[mb_strtolower($libero)]); $n++) {
+            $libero = "{$base} ({$n}).docx";
+        }
+        $usati[mb_strtolower($libero)] = true;
+
+        return $libero;
+    }
+
     public function rifiuta(int $id): RedirectResponse
     {
         $abbonamento = (new AbbonamentiModel())->find($id);
@@ -589,7 +701,30 @@ class AbbonamentiController extends BaseController
         return redirect()->to('abbonamenti')->with('success', 'Abbonamento eliminato.');
     }
 
+    /**
+     * Regole comuni a store() e update(). Le apparecchiature sono obbligatorie solo per i tipi
+     * della categoria addolcitori, dove sono la ragione stessa dell'abbonamento; per le piscine
+     * l'impianto è la piscina, sottintesa.
+     */
     private function regolaValidazione(): array
+    {
+        $regole = $this->regoleBase();
+
+        $tipo = (new TipiInterventoModel())->find((int) $this->request->getPost('tipo_intervento_id'));
+        if (($tipo['categoria'] ?? null) === TipiInterventoModel::CATEGORIA_ADDOLCITORI) {
+            $regole['apparecchiature'] = [
+                'rules'  => 'required',
+                'errors' => ['required' => 'Per gli addolcitori va indicata almeno un\'apparecchiatura installata.'],
+            ];
+        }
+
+        return $regole;
+    }
+
+    /**
+     * Regole che non dipendono dal tipo di abbonamento scelto.
+     */
+    private function regoleBase(): array
     {
         return [
             'cliente_id'         => 'required|is_natural_no_zero',

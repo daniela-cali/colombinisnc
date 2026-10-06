@@ -85,7 +85,7 @@ Nuova colonna `abbonamenti.proposta_generata_at` (DATETIME, nullable), aggiornat
 
 - **Non tocca `updated_at` né `updated_by`.** Generare un documento non modifica l'abbonamento: un metodo del model aggiorna solo questa colonna, passando dal builder senza i timestamp automatici. Il motivo va scritto nel docblock, perché altrove nel progetto si passa sempre dal model.
 - **Al rinnovo non passa all'abbonamento nuovo.** `store()` salva solo ciò che arriva dal form, e la colonna non è un campo del form: la proposta rinnovata parte senza data, giustamente.
-- Nella scheda si mostra «Proposta generata il …». Nell'elenco, sulle righe in stato proposta, un'icona Word con la data nel tooltip indica quelle già generate.
+- Nella scheda si mostra «Proposta generata il …». Nell'elenco, sulle righe in stato proposta, c'è un **bottone Word** fra le azioni che scarica la proposta e dice anche se è già stata generata: **pieno** sì, **contornato** no, con la data nel tooltip. Nella prima versione era un'icona accanto al badge dello stato: in prova si è rivelata poco intuitiva, perché compariva solo dopo e non diceva cosa significasse.
 
 ### 7. Una alla volta o tutte insieme
 
@@ -96,11 +96,13 @@ Nuova colonna `abbonamenti.proposta_generata_at` (DATETIME, nullable), aggiornat
 
   Scartato un unico Word con tutte le proposte di seguito: comodo per stampare, ma PhpWord non sa unire documenti in modo pulito, e per l'email andrebbe comunque diviso.
 
-- **Le proposte che non si possono generare** non bloccano le altre: una categoria senza modello, oggi le piscine, o un prezzo mancante (decisione 11). Finiscono in un file `NON GENERATE.txt` dentro lo zip, con il motivo per ciascuna. Una risposta che scarica un file non può portare con sé un messaggio flash.
+  **Il form della selezione multipla non racchiude più la tabella.** Prima la tabella stava dentro `form-accetta-multiplo`, e i form Accetta/Rifiuta di ogni riga risultavano annidati, cosa che l'HTML non ammette: il parser scarta il primo form interno, e l'Accetta della prima proposta inviava la selezione multipla. Il difetto c'era dalla v0.26.0 ed è emerso aggiungendo un secondo bottone allo stesso form. Ora il form è vuoto e sta fuori dalla tabella; caselle e bottoni gli si collegano con l'attributo `form`. La conferma «Accettare le proposte selezionate?» passa dall'`onsubmit` del form al bottone, altrimenti sarebbe comparsa anche scaricando lo zip.
+
+- **Le proposte che non si possono generare** non bloccano le altre: una categoria senza modello, oggi le piscine, o un dato mancante (decisione 11). Finiscono in un file `NON GENERATE.txt` dentro lo zip, con il motivo per ciascuna. Una risposta che scarica un file non può portare con sé un messaggio flash.
 
 ### 8. Nome del file
 
-Criterio provvisorio, **da confermare**: `<DENOMINAZIONE> <ANNO> <TIPO>.docx`, per esempio `ROSSI MARIO 2027 ADDOLCITORI.docx`.
+Criterio provvisorio, **da confermare**: `<DENOMINAZIONE> <ANNO> <TIPO>.docx`, per esempio `ROSSI MARIO 2027 ADDOLCITORI.docx`. Se nello zip un nome si ripete (stesso cliente, anno e tipo: una proposta rifiutata e rifatta) le successive prendono « (2)», « (3)», confrontando i nomi senza distinguere maiuscole e minuscole, come fa Windows.
 
 - **L'anno è quello di inizio del servizio**, non quello di generazione: le proposte del 2027 si preparano a fine 2026.
 - **Il tipo serve a distinguere i doppioni**: un cliente con due abbonamenti nello stesso anno, piscina e addolcitore, produrrebbe due file con lo stesso nome, e nello zip il secondo sovrascriverebbe il primo.
@@ -115,8 +117,11 @@ Una classe in `app/Libraries/` sopra il `TemplateProcessor` di PhpWord. Fa **sol
 Punti tecnici da non perdere:
 
 - **Escape dell'output attivo** (`Settings::setOutputEscapingEnabled(true)`). Di default PhpWord inserisce i valori così come sono, quindi una ragione sociale con «&» («ROSSI & BIANCHI») produrrebbe un `.docx` che Word non apre.
-- **Le due pagine hanno gli stessi elenchi.** I segnaposto semplici si sostituiscono in tutte le occorrenze. Un blocco ripetuto (`${operazione}` dentro `${#operazioni}…${/operazioni}`) PhpWord lo elabora una volta per chiamata, quindi il motore ripete l'operazione finché il blocco è presente nel documento.
-- **Nessun file temporaneo che resti in giro.** Il documento si genera in `writable/`, se ne legge il contenuto, il file si cancella, e la risposta parte con `download($nome, $contenuto)`. Lo stesso vale per lo zip. Un `.docx` pesa circa 80 KB: anche cinquanta proposte stanno comodamente in memoria.
+- **I blocchi si scrivono `${nome}` … `${/nome}`**, ciascun marcatore in un paragrafo suo, con un nome diverso da quello della riga che contiene: `${operazioni}` / `- ${operazione}` / `${/operazioni}`. Le righe facoltative usano lo stesso meccanismo con una voce o nessuna: `${riga_telefono}` / `Tel ${telefono}` / `${/riga_telefono}`.
+- **Le due pagine hanno gli stessi elenchi.** I segnaposto semplici si sostituiscono in tutte le occorrenze. Un blocco PhpWord lo elabora una volta per chiamata (le copie identiche insieme), quindi il motore ripete l'operazione finché il blocco è presente, con un tetto ai passaggi.
+- **Escape fatto dal motore nei blocchi.** `cloneBlock()` inserisce i valori delle righe ripetute senza escape, anche con l'opzione attiva: lo fa `DocumentoWord::elenco()`.
+- **Un segnaposto rimasto è un errore.** Prima di restituire il file il motore verifica che non resti nessun `${...}`, e in caso contrario si ferma elencandoli: un nome sbagliato nel codice o un segnaposto aggiunto al modello non producono un documento con `${prezzo}` scritto in mezzo.
+- **Nessun file temporaneo che resti in giro.** PhpWord lavora su una copia del modello nella cartella temporanea di sistema, non in `writable/`, le cui sottocartelle hanno altri scopi. Il motore la salva, ne legge il contenuto e la cancella, anche quando poi segnala un errore, e la risposta parte con `download($nome, $contenuto)`. Lo stesso vale per lo zip. Un `.docx` pesa circa 80 KB: anche cinquanta proposte stanno comodamente in memoria.
 
 ### 10. I modelli nel repository, preparati da Claude
 
@@ -124,9 +129,22 @@ I modelli stanno in **`app/Templates/word/`**, versionati con il codice: cambian
 
 **I segnaposto li inserisce Claude**, su una copia del modello di Daniela. Scritto in Word, `${cliente}` viene spesso spezzato in più pezzi invisibili dal controllo ortografico o dalle revisioni, e PhpWord non lo riconosce più. È l'errore più comune con questa libreria, ed è silenzioso: nel documento resta scritto `${cliente}`. Si parte dal modello impianti che Daniela ha aggiornato il 06/10/2026, con intestazione e piè di pagina veri e le due copie già allineate, e si cambia soltanto «apparecchiature Culligan» in «apparecchiature installate». Poi Daniela apre il file in Word e controlla che l'aspetto sia identico al suo. Il modello resta un normale `.docx`, modificabile in Word per lo stile e per i testi fissi: basta non riscrivere a mano i segnaposto.
 
-### 11. Senza prezzo la proposta non si genera
+Il controllo visivo ha portato altre correzioni al modello, fatte nello stesso passaggio:
+
+- tutto in **Verdana**: le intestazioni ereditavano Aptos dal tema e la riga della firma lo aveva esplicito;
+- **dati aziendali in basso**: in alto restano logo, titolo e numero di pagina; ragione sociale («Colombini S.n.c. di Colombini Giorgio, Flavia e Paolo»), indirizzo, contatti e dati fiscali vanno nel piè di pagina, centrati fra i due loghi, su cinque righe a 7–8 pt perché lì lo spazio è di circa 13 cm;
+- **piè di pagina**: tolta la frase su Culligan/Grundfos e una copia invisibile del logo Grundfos ancorata fuori pagina; il logo Save Water, una PNG con due versioni affiancate, è ritagliato sulla sola blu e messo alla stessa distanza dal bordo a cui Grundfos sta dall'altro;
+- **intestazioni**: «Pag. 1 di 2» della prima pagina cadeva sul logo per via della tabulazione centrale dello stile, ora è allineato a destra come sulla seconda; sulla seconda pagina «Copia da restituire firmata al centro assistenza» va su una riga sua, a 9 pt, sotto il titolo;
+- **la data anche sulla prima copia**, quella che resta al cliente: sotto la linea che chiude le condizioni, come sulla seconda, senza la firma;
+- **spazio per la seconda copia**, che con queste aggiunte finiva in una terza pagina: tolte le righe vuote in fondo ai piè di pagina, rimaste da quando i loghi erano agganciati a paragrafi vuoti, e le righe vuote fra logo e titolo della seconda pagina rese uguali a quelle della prima (erano 40 pt contro 28). Provato con un abbonamento a tre apparecchiature.
+
+Lo script che ha preparato il modello è servito una volta e non è nel repository: un modello rifatto da zero in Word andrà ripreparato allo stesso modo.
+
+### 11. Senza prezzo, operazioni e apparecchiature la proposta non si genera
 
 Una proposta senza prezzo non è una proposta. Il controllo sta sul server, nell'azione di generazione: la scheda risponde con un messaggio d'errore, e nello zip la proposta finisce in `NON GENERATE.txt`. Il prezzo **non** diventa obbligatorio nel form dell'abbonamento: si può salvare una proposta in lavorazione e completarla prima di generarla.
+
+Lo stesso vale per **operazioni incluse** e **apparecchiature**, decisione presa in prova. Gli abbonamenti creati prima che le operazioni standard degli addolcitori fossero compilate hanno il campo vuoto, e il documento sarebbe uscito con l'intestazione dell'elenco e niente sotto. Scartato il ripiego sul testo standard del tipo: il documento direbbe una cosa diversa da quella salvata sull'abbonamento. Le apparecchiature le impone già il form, ma non agli abbonamenti creati prima che il campo esistesse.
 
 La modalità di pagamento invece può mancare: la riga resta con il valore vuoto, da completare in Word se serve.
 
@@ -148,8 +166,8 @@ La modalità di pagamento invece può mancare: la riga resta con il valore vuoto
 7. `app/Config/Routes.php` — due rotte nel gruppo `abbonamenti`, sotto `permission:abbonamenti.manage`: la generazione scrive sull'abbonamento.
 8. `app/Views/abbonamenti/nuovo.php` ed `edit.php` — textarea `apparecchiature`, visibile solo per la categoria addolcitori.
 9. `app/Views/abbonamenti/show.php` — bottone «Proposta Word» se la categoria ha un modello; apparecchiature e data dell'ultima generazione fra i dati.
-10. `app/Views/abbonamenti/index.php` — bottone «Scarica proposte» accanto ad «Accetta selezionati»; icona sulle proposte già generate.
-11. `app/Helpers/validazione_helper.php` — voce per `apparecchiature` nella mappa delle etichette solo se il ripiego automatico non basta.
+10. `app/Views/abbonamenti/index.php` — bottone «Scarica proposte» accanto ad «Accetta selezionati»; bottone Word sulle righe in proposta; form della selezione multipla fuori dalla tabella (decisione 7).
+11. `app/Helpers/validazione_helper.php` — non toccato: la regola delle apparecchiature ha un messaggio suo.
 12. `app/Views/help/abbonamenti.php` — come si genera la proposta e come si scrivono operazioni e apparecchiature, una riga per voce, senza simboli.
 13. `docs/` (schema del database e log delle modifiche), `CHANGELOG.md`, `docs/ANALISI.md` §7.1 — a chiusura, come da convenzione.
 
