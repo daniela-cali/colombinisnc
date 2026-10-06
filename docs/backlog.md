@@ -61,15 +61,16 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   - Poi un brainstorming fra tre strade: fix mirati, meccanismo unico, oppure una pila delle
     pagine visitate (idea di Daniela, da pensare).
   - Tocca tutte le pagine: probabilmente serve un branch.
-- **Clienti potenziali.** La colonna `clienti.potenziale` esiste dalla v0.30.0, ma non ha
-  interfaccia e non è in `$allowedFields`. È un flag e non un prefisso nel codice: decisione 10
-  di `docs/spec/numeratori_atomici_spec.md`. Le domande ancora aperte:
-  - basta un flag, o serve distinguere chi è ancora in ballo da chi ha detto no (`VARCHAR`
-    `potenziale`/`cliente`/`perso`)?
-  - cosa succede alla scheda di chi rifiuta?
-  - come si mostra: badge in elenco, filtro nella tendina?
-  - va escluso dalle tendine degli interventi?
-  - come si converte in cliente?
+- **Proposte di abbonamento in Word (fase 2 di `abbonamenti_proposte_spec.md`).** Viene per
+  prima: il 2027 parte dalle proposte, e il modello `.docx` è già pronto. Costruisce il motore
+  di generazione Word che poi useranno anche i preventivi.
+- **Preventivi e clienti potenziali**, insieme: il potenziale esiste perché ha un preventivo.
+  Decisioni del brainstorming del 06/10/2026 in `docs/spec/preventivi_impianti_spec.md` §8.
+  Si fa dopo le proposte in Word. Restano aperti:
+  - catalogo impianti sì o no;
+  - in quali tendine compaiono i potenziali;
+  - cosa salvare nel database e cosa solo nel `.docx`;
+  - la verifica di Daniela su Ad Hoc.
 - **Referente per le comunicazioni del cliente**, per esempio l'amministratore di condominio.
   È distinto dal referente di cantiere, che è operativo («chi chiamo per entrare»): questo
   serve per la corrispondenza formale. Oggi c'è solo il campo libero `clienti.contatti`.

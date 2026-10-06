@@ -3,6 +3,10 @@
 > Documento di lavoro, generato da sessione di ragionamento con Claude (chat).
 > Stato: **in fase di progettazione concettuale**, nessuna implementazione ancora avviata.
 > Da rivedere/completare prima di passare a Claude Code per lo sviluppo.
+>
+> **Rivista in parte il 06/10/2026**: le decisioni prese in quella data stanno in §8 e
+> prevalgono sul testo precedente dove lo contraddicono. La riscrittura completa si fa
+> all'avvio dello sviluppo.
 
 ---
 
@@ -138,3 +142,77 @@ Tabelle emerse dal ragionamento (nomi indicativi, da confermare in fase di imple
 - Gestione documentale avanzata (versioning, permessi granulari, ricerca full-text)
 - Schede di sicurezza prodotti chimici
 - Audit di sicurezza infrastrutturale del server
+
+---
+
+## 8. Decisioni del 06/10/2026
+
+Brainstorming con Daniela, partito dalla voce "Clienti potenziali" del backlog e allargato ai
+preventivi, perché le due cose sono la stessa: il potenziale esiste *perché* ha un preventivo.
+
+### 8.1 Clienti potenziali
+
+- **Definizione**: un cliente potenziale è chi chiede un preventivo. Lo si crea come cliente
+  con `clienti.potenziale = 1`, colonna che esiste già dalla v0.30.0 ma non ha interfaccia. Il
+  codice è un normale `INT-xxx` da `NumeratoriModel`: un flag e non un prefisso, come stabilito
+  dalla decisione 10 di `numeratori_atomici_spec.md`.
+- **Diventa cliente quando accetta un preventivo**, in automatico, senza un pulsante
+  "converti" a parte. L'accettazione è l'unico evento che toglie il flag.
+- **Se rifiuta, resta potenziale**, con il preventivo rifiutato nello storico, così se torna
+  l'anno dopo si ritrova. Quindi **il flag basta**: scartato lo stato a tre valori
+  (`potenziale`/`cliente`/`perso`).
+- Un cliente già acquisito che chiede un preventivo per un lavoro nuovo **non cambia stato**.
+- **Codice Ad Hoc**: viene assegnato alla prima fattura o all'inserimento nell'anagrafica di
+  Ad Hoc, e va in `codice_esterno`. L'`INT-xxx` resta per sempre, perché `codice` dice *come*
+  il cliente è entrato (vedi `CLAUDE.md` → "Codice cliente"). Non serve niente di nuovo.
+- **Dipendenza aperta**: Daniela verifica se Ad Hoc può gestire i clienti potenziali. Se sì,
+  potrebbero arrivare anche dall'import `clienti_adhoc`, e andrebbe deciso se l'import deve
+  riconoscerli.
+- **Ancora da decidere**: in quali elenchi e tendine i potenziali compaiono, cioè interventi,
+  abbonamenti, cantieri e stampe. Va deciso una volta, in un punto unico, non tendina per
+  tendina. Se il sopralluogo prima del preventivo è un intervento a calendario, nelle tendine
+  degli interventi i potenziali devono esserci.
+
+### 8.2 Accettazione → cantiere
+
+- **Ogni preventivo accettato genera un cantiere nuovo**, inteso come un lavoro con il suo
+  storico. Da lì il cliente segue il flusso normale: richieste di intervento, abbonamenti.
+- **Sottocantieri e preventivi su un cantiere esistente** (per esempio un ampliamento):
+  ignorati per ora, si vedrà se capitano.
+
+### 8.3 Documento del preventivo
+
+- **Oggi i preventivi si fanno a mano in Word**, partendo da una sorta di modelli. Quei modelli
+  si riportano nel gestionale come template `.docx` compilati con PhpWord `TemplateProcessor`,
+  come già previsto in §4.1–4.3.
+- **Contenuto**: frontespizio con i dati del cliente e le frasi di presentazione (da definire),
+  numeri di pagina, riepilogo delle condizioni di pagamento.
+- **Il documento si salva in `.docx` nella cartella del server**. Questo **supera §4.4 punto 3
+  e §5**, che prevedevano un PDF ottenuto con LibreOffice headless: niente LibreOffice e niente
+  dipendenze di sistema da far installare al sistemista. Se un giorno servirà il PDF, si
+  aggiunge dopo.
+- **Cosa resta nel database e cosa solo nel `.docx`**: da decidere nella riscrittura. Il minimo
+  è testata, stato, totale e percorso del file, così la scheda cliente può elencare i
+  preventivi e scaricarli.
+
+### 8.4 Da rivedere
+
+- **Il catalogo delle schede impianto con prezzo di listino** (§2, §3 `preventivo_impianti`) e
+  la generazione degli impianti cliente all'accettazione: non si sa se valgano ancora. In
+  alternativa i modelli Word sono testi per tipo di lavoro e le voci con i prezzi si scrivono
+  ogni volta. È la scelta più grande della riscrittura, perché decide se il catalogo entra
+  nella prima fase.
+
+### 8.5 Ordine dei lavori
+
+- **Prima la fase 2 di `abbonamenti_proposte_spec.md`**, cioè la generazione con PhpWord della
+  proposta di abbonamento.
+  - È urgente: il 2027 parte dalle proposte, che a gennaio vanno spedite ai clienti.
+  - Il modello `.docx` esiste già e non ha righe variabili, quindi è il caso più semplice su
+    cui scrivere il motore.
+- **Il motore di generazione Word è condiviso**: apre il modello, sostituisce i segnaposto,
+  ripete i blocchi, salva il `.docx`. Nasce con le proposte e i preventivi lo riusano.
+- **I clienti potenziali si fanno insieme ai preventivi**, non prima. Senza preventivi il flag
+  sarebbe un'etichetta messa e tolta a mano, senza l'evento che lo fa scattare.
+- **Vecchio gestionale**: `colombini-old` aveva solo lo scheletro (controller `Preventivi` con
+  pagine "coming soon" e voce di menu). Niente da riprendere.
