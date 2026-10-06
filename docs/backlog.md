@@ -15,12 +15,8 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
 
 ## Infrastruttura
 
-- **Aggiornamento dello stack.** Le minori e le patch sono fatte in v0.35.1. L'ordine deciso
-  nel brainstorming del 05/10/2026 per il resto:
-  - **AdminLTE 4.0.2 → 4.10.0**, in un passaggio a sé. Formalmente è una minor, ma il rischio
-    è nell'aspetto: `custom.css` sovrascrive regole di AdminLTE, e se un selettore cambia la
-    nostra regola smette di applicarsi senza errori. Serve un giro visivo di tutte le
-    sezioni, desktop e telefono, prima del commit.
+- **Aggiornamento dello stack.** Le minori e le patch sono fatte in v0.35.1, AdminLTE 4.10 in
+  v0.35.2. L'ordine deciso nel brainstorming del 05/10/2026 per il resto:
   - **DataTables 2 → 3** (con Responsive 4 e RowGroup 2) e **FullCalendar 6 → 7**: prima si
     leggono le guide alla migrazione e si stima, file per file, cosa si rompe. Poi si decide
     una alla volta. Mezza giornata: si fa prima del go-live; se tocca mezzo `calendario.js`,

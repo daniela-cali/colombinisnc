@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.35.2] - 2026-10-06
+
+### AdminLTE 4.10
+
+- [APP] **Aggiornata la grafica di base del gestionale.** Nell'uso non cambia niente: menu, colori e pulsanti restano come prima. Sul telefono le icone della barra in alto sono un po' più vicine fra loro, e la sidebar non taglia più le ultime voci del menu quando è più lunga dello schermo
+- [DEV] **AdminLTE 4.0.2 → 4.10.0.** Formalmente è una minor, ma è stata trattata come un passaggio a sé, con un giro visivo su tutte le sezioni, desktop e telefono, perché `custom.css` sovrascrive regole del framework e un selettore cambiato fa smettere la nostra regola senza errori. Nessuna regola da riallineare. I cambiamenti rilevanti per noi:
+  - `.app-sidebar` diventa una colonna flex e `.sidebar-wrapper` riempie lo spazio rimasto, invece di un'altezza calcolata (4.4.0);
+  - sotto `sm` l'header dimezza il padding orizzontale dei `nav-link`, per non far scorrere la pagina di lato (4.8.3);
+  - in stampa header, sidebar e footer non escono più (4.9.0): `viaggio.css` li nascondeva già, quindi la stampa del viaggio non cambia;
+  - gli eventi JS dei componenti sono cambiati (4.1.0), ma nel codice nessuno ascolta eventi `lte.*`;
+  - il CSS scende da 340 a 312 KB, perché gli stili della documentazione di AdminLTE sono usciti dal bundle.
+- [DEV] **`data-lte-color-mode="off"` sull'`<html>` di `layouts/admin.php`.** Dalla 4.1.0 AdminLTE incorpora un modulo ColorMode che usa la nostra stessa chiave `lte-theme` in `localStorage`. Oggi i due script non litigano, perché scrivono gli stessi valori, ma il suo segue anche i cambi di tema del sistema operativo, che il nostro interruttore ignora apposta. L'attributo è il modo documentato da AdminLTE per lasciare il tema all'applicazione. `layouts/auth.php` non carica il JS di AdminLTE e non ne ha bisogno
+
 ## [0.35.1] - 2026-10-05
 
 ### Librerie aggiornate, con le correzioni di sicurezza di CodeIgniter

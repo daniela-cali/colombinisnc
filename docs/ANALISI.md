@@ -740,6 +740,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - `docs/deploy.md` non prevedeva `composer install`: senza, un aggiornamento dei pacchetti PHP non sarebbe mai arrivato in produzione
 - Restano da valutare una per una le versioni major (DataTables 3, FullCalendar 7) e AdminLTE 4.10, vedi `docs/backlog.md`
 
+#### ✅ v0.35.2 — AdminLTE 4.10
+- AdminLTE 4.0.2 → 4.10.0 in un passaggio a sé, con giro visivo su tutte le sezioni, desktop e telefono: `custom.css` sovrascrive regole del framework, e un selettore cambiato si rompe senza errori
+- Il modulo ColorMode che AdminLTE incorpora dalla 4.1 è spento con `data-lte-color-mode="off"`: il tema lo gestisce il nostro interruttore
+- Restano da valutare le major DataTables 3 e FullCalendar 7, vedi `docs/backlog.md`
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo
