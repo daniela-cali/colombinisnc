@@ -21,11 +21,11 @@
     })();
     </script>
 
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/overlayscrollbars/overlayscrollbars.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/adminlte/adminlte.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/fontawesome/all.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('css/custom.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/vendor/overlayscrollbars/overlayscrollbars.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/vendor/adminlte/adminlte.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/vendor/fontawesome/all.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('css/custom.css') ?>">
     <?= $this->renderSection('styles') ?>
 </head>
 
@@ -336,11 +336,11 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
 </div>
 <?php endif ?>
 
-<script src="<?= base_url('assets/vendor/popper/popper.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/adminlte/adminlte.min.js') ?>"></script>
-<script src="<?= base_url('js/row-dblclick.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/popper/popper.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/adminlte/adminlte.min.js') ?>"></script>
+<script src="<?= asset_url('js/row-dblclick.js') ?>"></script>
 <script>
     OverlayScrollbarsGlobal.OverlayScrollbars(document.querySelector('.sidebar-wrapper'), {
         scrollbars: { autoHide: 'leave' }

@@ -273,7 +273,7 @@ $tipoAttuale = old('tipo', $tipoDefault);
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('js/geocoding.js') ?>"></script>
+<script src="<?= asset_url('js/geocoding.js') ?>"></script>
 <script>
 (function () {
     // Mostra i campi giusti in base al tipo selezionato

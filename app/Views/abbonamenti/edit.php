@@ -186,5 +186,5 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
     aggiornaPulizia();
 })();
 </script>
-<script src="<?= base_url('js/currency-input.js') ?>"></script>
+<script src="<?= asset_url('js/currency-input.js') ?>"></script>
 <?= $this->endSection() ?>

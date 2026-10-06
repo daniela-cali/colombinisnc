@@ -21,7 +21,7 @@ $this->extend('layouts/admin');
 <?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('css/viaggio.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('css/viaggio.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

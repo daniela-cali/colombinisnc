@@ -27,7 +27,7 @@ $this->extend('layouts/admin');
 <?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('css/calendario.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('css/calendario.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -340,7 +340,7 @@ window.CalendarioConfig = {
     },
 };
 </script>
-<script src="<?= base_url('assets/vendor/fullcalendar/index.global.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/fullcalendar/locales/it.global.min.js') ?>"></script>
-<script src="<?= base_url('js/calendario.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/fullcalendar/index.global.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/fullcalendar/locales/it.global.min.js') ?>"></script>
+<script src="<?= asset_url('js/calendario.js') ?>"></script>
 <?= $this->endSection() ?>

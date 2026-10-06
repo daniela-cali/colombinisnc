@@ -41,7 +41,7 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
 <?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/leaflet/leaflet.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('assets/vendor/leaflet/leaflet.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -380,6 +380,6 @@ $posLng = $cantiere['lng'] ?? $cantiere['cliente_lng'];
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
-<script src="<?= base_url('js/mappa-posizione.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
+<script src="<?= asset_url('js/mappa-posizione.js') ?>"></script>
 <?= $this->endSection() ?>

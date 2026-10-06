@@ -40,18 +40,12 @@ class AssetsPublish extends BaseCommand
             ['label' => 'Bootstrap Icons CSS',   'src' => 'node_modules/bootstrap-icons/font',        'dest' => 'bootstrap-icons',       'pattern' => 'bootstrap-icons.min.css'],
             ['label' => 'Bootstrap Icons fonts', 'src' => 'node_modules/bootstrap-icons/font/fonts',  'dest' => 'bootstrap-icons/fonts', 'pattern' => '*.woff2'],
 
-            ['label' => 'jQuery',                'src' => 'node_modules/jquery/dist',                 'dest' => 'jquery',                'pattern' => 'jquery.min.js'],
-
             ['label' => 'DataTables JS',         'src' => 'node_modules/datatables.net/js',           'dest' => 'datatables',            'pattern' => 'dataTables.min.js'],
             ['label' => 'DataTables BS5 JS',     'src' => 'node_modules/datatables.net-bs5/js',       'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.js'],
             ['label' => 'DataTables BS5 CSS',    'src' => 'node_modules/datatables.net-bs5/css',      'dest' => 'datatables',            'pattern' => 'dataTables.bootstrap5.min.css'],
 
             ['label' => 'Tom Select JS',              'src' => 'node_modules/tom-select/dist/js',          'dest' => 'tom-select',            'pattern' => 'tom-select.complete.min.js'],
             ['label' => 'Tom Select CSS (BS5)',       'src' => 'node_modules/tom-select/dist/css',         'dest' => 'tom-select',            'pattern' => 'tom-select.bootstrap5.min.css'],
-
-            ['label' => 'DataTables RowGroup JS',     'src' => 'node_modules/datatables.net-rowgroup/js',        'dest' => 'datatables',            'pattern' => 'dataTables.rowGroup.min.js'],
-            ['label' => 'DataTables RowGroup BS5 JS',  'src' => 'node_modules/datatables.net-rowgroup-bs5/js',    'dest' => 'datatables',            'pattern' => 'rowGroup.bootstrap5.min.js'],
-            ['label' => 'DataTables RowGroup BS5 CSS', 'src' => 'node_modules/datatables.net-rowgroup-bs5/css',   'dest' => 'datatables',            'pattern' => 'rowGroup.bootstrap5.min.css'],
 
             ['label' => 'DataTables Responsive JS',     'src' => 'node_modules/datatables.net-responsive/js',        'dest' => 'datatables',          'pattern' => 'dataTables.responsive.min.js'],
             ['label' => 'DataTables Responsive BS5 JS',  'src' => 'node_modules/datatables.net-responsive-bs5/js',    'dest' => 'datatables',          'pattern' => 'responsive.bootstrap5.min.js'],

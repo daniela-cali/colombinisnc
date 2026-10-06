@@ -68,7 +68,8 @@
         if (! container) return;
 
         var filtri = JSON.parse(container.dataset.pillFiltri);
-        var table  = $('#' + container.dataset.pillTabella).DataTable();
+        // Api() recupera la tabella già creata; new DataTable() proverebbe a crearla di nuovo
+        var table  = new DataTable.Api('#' + container.dataset.pillTabella);
 
         // Azzera tutte le colonne usate da uno qualsiasi dei filtri del gruppo
         Object.values(filtri).forEach(function (f) {

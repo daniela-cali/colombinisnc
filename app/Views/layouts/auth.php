@@ -7,16 +7,16 @@
 
     <?= $this->include('partials/head_pwa') ?>
 
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/adminlte/adminlte.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('css/custom.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/vendor/adminlte/adminlte.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('css/custom.css') ?>">
 </head>
 <body class="auth-page">
 
 <?= $this->renderSection('content') ?>
 
-<script src="<?= base_url('assets/vendor/popper/popper.min.js') ?>"></script>
-<script src="<?= base_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/popper/popper.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
 <?= $this->renderSection('scripts') ?>
 </body>
 </html>

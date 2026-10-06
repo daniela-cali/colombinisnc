@@ -14,8 +14,8 @@
 <meta name="theme-color" content="#1a6fa8">
 
 <link rel="icon" href="<?= base_url('favicon.ico') ?>" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/icons/icon-32.png') ?>">
-<link rel="apple-touch-icon" href="<?= base_url('assets/icons/apple-touch-icon.png') ?>">
+<link rel="icon" type="image/png" sizes="32x32" href="<?= asset_url('assets/icons/icon-32.png') ?>">
+<link rel="apple-touch-icon" href="<?= asset_url('assets/icons/apple-touch-icon.png') ?>">
 
 <?php /* iOS ignora il manifest per lo schermo intero: servono i suoi meta. */ ?>
 <meta name="mobile-web-app-capable" content="yes">

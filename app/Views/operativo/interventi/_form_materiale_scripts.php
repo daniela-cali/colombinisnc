@@ -13,7 +13,7 @@
  * campo di testo dedicato. Su desktop resta invariato TomSelect con ricerca e creazione al volo.
  */
 ?>
-<script src="<?= base_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <script>
 (function () {
     var selEl        = document.getElementById('sel-materiale');

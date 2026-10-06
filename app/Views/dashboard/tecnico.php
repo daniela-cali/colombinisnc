@@ -12,8 +12,8 @@ $this->extend('layouts/admin');
 <?= $this->section('title') ?>La mia agenda<?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/leaflet/leaflet.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/dashboard-tecnico.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('assets/vendor/leaflet/leaflet.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('css/dashboard-tecnico.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -179,7 +179,7 @@ $this->extend('layouts/admin');
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
 <script>
 (() => {
     'use strict';

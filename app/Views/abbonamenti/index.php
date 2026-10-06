@@ -230,9 +230,9 @@ $statoOrdine = [
 
 <?= $this->section('scripts') ?>
 <?= $this->include('partials/datatables_scripts') ?>
-<script src="<?= base_url('js/search-bar.js') ?>"></script>
+<script src="<?= asset_url('js/search-bar.js') ?>"></script>
 <script>
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
 
     var table = initTabella('#tabella-abbonamenti', {
         order: [[1, 'desc']],

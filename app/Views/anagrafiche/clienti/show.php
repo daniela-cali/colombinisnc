@@ -45,8 +45,8 @@ $statoBadge = [
 
 <?= $this->section('styles') ?>
 <?= $this->include('partials/datatables_styles') ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/vendor/leaflet/leaflet.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('assets/vendor/leaflet/leaflet.css') ?>">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -773,9 +773,9 @@ $statoBadge = [
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <?= $this->include('partials/datatables_scripts') ?>
-<script src="<?= base_url('js/search-bar.js') ?>"></script>
+<script src="<?= asset_url('js/search-bar.js') ?>"></script>
 
 <script>
 // Tom Select — form materiali sospesi
@@ -805,7 +805,7 @@ $statoBadge = [
     });
 })();
 
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     // DataTable interventi
     var table = initTabella('#tbl-interventi', {
         // Meno righe che negli elenchi: qui la tabella è dentro un tab della scheda cliente.
@@ -885,6 +885,6 @@ $(function () {
 })();
 </script>
 
-<script src="<?= base_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
-<script src="<?= base_url('js/mappa-posizione.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/leaflet/leaflet.js') ?>"></script>
+<script src="<?= asset_url('js/mappa-posizione.js') ?>"></script>
 <?= $this->endSection() ?>

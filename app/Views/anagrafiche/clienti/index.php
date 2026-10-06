@@ -138,7 +138,7 @@ $this->extend('layouts/admin');
 <?= $this->section('scripts') ?>
 <?= $this->include('partials/datatables_scripts') ?>
 <script>
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     initTabella('#tabella-clienti', {
         order: [[1, 'asc']],
         columnDefs: [
@@ -149,11 +149,6 @@ $(function () {
             // dai badge, il che inverte la sequenza di ordinamento (desc prima) rispetto alle colonne testo.
             { className: 'text-center', type: 'num', orderSequence: ['asc', 'desc'], targets: [2, 5] }
         ]
-    });
-
-    // Tooltip Bootstrap sulle intestazioni colonna
-    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-        new bootstrap.Tooltip(el);
     });
 });
 </script>

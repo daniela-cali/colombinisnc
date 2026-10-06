@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.35.3] - 2026-10-06
+
+### DataTables 3, e il browser non usa più file vecchi dopo un aggiornamento
+
+- [APP] **Aggiornate le tabelle del gestionale.** Ricerca, filtri e ordinamento funzionano come prima. Sul telefono cambia un po' l'aspetto del riquadro che si apre per vedere le colonne nascoste
+- [APP] **Dopo un aggiornamento del gestionale non serve più svuotare la cache del browser.** Prima il browser poteva continuare a usare per un po' la versione vecchia di script e stili, e una pagina poteva funzionare a metà finché non la si ricaricava a fondo
+- [DEV] **DataTables 2.3.8 → 3.1.3, Responsive 3.0.8 → 4.1.1.** Le rotture della guida di migrazione (selettori `:contains`, `this` nei callback, `columns().search()` al plurale, `.cache()`, `scrollXInner`) non toccano il nostro codice. `column().search(q, regex, smart)` posizionale resta supportata, verificato sul sorgente della 3.1.3. Responsive 4 usa una griglia CSS per il riquadro dei dettagli; nessuna nostra regola tocca le classi `dtr-*`. I file del pacchetto hanno gli stessi nomi, il manifest non cambia per loro
+- [DEV] **RowGroup tolto** invece di aggiornarlo: nessuna view lo usa dalla v0.11.x e il partial non lo caricava. Usciti `package.json`, manifest di `AssetsPublish.php` e i tre file in `public/assets/vendor/datatables/`
+- [DEV] **jQuery tolto.** Lo richiedeva solo DataTables, che dalla 3 non ne dipende più. `initTabella()` crea la tabella con `new DataTable(...)`, `search-bar.js` recupera quella già creata con `new DataTable.Api('#id')`, e le 8 view che aprivano lo script con `$(function () {...})` usano `DOMContentLoaded`. `CLAUDE.md` dice di non reintrodurlo
+- [DEV] **Nuovo helper `asset_url()`** (`app/Helpers/asset_helper.php`), che aggiunge `?v=<data di modifica del file>` all'indirizzo. Si usa la data del file e non la versione dell'app: a ogni rilascio il browser riscarica solo i file cambiati e non c'è niente da aggiornare a mano. Applicato a tutti i 56 `<script>` e `<link>` delle view verso `js/`, `css/` e `assets/vendor/`. Restano su `base_url()` solo i 3 indirizzi di Leaflet che puntano a una cartella. È autoloadato in `Config/Autoload.php` e non nel `BaseController`, perché il layout `auth.php` lo rendono i controller di Shield. Nato da un caso vero: con DataTables 3 il vecchio `datatable-init.js` in cache chiamava ancora jQuery, e le tabelle restavano senza ricerca né paginazione
+- [DEV] **Tooltip dell'elenco clienti creati due volte**: la view li inizializzava da sé, e dalla v0.14.0 lo fa già il layout per tutte le pagine. Il secondo `new bootstrap.Tooltip` lasciava attivi gli ascoltatori del primo, quindi i tooltip uscivano doppi e sovrapposti. Tolta l'inizializzazione della view
+- [DEV] FullCalendar 7 rimandato: nessun vantaggio funzionale a fronte di una giornata di lavoro. La stima resta in `docs/backlog.md`
+
 ## [0.35.2] - 2026-10-06
 
 ### AdminLTE 4.10

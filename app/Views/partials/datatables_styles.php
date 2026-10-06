@@ -4,5 +4,5 @@
  * Incluso dentro section('styles') con: <?= $this->include('partials/datatables_styles') ?>
  */
 ?>
-<link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
-<link rel="stylesheet" href="<?= base_url('assets/vendor/datatables/responsive.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('assets/vendor/datatables/dataTables.bootstrap5.min.css') ?>">
+<link rel="stylesheet" href="<?= asset_url('assets/vendor/datatables/responsive.bootstrap5.min.css') ?>">

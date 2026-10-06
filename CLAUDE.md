@@ -69,7 +69,9 @@ Le dipendenze frontend si installano via **npm** (l'elenco aggiornato è in `pac
 
 Il comando `app/Commands/AssetsPublish.php` legge un manifest e copia i file `dist/` da `node_modules/` verso `public/assets/vendor/`. Va eseguito dopo ogni `npm install` o aggiornamento pacchetti. In produzione i file sono committati in git e il comando non serve.
 
-**jQuery c'è, ma non per AdminLTE.** AdminLTE 4 non ha jQuery come dipendenza — è un rewrite su Bootstrap 5 puro. `jquery` sta in `package.json` perché lo richiede **DataTables**: va usato solo lì. Per tutto il resto dell'interfaccia si usa Bootstrap 5 nativo, non jQuery.
+**I file statici si includono con `asset_url()`, mai con `base_url()`.** Vale per `js/`, `css/` e `assets/vendor/` nei tag `<script>` e `<link>`: `asset_url('js/search-bar.js')` aggiunge `?v=<data di modifica del file>`, così il browser riscarica un file appena cambia invece di usare la copia in cache (`app/Helpers/asset_helper.php`, autoloadato). Resta `base_url()` solo dove l'indirizzo è una cartella a cui il JS attacca un nome di file, come l'`iconBase` di Leaflet.
+
+**jQuery non c'è.** AdminLTE 4 è un rewrite su Bootstrap 5 puro, e da DataTables 3 non serve più nemmeno lì: è stato tolto con l'aggiornamento. Non reintrodurlo. Le DataTable si creano con `new DataTable(...)` (dentro `initTabella()`), una tabella già creata si recupera con `new DataTable.Api('#id')`, e gli script delle view partono con `document.addEventListener('DOMContentLoaded', ...)` invece di `$(function () {...})`.
 
 ## Go-live in produzione
 Non migrare nessun record dal database di sviluppo a quello di produzione: clienti, interventi, materiali, abbonamenti sono dati di test. L'unica eccezione nel contenuto, non nella regola, è `clienti_adhoc`: è l'anagrafica reale importata da Ad Hoc, quindi il database di sviluppo non è del tutto sacrificabile. In produzione l'import si rifà da capo dall'interfaccia.

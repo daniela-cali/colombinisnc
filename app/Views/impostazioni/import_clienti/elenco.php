@@ -83,7 +83,7 @@ $this->extend('layouts/admin');
 <?= $this->section('scripts') ?>
 <?= $this->include('partials/datatables_scripts') ?>
 <script>
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     initTabella('#tabella-adhoc', {
         order: [[1, 'asc']],
         columnDefs: [

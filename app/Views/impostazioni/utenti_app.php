@@ -101,16 +101,16 @@ foreach ($utenti as $u) {
 <?= $this->section('scripts') ?>
 <?= $this->include('partials/datatables_scripts') ?>
 <script>
-$(function () {
+document.addEventListener('DOMContentLoaded', function () {
     // DataTables solo sulla tabella dei clienti: gli account del personale sono una manciata
     // e non hanno bisogno di ricerca e paginazione, quelli dei clienti sì.
-    var $clienti = $('#tabella-utenti-clienti');
+    var clienti = document.getElementById('tabella-utenti-clienti');
 
-    if (! $clienti.length) {
+    if (! clienti) {
         return;
     }
 
-    var tabella = initTabella($clienti, {
+    var tabella = initTabella(clienti, {
         order: [[1, 'asc']],
         columnDefs: [
             { orderable: false, targets: [-1], responsivePriority: 2 },

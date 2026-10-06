@@ -27,7 +27,7 @@
 (function (window) {
     'use strict';
 
-    /* In DataTables 2 l'etichetta di -1 arriva da `lengthLabels`, non dal
+    /* Da DataTables 2 l'etichetta di -1 arriva da `lengthLabels`, non dal
        `lengthMenu`: per i valori noti il default inglese del bundle scavalca
        l'array parallelo che si usava in DataTables 1.x. */
     var LINGUA = {
@@ -56,7 +56,7 @@
      * Crea una DataTable con i default del gestionale.
      *
      * @param {string|Object} selettore  selettore della tabella ('#tabella-cantieri')
-     *                                   oppure l'oggetto jQuery già risolto
+     *                                   oppure l'elemento <table> già risolto
      * @param {Object} [opzioni]  solo ciò che differisce dai default
      * @returns {Object} l'API DataTables, per i filtri e il resto
      */
@@ -70,6 +70,6 @@
         config.language.paginate     = Object.assign({}, LINGUA.paginate, lingua.paginate || {});
         config.language.lengthLabels = Object.assign({}, LINGUA.lengthLabels, lingua.lengthLabels || {});
 
-        return $(selettore).DataTable(config);
+        return new DataTable(selettore, config);
     };
 })(window);

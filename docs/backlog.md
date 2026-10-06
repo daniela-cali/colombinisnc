@@ -16,11 +16,15 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
 ## Infrastruttura
 
 - **Aggiornamento dello stack.** Le minori e le patch sono fatte in v0.35.1, AdminLTE 4.10 in
-  v0.35.2. L'ordine deciso nel brainstorming del 05/10/2026 per il resto:
-  - **DataTables 2 → 3** (con Responsive 4 e RowGroup 2) e **FullCalendar 6 → 7**: prima si
-    leggono le guide alla migrazione e si stima, file per file, cosa si rompe. Poi si decide
-    una alla volta. Mezza giornata: si fa prima del go-live; se tocca mezzo `calendario.js`,
-    si rimanda finché non porta un vantaggio vero.
+  v0.35.2, DataTables 3 in v0.35.3. Resta:
+  - **FullCalendar 6 → 7: rimandato il 06/10/2026**, non porta nessun vantaggio funzionale.
+    Stima dalla guida di migrazione: una giornata (5–7 ore). Il punto pesante è che il DOM
+    non ha più classi `fc-*`, quindi vanno riscritti `calendario.css` (~30 selettori su 14
+    classi) e 6 lookup in `calendario.js`. In più cambiano il packaging (`global.js` più un
+    tema, `temporal-polyfill` obbligatorio, nuovo percorso del locale, quindi manifest e
+    `operativo/calendario/index.php`) e le API: `customButtons`/`buttonText` → `buttons`,
+    `backgroundColor`/`textColor` → `color`/`contrastColor`, anche nel feed di
+    `CalendarioController.php`. Se ne riparla quando la 7 porta qualcosa che serve.
   - **PHPUnit 10 → 13**: lasciato com'è. Ci sono solo i tre test d'esempio dello scaffolding.
     Se ne riparla se e quando si decide di scrivere test, che la v1.0.0 prevede.
 - **SSH con password ancora attivo sul server** (sistemista).

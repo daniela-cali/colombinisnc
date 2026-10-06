@@ -275,7 +275,7 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= base_url('js/geocoding.js') ?>"></script>
+<script src="<?= asset_url('js/geocoding.js') ?>"></script>
 <script>
 (function () {
     function toggleTipo(tipo) {
