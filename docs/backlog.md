@@ -67,7 +67,8 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   - Tocca tutte le pagine: probabilmente serve un branch.
 - **Proposte di abbonamento in Word (fase 2 di `abbonamenti_proposte_spec.md`).** Viene per
   prima: il 2027 parte dalle proposte, e il modello `.docx` è già pronto. Costruisce il motore
-  di generazione Word che poi useranno anche i preventivi.
+  di generazione Word che poi useranno anche i preventivi. Spec scritta il 06/10/2026:
+  `docs/spec/abbonamenti_proposte_word_spec.md`. Si parte dal modello impianti (addolcitori).
 - **Preventivi e clienti potenziali**, insieme: il potenziale esiste perché ha un preventivo.
   Decisioni del brainstorming del 06/10/2026 in `docs/spec/preventivi_impianti_spec.md` §8.
   Si fa dopo le proposte in Word. Restano aperti:
@@ -78,7 +79,9 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
 - **Referente per le comunicazioni del cliente**, per esempio l'amministratore di condominio.
   È distinto dal referente di cantiere, che è operativo («chi chiamo per entrare»): questo
   serve per la corrispondenza formale. Oggi c'è solo il campo libero `clienti.contatti`.
-  Prima di progettare, capire se c'è già un caso d'uso che si rompe.
+  Il caso d'uso c'è: la **proposta di abbonamento in Word** per un condominio va
+  all'amministratore, con il suo indirizzo. Nella prima versione delle proposte va al
+  condominio stesso, con «Spett.le» e l'indirizzo del cliente; il referente si fa dopo.
 - **Card in dashboard "scadenze entro la settimana"**: la vista d'insieme non urgente, nata
   separando il punto 7.R della riunione. La parte urgente è la barra "Attenzione" del
   calendario (v0.24.22). Nessuna spec ancora.
