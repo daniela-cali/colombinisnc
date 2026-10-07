@@ -76,7 +76,13 @@ Il comando `app/Commands/AssetsPublish.php` legge un manifest e copia i file `di
 ## Go-live in produzione
 Non migrare nessun record dal database di sviluppo a quello di produzione: clienti, interventi, materiali, abbonamenti sono dati di test. L'unica eccezione nel contenuto, non nella regola, è `clienti_adhoc`: è l'anagrafica reale importata da Ad Hoc, quindi il database di sviluppo non è del tutto sacrificabile. In produzione l'import si rifà da capo dall'interfaccia.
 
-**Il 2027 parte dalle proposte, non dai rinnovi.** Gli abbonamenti reali del 2027 si caricano come proposte con "Nuovo abbonamento"; il 2026 non si carica. Al primo avvio non esiste nessun abbonamento da cui rinnovare: un vincolo messo su `rinnova()` non deve toccare la creazione da zero di un abbonamento con date future.
+**Il 2027 parte dalle proposte, generate dal rinnovo del 2026** (decisione del 07/10/2026). Si carica il 2026 con i dati e i prezzi dell'anno in corso, e il 2027 nasce dal rinnovo con l'aumento già applicato. L'ordine conta:
+
+1. si caricano **tutti** gli abbonamenti 2026 con "Nuovo abbonamento": nascono come proposte;
+2. un `UPDATE abbonamenti SET stato = 'attivo' WHERE stato = 'proposta'`, lanciato da Daniela sul database ancora vuoto, li rende attivi **senza generare interventi**. Le visite del 2026 sono state fatte fuori dal gestionale. Basta lo stato: `accettaAbbonamento()` non fa altro che cambiarlo e chiamare `generaInterventi()`;
+3. solo dopo si generano i 2027 con il rinnovo, che li crea come proposte da spedire e accettare normalmente.
+
+Una proposta 2027 creata a mano prima del passo 2 verrebbe attivata anch'essa, senza visite. Un vincolo messo su `rinnova()` non deve toccare la creazione da zero di un abbonamento, che è come nasce il 2026.
 
 ## Codice cliente — numerico o `CLI-`
 `clienti.codice` porta un'informazione: un codice **numerico** è l'`ANCODICE` del gestionale contabile Ad Hoc, conservato alla promozione da `clienti_adhoc`; un codice **`CLI-xxxx`** (da `NumeratoriModel`) indica un cliente interno, non presente in contabilità. **Non normalizzare mai** tutti i codici a `CLI-`, né spostare il codice Ad Hoc in `codice_esterno`.

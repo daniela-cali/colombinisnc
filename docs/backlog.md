@@ -73,9 +73,20 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   Il modello va preparato con lo stesso criterio di quello addolcitori (decisione 10).
 - **Rinnovo multiplo degli abbonamenti.** Oggi si rinnova uno per volta, aprendo il form: a
   fine anno, con decine di rinnovi in fila, è lento. Emerso il 07/10/2026 lavorando al prezzo
-  del rinnovo. Da fare brainstorming: come si scelgono (spunte nell'elenco come «Accetta
-  selezionati», o «tutti quelli in scadenza»), cosa nasce (proposte da rivedere), e il prezzo
-  salvato senza che nessuno lo veda. Il calcolo c'è già, `AbbonamentiModel::prezzoRinnovo()`.
+  del rinnovo. Serve già a **dicembre 2026**: il 2027 nasce rinnovando il 2026 caricato
+  (`CLAUDE.md`, «Go-live in produzione»), circa 70 impianti e 80 piscine. Il calcolo del prezzo
+  c'è già, `AbbonamentiModel::prezzoRinnovo()`.
+  - Deciso il 07/10/2026: come il rinnovo singolo, copia note, operazioni, apparecchiature e
+    modalità di pagamento; sposta date e periodi di un anno; aumenta il prezzo. La modalità di
+    pagamento resta testo libero e **si scrive senza anno** («a metà servizio: giugno»), così
+    copiarla è corretto.
+  - Ancora da decidere: «Rinnova selezionati» dall'elenco oppure rinnovo singolo e basta (circa
+    un'ora e un quarto per 150 form). Dipende da quanti abbonamenti cambiano fra un anno e
+    l'altro oltre al prezzo, soprattutto i periodi delle piscine.
+- **Tabella delle condizioni di pagamento**, idea di Daniela del 07/10/2026, rimandata: oggi
+  basta il testo libero senza anno. Toglierebbe l'anno dal testo, uniformerebbe le frasi e
+  servirebbe anche ai preventivi. Aperti: i casi personalizzati (voce «Altro» con testo
+  libero?), dove mettere l'anno nella frase, e se c'entra il codice di pagamento di Ad Hoc.
 - **Preventivi e clienti potenziali**, insieme: il potenziale esiste perché ha un preventivo.
   Decisioni del brainstorming del 06/10/2026 in `docs/spec/preventivi_impianti_spec.md` §8.
   Si fa dopo le proposte in Word. Restano aperti:
