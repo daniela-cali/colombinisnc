@@ -761,6 +761,13 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Corretto il campo prezzo dei form abbonamento, che all'apertura perdeva il valore salvato
 - Resta da discutere il rinnovo multiplo, vedi `docs/backlog.md`
 
+#### ✅ v0.37.0 — Rinnovo di più abbonamenti in fila
+- Spec in `abbonamenti_rinnovo_multiplo_spec.md`: dall'elenco si selezionano gli abbonamenti da rinnovare e si aprono i loro form uno dopo l'altro, con Salta, Interrompi e un riepilogo finale
+- La selezione multipla è di un tipo solo e non perde più le righe delle altre pagine
+- Colonna Rinnovo nell'elenco e badge «Rinnovato →» al posto dell'icona; stato in evidenza nella scheda
+- Un disdetto si rinnova solo dopo averlo riattivato dalla scheda
+- Serve per dicembre 2026, quando il 2027 nascerà rinnovando il 2026 caricato in produzione
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo

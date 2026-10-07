@@ -78,6 +78,7 @@ class AbbonamentiController extends BaseController
             'frequenze' => AbbonamentiModel::FREQUENZE_LABEL,
             'periodi'   => null,
             'from'      => $this->request->getGet('from'),
+            'coda'      => null,
         ]);
     }
 
@@ -116,6 +117,14 @@ class AbbonamentiController extends BaseController
         if (! $db->transStatus()) {
             return redirect()->back()->withInput()
                 ->with('error', 'Errore durante la creazione dell\'abbonamento.');
+        }
+
+        // Rinnovo in coda: si passa al prossimo form invece di tornare alla pagina di origine.
+        $coda = $this->leggiCoda($this->request->getPost());
+        if ($coda !== null) {
+            $coda['fatti']++;
+
+            return redirect()->to($this->urlProssimo($coda))->with('success', 'Proposta di rinnovo creata.');
         }
 
         $from = $this->request->getPost('from');
@@ -238,6 +247,8 @@ class AbbonamentiController extends BaseController
      * - attivo/sospeso → disdetto: tutti i futuri → annullato, comprese le visite già
      *                              pianificate, di cui il messaggio avvisa perché il cliente
      *                              ne conosce già la data
+     * - disdetto   → attivo   : solo lo stato. Le visite annullate dalla disdetta restano
+     *                           annullate; serve a poter poi rinnovare un cliente che torna
      */
     public function cambiaStato(int $id): RedirectResponse
     {
@@ -255,6 +266,7 @@ class AbbonamentiController extends BaseController
             'rifiutata'  => [AbbonamentiModel::STATO_PROPOSTA],
             'attivo'     => [AbbonamentiModel::STATO_SOSPESO, AbbonamentiModel::STATO_DISDETTO],
             'sospeso'    => [AbbonamentiModel::STATO_ATTIVO,  AbbonamentiModel::STATO_DISDETTO],
+            'disdetto'   => [AbbonamentiModel::STATO_ATTIVO],
         ];
 
         if (! isset($transizioni[$statoAttuale]) || ! in_array($nuovoStato, $transizioni[$statoAttuale], true)) {
@@ -269,6 +281,11 @@ class AbbonamentiController extends BaseController
         if ($nuovoStato === AbbonamentiModel::STATO_SOSPESO) {
             $model->sospendiInterventi($id);
             $msg = 'Abbonamento sospeso. Gli interventi futuri sono stati sospesi.';
+
+        } elseif ($nuovoStato === AbbonamentiModel::STATO_ATTIVO && $statoAttuale === AbbonamentiModel::STATO_DISDETTO) {
+            // Nessuna operazione sugli interventi: ripristinare quelli annullati dalla disdetta
+            // rimetterebbe in calendario visite che nessuno ha più concordato con il cliente.
+            $msg = 'Abbonamento riattivato. Le visite annullate con la disdetta non sono state ripristinate.';
 
         } elseif ($nuovoStato === AbbonamentiModel::STATO_ATTIVO) {
             if ($this->request->getPost('ripristina') === '1') {
@@ -327,8 +344,18 @@ class AbbonamentiController extends BaseController
         // arriva dal model per non rischiare di spiegare all'utente un rifiuto diverso da
         // quello effettivo. Serve trovaConDettagli() e non find(), perché rinnovabile() legge
         // stato_calcolato e successore_id.
+        $coda = $this->leggiCoda($this->request->getGet());
+
         $motivo = $model->motivoNonRinnovabile($precedente);
         if ($motivo !== null) {
+            // In coda non si ferma tutto: l'abbonamento va fra i saltati e il riepilogo
+            // finale ne dirà il motivo (spec rinnovo multiplo, punto 8).
+            if ($coda !== null) {
+                $coda['saltati'][] = $id;
+
+                return redirect()->to($this->urlProssimo($coda));
+            }
+
             return redirect()->to('abbonamenti/' . $id)
                 ->with('error', 'Questo abbonamento ' . $motivo . '.');
         }
@@ -362,6 +389,115 @@ class AbbonamentiController extends BaseController
             'frequenze'   => AbbonamentiModel::FREQUENZE_LABEL,
             'periodi'     => $periodiPrecompilati,
             'from'        => $this->request->getGet('from'),
+            'coda'        => $coda === null ? null : $coda + [
+                'posizione'     => $coda['fatti'] + count($coda['saltati']) + 1,
+                'totale'        => $coda['fatti'] + count($coda['saltati']) + 1 + count($coda['coda']),
+                'urlSalta'      => $this->urlProssimo(['saltati' => [...$coda['saltati'], $id]] + $coda),
+                'urlInterrompi' => $this->urlFine($coda, count($coda['coda']) + 1),
+            ],
+        ]);
+    }
+
+    /**
+     * Riepilogo del rinnovo in coda, alla fine o dopo Interrompi: quante proposte sono nate,
+     * chi è stato saltato e perché, quanti ne restavano. Poi torna all'elenco, che ricorda i
+     * filtri, così si riprende da dove si era.
+     *
+     * Il motivo di un saltato si chiede a motivoNonRinnovabile() adesso: se l'abbonamento è
+     * ancora rinnovabile l'ha saltato l'operatore, altrimenti la coda l'ha scartato da sola.
+     */
+    public function fineRinnovo(): RedirectResponse
+    {
+        $coda     = $this->leggiCoda($this->request->getGet()) ?? ['fatti' => 0, 'saltati' => []];
+        $restanti = (int) $this->request->getGet('restanti');
+
+        $risposta = redirect()->to('abbonamenti')->with('success', match ($coda['fatti']) {
+            0       => 'Nessuna proposta di rinnovo creata.',
+            1       => 'Creata 1 proposta di rinnovo.',
+            default => 'Create ' . $coda['fatti'] . ' proposte di rinnovo.',
+        });
+
+        $avvisi = [];
+
+        if ($coda['saltati']) {
+            $model = new AbbonamentiModel();
+            $nomi  = [];
+            foreach ($coda['saltati'] as $id) {
+                $abbonamento = $model->trovaConDettagli($id);
+                if (! $abbonamento) {
+                    continue;
+                }
+                $motivo = $model->motivoNonRinnovabile($abbonamento);
+                $nomi[] = esc($abbonamento['cliente_denominazione']) . ($motivo !== null ? ' (' . esc($motivo) . ')' : '');
+            }
+            $avvisi[] = (count($coda['saltati']) === 1 ? 'Saltato 1: ' : 'Saltati ' . count($coda['saltati']) . ': ')
+                . implode(', ', $nomi) . '.';
+        }
+
+        if ($restanti > 0) {
+            $avvisi[] = 'Rinnovo interrotto: ' . ($restanti === 1 ? 'ne restava 1' : 'ne restavano ' . $restanti) . ' da fare.';
+        }
+
+        return $avvisi ? $risposta->with('warning', implode(' ', $avvisi)) : $risposta;
+    }
+
+    /**
+     * Stato del rinnovo in coda letto da query string o POST, o null se non si è in coda.
+     *
+     * La presenza del parametro coda, anche vuoto, è ciò che distingue il rinnovo in coda dal
+     * singolo: l'ultimo form di una coda ha coda vuota. I valori arrivano dall'indirizzo,
+     * quindi si tengono solo interi positivi e senza doppioni.
+     *
+     * @return array{coda: list<int>, fatti: int, saltati: list<int>}|null
+     */
+    private function leggiCoda(array $sorgente): ?array
+    {
+        if (! array_key_exists('coda', $sorgente)) {
+            return null;
+        }
+
+        $ids = static fn ($valore): array => array_values(array_unique(array_filter(
+            array_map('intval', explode(',', (string) $valore)),
+            static fn (int $id): bool => $id > 0
+        )));
+
+        return [
+            'coda'    => $ids($sorgente['coda']),
+            'fatti'   => max(0, (int) ($sorgente['fatti'] ?? 0)),
+            'saltati' => $ids($sorgente['saltati'] ?? ''),
+        ];
+    }
+
+    /**
+     * Dove andare dopo il form corrente: il rinnovo del prossimo id, con il resto della coda
+     * nell'indirizzo, oppure il riepilogo se la coda è finita.
+     */
+    private function urlProssimo(array $coda): string
+    {
+        if (! $coda['coda']) {
+            return $this->urlFine($coda, 0);
+        }
+
+        $prossimo = array_shift($coda['coda']);
+
+        return base_url('abbonamenti/' . $prossimo . '/rinnova') . '?' . http_build_query([
+            'coda'    => implode(',', $coda['coda']),
+            'fatti'   => $coda['fatti'],
+            'saltati' => implode(',', $coda['saltati']),
+        ]);
+    }
+
+    /**
+     * Indirizzo del riepilogo; restanti è quanti form non sono stati aperti, zero se la coda
+     * è arrivata in fondo.
+     */
+    private function urlFine(array $coda, int $restanti): string
+    {
+        return base_url('abbonamenti/rinnovo-fine') . '?' . http_build_query([
+            'coda'     => '',
+            'fatti'    => $coda['fatti'],
+            'saltati'  => implode(',', $coda['saltati']),
+            'restanti' => $restanti,
         ]);
     }
 

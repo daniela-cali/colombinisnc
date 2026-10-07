@@ -55,7 +55,8 @@
 </p>
 <p>
     Perché si possa generare servono il <strong>prezzo</strong>, le <strong>operazioni
-    incluse</strong> e le <strong>apparecchiature</strong>. Operazioni e apparecchiature si
+    incluse</strong>, le <strong>apparecchiature</strong> e la <strong>modalità di
+    pagamento</strong>. Operazioni e apparecchiature si
     scrivono <strong>una per riga, senza trattino</strong>: il simbolo dell'elenco lo mette il
     documento.
 </p>
@@ -121,15 +122,33 @@
     attuale e le date spostate di un anno, da controllare e salvare come proposta. Non serve
     aspettare la scadenza: puoi prepararlo quando vuoi, anche mentre il contratto è ancora in
     corso — è il caso degli abbonamenti annuali che si preparano a dicembre per l'anno dopo.
-    Il pulsante non compare su un abbonamento <strong>sospeso</strong> (prima va riattivato),
-    su uno non ancora cominciato, e su uno già rinnovato: in quest'ultimo caso trovi al suo
-    posto il collegamento <strong>Vai al rinnovo</strong>.
+    Il pulsante non compare su un abbonamento <strong>sospeso</strong> o <strong>disdetto</strong>
+    (prima va riattivato dalla scheda; per il disdetto le visite annullate non tornano),
+    su uno non ancora cominciato, e su uno già rinnovato: in quest'ultimo caso compare
+    <strong>Rinnovato →</strong>, che porta al rinnovo: nell'elenco nella colonna Rinnovo,
+    dove altrimenti c'è il pulsante Rinnova, e nella scheda accanto allo stato.
 </p>
 <p>
     Il <strong>prezzo</strong> del rinnovo parte da quello dell'anno prima, aumentato della
     percentuale impostata in Impostazioni → Parametri (di base il 2%) e arrotondato per eccesso
     ai 5 euro: con il 2%, 500 diventa 510. Sotto il campo è indicato il prezzo di partenza, e puoi
     sempre correggerlo prima di salvare.
+</p>
+<p>
+    Per <strong>rinnovarne tanti di seguito</strong>, nell'elenco spunta gli abbonamenti da
+    rinnovare, oppure filtra (per esempio Attivi e l'anno in corso) e spunta la casella
+    nell'intestazione per prenderli tutti, poi premi <strong>Rinnova selezionati</strong>. Si
+    apre il form di rinnovo del primo, nell'ordine in cui li hai spuntati: controlli,
+    premi <strong>Salva e prossimo</strong> e si apre subito il successivo. Con
+    <strong>Salta</strong> passi oltre senza creare la proposta, con <strong>Interrompi</strong>
+    torni all'elenco. Alla fine un riepilogo dice quante proposte sono nate e chi hai saltato.
+    Se interrompi, il giorno dopo basta riselezionare: quelli già rinnovati non hanno più la
+    casella.
+</p>
+<p>
+    Una selezione è di un tipo solo: o proposte, da accettare o scaricare in Word, o
+    abbonamenti da rinnovare. Spuntata una riga, le caselle dell'altro tipo si disattivano
+    finché non togli tutte le spunte.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-trash me-1"></i>Eliminare</h6>

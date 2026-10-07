@@ -98,6 +98,7 @@ $routes->group('abbonamenti', function ($routes) {
         $routes->post('(:num)/update',  'AbbonamentiController::update/$1');
         $routes->post('(:num)/stato',   'AbbonamentiController::cambiaStato/$1');
         $routes->get('(:num)/rinnova',  'AbbonamentiController::rinnova/$1');
+        $routes->get('rinnovo-fine',    'AbbonamentiController::fineRinnovo');
         $routes->post('(:num)/accetta', 'AbbonamentiController::accetta/$1');
         $routes->post('(:num)/rifiuta', 'AbbonamentiController::rifiuta/$1');
         $routes->post('accetta-multiplo', 'AbbonamentiController::accettaMultiplo');

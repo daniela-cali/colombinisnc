@@ -62,6 +62,14 @@ successive, non solo la pagina visibile:
 - con la selezione vuota e i filtri che mostrano entrambi i tipi, non spunta niente e un
   avviso chiede di filtrare per anno o per stato.
 
+**Un disdetto non è rinnovabile finché l'operatore non lo riattiva** (deciso durante
+l'implementazione). La decisione 7 di `abbonamenti_annulla_accettazione_spec.md` lo ammetteva
+insieme ad attivi e scaduti, senza un motivo proprio: così un cliente che aveva chiuso il
+contratto poteva finire in una coda di rinnovi. Ora la disdetta non è più uno stato finale:
+dalla scheda si riattiva (`disdetto → attivo` in `cambiaStato()`), e la riattivazione cambia
+solo lo stato. Le visite annullate dalla disdetta restano annullate. Un disdetto riattivato
+con la data di fine passata risulta scaduto, quindi rinnovabile.
+
 Il caso misto è raro nell'uso: le proposte sono dell'anno dopo e le rinnovabili dell'anno in
 corso, e il filtro dell'anno le separa già.
 

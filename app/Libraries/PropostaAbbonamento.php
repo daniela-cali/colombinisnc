@@ -46,8 +46,8 @@ class PropostaAbbonamento
      *
      * @return array{nome: string, contenuto: string}
      *
-     * @throws RuntimeException se la categoria non ha un modello, o mancano prezzo, operazioni
-     *                          o apparecchiature
+     * @throws RuntimeException se la categoria non ha un modello, o mancano prezzo, operazioni,
+     *                          apparecchiature o modalità di pagamento
      */
     public function genera(array $abbonamento): array
     {
@@ -69,6 +69,10 @@ class PropostaAbbonamento
         }
         if ($apparecchiature === []) {
             throw new RuntimeException('Mancano le apparecchiature installate: compilale in Modifica prima di generare la proposta.');
+        }
+        // Senza, la proposta uscirebbe con la riga del pagamento vuota davanti al cliente.
+        if (trim((string) $abbonamento['modalita_pagamento']) === '') {
+            throw new RuntimeException('Manca la modalità di pagamento: compilala in Modifica prima di generare la proposta.');
         }
 
         $cliente = (new ClientiModel())->find((int) $abbonamento['cliente_id']);

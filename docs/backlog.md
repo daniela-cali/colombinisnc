@@ -71,18 +71,10 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   che non è un anno, secondo prezzo per la pulizia del fondo a richiesta, che nel gestionale
   non esiste. Le note sono in `docs/spec/abbonamenti_proposte_word_spec.md`, «Fuori scope».
   Il modello va preparato con lo stesso criterio di quello addolcitori (decisione 10).
-- **Rinnovo multiplo degli abbonamenti.** Oggi si rinnova uno per volta, aprendo il form: a
-  fine anno, con decine di rinnovi in fila, è lento. Emerso il 07/10/2026 lavorando al prezzo
-  del rinnovo. Serve già a **dicembre 2026**: il 2027 nasce rinnovando il 2026 caricato
-  (`CLAUDE.md`, «Go-live in produzione»), circa 70 impianti e 80 piscine. Il calcolo del prezzo
-  c'è già, `AbbonamentiModel::prezzoRinnovo()`.
-  - Deciso il 07/10/2026: come il rinnovo singolo, copia note, operazioni, apparecchiature e
-    modalità di pagamento; sposta date e periodi di un anno; aumenta il prezzo. La modalità di
-    pagamento resta testo libero e **si scrive senza anno** («a metà servizio: giugno»), così
-    copiarla è corretto.
-  - Ancora da decidere: «Rinnova selezionati» dall'elenco oppure rinnovo singolo e basta (circa
-    un'ora e un quarto per 150 form). Dipende da quanti abbonamenti cambiano fra un anno e
-    l'altro oltre al prezzo, soprattutto i periodi delle piscine.
+- **Rinnovo automatico senza form**, con un flag sull'abbonamento che dica se si può rinnovare
+  senza controllo. Il rinnovo multiplo della v0.37.0 apre comunque un form per ciascuno
+  (`docs/spec/abbonamenti_rinnovo_multiplo_spec.md`). Se ne riparla dopo il primo giro di
+  rinnovi, a dicembre 2026, sapendo quanti sono stati approvati senza modifiche.
 - **Tabella delle condizioni di pagamento**, idea di Daniela del 07/10/2026, rimandata: oggi
   basta il testo libero senza anno. Toglierebbe l'anno dal testo, uniformerebbe le frasi e
   servirebbe anche ai preventivi. Aperti: i casi personalizzati (voce «Altro» con testo

@@ -173,8 +173,14 @@ class AbbonamentiModel extends Model
             return 'è sospeso: va riattivato prima di poterlo rinnovare';
         }
 
+        // Il cliente ha chiuso il contratto: per rinnovarlo l'operatore lo riattiva prima, con
+        // un gesto esplicito, invece di trovarselo fra i rinnovabili.
+        if ($stato === self::STATO_DISDETTO) {
+            return 'è stato disdetto: va riattivato prima di poterlo rinnovare';
+        }
+
         // proposta e rifiutata: non è mai stato un contratto, non c'è niente da rinnovare.
-        if (! in_array($stato, [self::STATO_ATTIVO, self::STATO_SCADUTO, self::STATO_DISDETTO], true)) {
+        if (! in_array($stato, [self::STATO_ATTIVO, self::STATO_SCADUTO], true)) {
             return 'non è mai stato accettato';
         }
 
@@ -258,12 +264,15 @@ class AbbonamentiModel extends Model
                 'ti.nome AS tipo_nome',
                 'ti.categoria AS tipo_categoria',
                 $this->selectStatoCalcolato(),
-                '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
+                'succ.id AS successore_id',
+                'SUBSTRING(succ.data_inizio, 1, 4) AS successore_anno',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
             ])
             ->join('clienti c',         'c.id  = abbonamenti.cliente_id',        'left')
             ->join('tipi_intervento ti', 'ti.id = abbonamenti.tipo_intervento_id', 'left')
+            // Il rinnovo, se c'è: al massimo uno per il vincolo uq_abbonamenti_abbonamento_precedente_id
+            ->join('abbonamenti succ',   'succ.abbonamento_precedente_id = abbonamenti.id', 'left')
             ->find($id);
 
         return $result ?: null;
@@ -271,8 +280,8 @@ class AbbonamentiModel extends Model
 
     /**
      * Elenco globale con denominazione cliente, tipo intervento e stato calcolato.
-     * ha_successore = 1 se esiste già un abbonamento di rinnovo che punta a questo.
-     * Usato nell'index per decidere se mostrare il bottone Rinnova.
+     * successore_id e successore_anno dicono se esiste già il rinnovo e per che anno: l'index
+     * li usa per il badge "Rinnovato" e, tramite rinnovabile(), per il bottone Rinnova.
      */
     public function elencoConDettagli(): array
     {
@@ -282,13 +291,15 @@ class AbbonamentiModel extends Model
                 'ti.nome AS tipo_nome',
                 'ti.categoria AS tipo_categoria',
                 $this->selectStatoCalcolato(),
-                '(SELECT a2.id FROM abbonamenti a2 WHERE a2.abbonamento_precedente_id = abbonamenti.id LIMIT 1) AS successore_id',
+                'succ.id AS successore_id',
+                'SUBSTRING(succ.data_inizio, 1, 4) AS successore_anno',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
                 'SUBSTRING(abbonamenti.data_inizio, 1, 4) AS anno_inizio',
             ])
             ->join('clienti c',         'c.id  = abbonamenti.cliente_id',        'left')
             ->join('tipi_intervento ti', 'ti.id = abbonamenti.tipo_intervento_id', 'left')
+            ->join('abbonamenti succ',   'succ.abbonamento_precedente_id = abbonamenti.id', 'left')
             ->orderBy('abbonamenti.data_fine', 'DESC')
             ->findAll();
     }

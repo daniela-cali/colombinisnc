@@ -1,7 +1,7 @@
 <?php
 /**
  * @var string $title
- * @var array  $abbonamento          Da AbbonamentiModel::trovaConDettagli() — include stato_calcolato, successore_id
+ * @var array  $abbonamento          Da AbbonamentiModel::trovaConDettagli() — include stato_calcolato, successore_id, successore_anno
  * @var bool   $rinnovabile          Da AbbonamentiModel::rinnovabile() — decide il bottone Rinnova
  * @var array  $periodi              Da AbbonamentiPeriodiModel::perAbbonamento()
  * @var array  $interventi           Interventi figli: id, codice, data_scadenza, data_pianificata, stato
@@ -46,9 +46,6 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
             <div class="card-header">
                 <h3 class="card-title mb-0">
                     <i class="bi bi-file-earmark-text me-2"></i>Abbonamento
-                    <span class="badge <?= $statiBadge[$stato] ?? 'bg-secondary' ?> ms-2">
-                        <?= esc($statiLabel[$stato] ?? $stato) ?>
-                    </span>
                 </h3>
                 <div class="card-tools d-flex gap-2 flex-wrap">
                     <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/edit') ?>"
@@ -65,6 +62,18 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
             </div>
             <div class="card-body">
                 <dl class="row mb-0">
+                    <dt class="col-5 text-muted">Stato</dt>
+                    <dd class="col-7">
+                        <span class="badge <?= $statiBadge[$stato] ?? 'bg-secondary' ?>">
+                            <?= esc($statiLabel[$stato] ?? $stato) ?>
+                        </span>
+                        <?php if ($abbonamento['successore_id']): ?>
+                            <a href="<?= base_url('abbonamenti/' . $abbonamento['successore_id']) ?>"
+                               class="badge badge-contorno"
+                               title="Vai al rinnovo per il <?= esc($abbonamento['successore_anno']) ?>">Rinnovato →</a>
+                        <?php endif ?>
+                    </dd>
+
                     <dt class="col-5 text-muted">Cliente</dt>
                     <dd class="col-7"><?= esc($abbonamento['cliente_denominazione']) ?></dd>
 
@@ -181,6 +190,19 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
             <?php endif ?>
 
             <!-- Azioni di stato -->
+            <?php if ($stato === 'disdetto'): ?>
+                <div class="card-footer">
+                    <form action="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/stato') ?>" method="post">
+                        <?= csrf_field() ?>
+                        <input type="hidden" name="stato" value="attivo">
+                        <button type="submit" class="btn btn-success btn-sm w-100"
+                                onclick="return confirm('Riattivare l\'abbonamento? Le visite annullate con la disdetta non vengono ripristinate. Una volta attivo, si potrà rinnovare.')">
+                            <i class="bi bi-play-circle me-1"></i>Riattiva
+                        </button>
+                    </form>
+                </div>
+            <?php endif ?>
+
             <?php if (in_array($stato, ['attivo', 'sospeso'], true)): ?>
                 <div class="card-footer">
                     <div class="d-flex flex-column gap-2">
@@ -207,7 +229,7 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                             <?= csrf_field() ?>
                             <input type="hidden" name="stato" value="disdetto">
                             <button type="submit" class="btn btn-danger btn-sm w-100"
-                                    onclick="return confirm('Disdire l\'abbonamento? Verranno annullate tutte le visite successive a oggi, comprese quelle già pianificate in calendario. L\'operazione non è reversibile.')">
+                                    onclick="return confirm('Disdire l\'abbonamento? Verranno annullate tutte le visite successive a oggi, comprese quelle già pianificate in calendario. Le visite annullate non si recuperano, anche riattivando l\'abbonamento.')">
                                 <i class="bi bi-x-circle me-1"></i>Disdici
                             </button>
                         </form>
@@ -228,15 +250,9 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
             <?php endif ?>
 
             <!-- Rinnova — quando si può rinnovare lo dice solo rinnovabile(), la stessa
-                 regola che applica il controller: qui nessuna condizione sullo stato -->
-            <?php if ($abbonamento['successore_id']): ?>
-                <div class="card-footer">
-                    <a href="<?= base_url('abbonamenti/' . $abbonamento['successore_id']) ?>"
-                       class="btn btn-outline-secondary btn-sm w-100">
-                        <i class="bi bi-arrow-right-circle me-1"></i>Vai al rinnovo
-                    </a>
-                </div>
-            <?php elseif ($rinnovabile): ?>
+                 regola che applica il controller: qui nessuna condizione sullo stato.
+                 Il rinnovo già fatto lo indica il badge "Rinnovato →" nella riga Stato. -->
+            <?php if ($rinnovabile): ?>
                 <div class="card-footer">
                     <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/rinnova') ?>"
                        class="btn btn-primary btn-sm w-100">

@@ -1,5 +1,23 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.37.0] - 2026-10-07
+
+### Rinnovo di più abbonamenti in fila
+
+- [APP] **Si rinnovano tanti abbonamenti di seguito.** Nell'elenco si spuntano gli abbonamenti da rinnovare, oppure si filtra e si spunta la casella in intestazione per prenderli tutti, e si preme **Rinnova selezionati**. Si apre il form di rinnovo del primo, nell'ordine in cui sono stati spuntati: lo si controlla, **Salva e prossimo** crea la proposta e apre subito il successivo. **Salta** passa oltre senza crearla, **Interrompi** torna all'elenco. Alla fine un riepilogo dice quante proposte sono nate e chi è stato saltato, con il motivo se non era più rinnovabile. Per riprendere il giorno dopo basta riselezionare: chi è già rinnovato non ha più la casella
+- [APP] **La selezione nell'elenco è di un tipo solo**: o proposte, da accettare o scaricare in Word, o abbonamenti da rinnovare. Spuntata una riga, le caselle dell'altro tipo si disattivano finché non si tolgono tutte le spunte, e si accendono solo i pulsanti che servono. Se i filtri mostrano entrambi i tipi, la casella in intestazione chiede di filtrare per anno o per stato
+- [APP] **Accetta selezionati e Scarica proposte non perdono più le righe delle altre pagine.** Prima la casella in intestazione spuntava solo la pagina visibile, e le righe spuntate in un'altra pagina restavano spuntate ma non venivano inviate
+- [APP] **Nell'elenco c'è la colonna Rinnovo**: **Rinnovato →** porta al rinnovo già fatto, oppure c'è il pulsante **Rinnova** con la scritta, al posto dell'icona fra le azioni. Lo stesso **Rinnovato →** compare nella scheda accanto allo stato, al posto del pulsante «Vai al rinnovo» in fondo
+- [APP] **Nella scheda lo stato è la prima riga dei dettagli**, invece di un badge nell'intestazione
+- [APP] **Un abbonamento disdetto si può riattivare** dalla scheda, ed è l'unico modo per rinnovarlo: un disdetto non compare più fra i rinnovabili. La riattivazione cambia solo lo stato, le visite annullate con la disdetta non tornano
+- [APP] **La proposta Word non si genera senza modalità di pagamento**, come già senza prezzo, operazioni o apparecchiature: il documento sarebbe uscito con la riga del pagamento vuota
+- [DEV] La coda viaggia nell'indirizzo del rinnovo (`?coda=51,38&fatti=2&saltati=40`) e nei campi nascosti del form, non in sessione: due schede non si sovrascrivono la coda, e un errore di validazione torna allo stesso indirizzo senza perderla. `leggiCoda()`, `urlProssimo()` e `urlFine()` in `AbbonamentiController` tengono il formato in un punto solo; nuova rotta `GET abbonamenti/rinnovo-fine` per il riepilogo. In coda, `rinnova()` aggiunge ai saltati un abbonamento non più rinnovabile invece di fermarsi
+- [DEV] La selezione multipla vive nello script dell'elenco come elenco ordinato di id, e le caselle si leggono da `table.rows().nodes()`: DataTables stacca dal documento le righe delle altre pagine e quelle escluse dai filtri, e `querySelectorAll` non le trovava. Gli id arrivano al form come campi nascosti al momento dell'invio. Il controller di Accetta e Scarica non cambia
+- [DEV] `motivoNonRinnovabile()` esclude `disdetto`, che la decisione 7 dello spec dell'annullamento accettazione ammetteva senza un motivo proprio; `cambiaStato()` ha la transizione `disdetto → attivo`, che non tocca gli interventi
+- [DEV] `trovaConDettagli()` ed `elencoConDettagli()` leggono il successore con un `LEFT JOIN` invece di una sottoquery, e ne prendono anche l'anno per il tooltip di «Rinnovato →». Il vincolo univoco su `abbonamento_precedente_id` garantisce che il join non duplichi righe
+- [DEV] Nuova classe `.badge-contorno` in `custom.css`: il contorno è un'ombra interna e non un bordo, così il badge è alto quanto quelli pieni. Le colonne nascoste dei filtri dell'elenco passano da 9 e 10 a 10 e 11
+- [DEV] Nell'intestazione dell'elenco anche Accetta selezionati e Scarica proposte mostrano solo l'icona su mobile, come prevede `CLAUDE.md`
+
 ## [0.36.1] - 2026-10-07
 
 ### Il rinnovo propone il prezzo aumentato

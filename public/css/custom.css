@@ -580,6 +580,16 @@ table.dataTable th.dt-type-date div.dt-column-header {
     min-width: 1.1em;
 }
 
+/* Badge contornato accanto a un badge pieno (es. "Rinnovato →" vicino allo stato
+   dell'abbonamento). Il contorno è un'ombra interna e non un border: un bordo vero
+   aggiungerebbe 2px di altezza e il badge non starebbe in linea con quello accanto. */
+.badge-contorno {
+    color: var(--bs-primary);
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--bs-primary);
+    text-decoration: none;
+}
+
 /* =========================================================
    Card promemoria in dashboard — fasce colorate (viola #6f42c1)
    ========================================================= */

@@ -7,6 +7,8 @@
  * @var array      $frequenze   AbbonamentiModel::FREQUENZE_LABEL
  * @var array|null $periodi     Periodi precaricati per rinnova(); null per nuovo
  * @var string|null $from       URL di ritorno dopo salvataggio
+ * @var array|null $coda        Rinnovo in coda (da rinnova()): coda, fatti, saltati, posizione, totale,
+ *                              urlSalta, urlInterrompi; null per nuovo e rinnovo singolo
  * @var array|null $abbonamento Pre-compilazione per rinnovo; null per nuovo. Nel rinnovo porta anche
  *                              prezzo_precedente e aumento_percento, per la riga sotto il prezzo
  */
@@ -43,6 +45,11 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                 <h3 class="card-title mb-0">
                     <i class="bi bi-file-earmark-plus me-2"></i><?= esc($title) ?>
                 </h3>
+                <?php if ($coda): ?>
+                    <div class="card-tools">
+                        <span class="badge text-bg-primary">Rinnovo <?= (int) $coda['posizione'] ?> di <?= (int) $coda['totale'] ?></span>
+                    </div>
+                <?php endif ?>
             </div>
             <form action="<?= base_url('abbonamenti/store') ?>" method="post">
                 <?= csrf_field() ?>
@@ -51,6 +58,12 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                 <?php endif ?>
                 <?php if (! empty($abbonamento['abbonamento_precedente_id'])): ?>
                     <input type="hidden" name="abbonamento_precedente_id" value="<?= (int) $abbonamento['abbonamento_precedente_id'] ?>">
+                <?php endif ?>
+                <?php if ($coda): ?>
+                    <?php /* Il resto della coda: store() li legge per aprire il form successivo */ ?>
+                    <input type="hidden" name="coda" value="<?= esc(implode(',', $coda['coda'])) ?>">
+                    <input type="hidden" name="fatti" value="<?= (int) $coda['fatti'] ?>">
+                    <input type="hidden" name="saltati" value="<?= esc(implode(',', $coda['saltati'])) ?>">
                 <?php endif ?>
 
                 <div class="card-body">
@@ -173,13 +186,27 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
 
                 </div>
                 <div class="card-footer card-azioni">
-                    <a href="<?= esc($from ?: base_url('abbonamenti')) ?>"
-                       class="btn btn-sm btn-outline-secondary azione-ritorno">
-                        <i class="bi bi-arrow-left me-1"></i>Annulla
-                    </a>
-                    <button type="submit" class="btn btn-sm btn-primary azione-primaria">
-                        <i class="bi bi-check-lg me-1"></i>Salva
-                    </button>
+                    <?php if ($coda): ?>
+                        <a href="<?= esc($coda['urlInterrompi']) ?>"
+                           class="btn btn-sm btn-outline-secondary azione-ritorno">
+                            <i class="bi bi-stop-circle me-1"></i>Interrompi
+                        </a>
+                        <a href="<?= esc($coda['urlSalta']) ?>"
+                           class="btn btn-sm btn-outline-secondary azione-secondaria">
+                            <i class="bi bi-skip-forward me-1"></i>Salta
+                        </a>
+                        <button type="submit" class="btn btn-sm btn-primary azione-primaria">
+                            <i class="bi bi-check-lg me-1"></i><?= $coda['coda'] ? 'Salva e prossimo' : 'Salva e termina' ?>
+                        </button>
+                    <?php else: ?>
+                        <a href="<?= esc($from ?: base_url('abbonamenti')) ?>"
+                           class="btn btn-sm btn-outline-secondary azione-ritorno">
+                            <i class="bi bi-arrow-left me-1"></i>Annulla
+                        </a>
+                        <button type="submit" class="btn btn-sm btn-primary azione-primaria">
+                            <i class="bi bi-check-lg me-1"></i>Salva
+                        </button>
+                    <?php endif ?>
                 </div>
             </form>
         </div>
