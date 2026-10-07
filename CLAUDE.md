@@ -78,8 +78,10 @@ Non migrare nessun record dal database di sviluppo a quello di produzione: clien
 
 **Il 2027 parte dalle proposte, non dai rinnovi.** Gli abbonamenti reali del 2027 si caricano come proposte con "Nuovo abbonamento"; il 2026 non si carica. Al primo avvio non esiste nessun abbonamento da cui rinnovare: un vincolo messo su `rinnova()` non deve toccare la creazione da zero di un abbonamento con date future.
 
-## Codice cliente — numerico o `INT-`
-`clienti.codice` porta un'informazione: un codice **numerico** è l'`ANCODICE` del gestionale contabile Ad Hoc, conservato alla promozione da `clienti_adhoc`; un codice **`INT-xxx`** (da `NumeratoriModel`) indica un cliente interno, non presente in contabilità. **Non normalizzare mai** tutti i codici a `INT-`, né spostare il codice Ad Hoc in `codice_esterno`.
+## Codice cliente — numerico o `CLI-`
+`clienti.codice` porta un'informazione: un codice **numerico** è l'`ANCODICE` del gestionale contabile Ad Hoc, conservato alla promozione da `clienti_adhoc`; un codice **`CLI-xxxx`** (da `NumeratoriModel`) indica un cliente interno, non presente in contabilità. **Non normalizzare mai** tutti i codici a `CLI-`, né spostare il codice Ad Hoc in `codice_esterno`.
+
+Fino alla v0.30.0 il prefisso era `INT-`: la migration `ContatoreCodiciClienti` l'ha cambiato perché `INT` indicava anche gli interventi. Un `INT-` su un cliente è un residuo, non la forma corretta.
 
 `codice_esterno` non è un doppione: `codice` dice *come* il cliente è entrato (storico, non modificabile da nessuna UI), `codice_esterno` dice *se oggi* è in contabilità ed è aggiornabile dalla scheda. `normalizza()` lo converte da `''` a `NULL`, così `codice_esterno IS NULL` funziona come criterio.
 
