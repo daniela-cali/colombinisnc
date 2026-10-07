@@ -14,7 +14,8 @@
     Dati dell'azienda e della <strong>sede</strong> (indirizzo, coordinate, recapiti),
     <strong>orari</strong> di lavoro e pausa, <strong>logo</strong> e le soglie geografiche che
     determinano l'assegnazione automatica della <strong>zona</strong> ai clienti. Sono i dati
-    usati per calcolare distanze, percorsi e per intestare i documenti.
+    usati per calcolare distanze, percorsi e per intestare i documenti. Qui si imposta anche
+    l'<strong>aumento del prezzo al rinnovo</strong> degli abbonamenti.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-map me-1"></i>Geocodifica clienti</h6>

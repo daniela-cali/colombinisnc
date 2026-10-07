@@ -209,6 +209,24 @@ $this->extend('layouts/admin');
                 </div>
             </div>
 
+            <div class="card card-outline card-primary">
+                <div class="card-header">
+                    <h3 class="card-title mb-0"><i class="bi bi-arrow-repeat me-2"></i>Abbonamenti</h3>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Aumento del prezzo al rinnovo (%)</label>
+                    <input type="number" name="rinnovo_aumento_percento" class="form-control"
+                           step="0.01" min="0" max="100" required
+                           value="<?= esc(old('rinnovo_aumento_percento', \App\Models\AbbonamentiModel::percentualeRinnovo())) ?>">
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Il rinnovo propone il prezzo dell'anno prima aumentato di questa percentuale e
+                        arrotondato per eccesso ai <?= \App\Models\AbbonamentiModel::ARROTONDAMENTO_RINNOVO ?> euro
+                        (con il 2%: 500 → 510). Il prezzo resta correggibile nel form. Con 0 il prezzo non aumenta.
+                    </p>
+                </div>
+            </div>
+
         </div>
 
     </div>

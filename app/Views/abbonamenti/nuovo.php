@@ -7,7 +7,8 @@
  * @var array      $frequenze   AbbonamentiModel::FREQUENZE_LABEL
  * @var array|null $periodi     Periodi precaricati per rinnova(); null per nuovo
  * @var string|null $from       URL di ritorno dopo salvataggio
- * @var array|null $abbonamento Pre-compilazione per rinnovo; null per nuovo
+ * @var array|null $abbonamento Pre-compilazione per rinnovo; null per nuovo. Nel rinnovo porta anche
+ *                              prezzo_precedente e aumento_percento, per la riga sotto il prezzo
  */
 $this->extend('layouts/admin');
 
@@ -150,6 +151,13 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                             <input type="text" data-currency-display="prezzo" class="form-control" inputmode="decimal" placeholder="0,00">
                             <input type="hidden" name="prezzo" id="prezzo"
                                    value="<?= esc(old('prezzo', $abbonamento['prezzo'] ?? '')) ?>">
+                            <?php if (isset($abbonamento['prezzo_precedente'])): ?>
+                                <div class="form-text">
+                                    Anno precedente <?= number_format((float) $abbonamento['prezzo_precedente'], 2, ',', '.') ?> €
+                                    — aumentato del <?= esc(rtrim(rtrim(number_format($abbonamento['aumento_percento'], 2, ',', ''), '0'), ',')) ?>%
+                                    e arrotondato ai <?= \App\Models\AbbonamentiModel::ARROTONDAMENTO_RINNOVO ?> euro
+                                </div>
+                            <?php endif ?>
                         </div>
                         <div class="col-md-8">
                             <label class="form-label">Modalità di pagamento</label>

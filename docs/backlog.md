@@ -71,13 +71,11 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   che non è un anno, secondo prezzo per la pulizia del fondo a richiesta, che nel gestionale
   non esiste. Le note sono in `docs/spec/abbonamenti_proposte_word_spec.md`, «Fuori scope».
   Il modello va preparato con lo stesso criterio di quello addolcitori (decisione 10).
-- **Prezzo del rinnovo: +2% arrotondato ai 5 euro superiori.** Regola di Daniela del
-  06/10/2026: a ogni rinnovo il prezzo sale del 2% e si arrotonda per eccesso al multiplo di 5,
-  così non restano numeri con i centesimi. In formula `ceil(prezzo * 1.02 / 5) * 5`: 500 → 510,
-  1.190 → 1.215. Oggi `AbbonamentiController::rinnova()` ricopia il prezzo dell'anno prima così
-  com'è. Applicarla lì, nel precompilato, lasciando il campo correggibile nel form; un prezzo
-  vuoto resta vuoto. Le proposte del 2027 nascono da «Nuovo abbonamento», quindi la regola
-  serve dai rinnovi del 2028.
+- **Rinnovo multiplo degli abbonamenti.** Oggi si rinnova uno per volta, aprendo il form: a
+  fine anno, con decine di rinnovi in fila, è lento. Emerso il 07/10/2026 lavorando al prezzo
+  del rinnovo. Da fare brainstorming: come si scelgono (spunte nell'elenco come «Accetta
+  selezionati», o «tutti quelli in scadenza»), cosa nasce (proposte da rivedere), e il prezzo
+  salvato senza che nessuno lo veda. Il calcolo c'è già, `AbbonamentiModel::prezzoRinnovo()`.
 - **Preventivi e clienti potenziali**, insieme: il potenziale esiste perché ha un preventivo.
   Decisioni del brainstorming del 06/10/2026 in `docs/spec/preventivi_impianti_spec.md` §8.
   Si fa dopo le proposte in Word. Restano aperti:

@@ -125,6 +125,12 @@
     su uno non ancora cominciato, e su uno già rinnovato: in quest'ultimo caso trovi al suo
     posto il collegamento <strong>Vai al rinnovo</strong>.
 </p>
+<p>
+    Il <strong>prezzo</strong> del rinnovo parte da quello dell'anno prima, aumentato della
+    percentuale impostata in Impostazioni → Parametri (di base il 2%) e arrotondato per eccesso
+    ai 5 euro: con il 2%, 500 diventa 510. Sotto il campo è indicato il prezzo di partenza, e puoi
+    sempre correggerlo prima di salvare.
+</p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-trash me-1"></i>Eliminare</h6>
 <p>

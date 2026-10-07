@@ -45,6 +45,7 @@ if (! function_exists('etichetta_campo')) {
             'referente_telefono' => 'Telefono del referente',
             'csv_file'           => 'File CSV',
             'sede_logo'          => 'Logo',
+            'rinnovo_aumento_percento' => 'Aumento del prezzo al rinnovo',
         ];
 
         // Regole col jolly (es. periodi.*.frequenza): conta l'ultimo segmento,

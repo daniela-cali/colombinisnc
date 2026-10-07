@@ -1,5 +1,16 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.36.1] - 2026-10-07
+
+### Il rinnovo propone il prezzo aumentato
+
+- [APP] **Il rinnovo di un abbonamento propone già il prezzo aggiornato**: quello dell'anno prima aumentato del 2% e arrotondato per eccesso ai 5 euro, per esempio 500 → 510 e 1.190 → 1.215. Sotto il campo è indicato il prezzo di partenza, e prima di salvare lo si può sempre correggere. Un abbonamento senza prezzo si rinnova senza prezzo
+- [APP] **La percentuale si cambia da Impostazioni → Parametri**, nella card Abbonamenti. Con 0 il prezzo resta quello dell'anno prima
+- [APP] **Il prezzo non si perde più modificando un abbonamento.** Aprendo la modifica il campo prezzo appariva vuoto, e salvando senza riscriverlo il prezzo veniva cancellato. Lo stesso difetto svuotava il prezzo precompilato nel rinnovo
+- [DEV] `AbbonamentiModel::prezzoRinnovo()` contiene la regola e la riuserà il rinnovo multiplo, annotato in `docs/backlog.md`. La percentuale sta nel setting `Azienda.rinnovo_aumento_percento`, in punti (2 = +2%), e vale `AUMENTO_RINNOVO_DEFAULT` finché non viene salvata, quindi in produzione funziona già senza configurarla. Il passo di 5 euro è la costante `ARROTONDAMENTO_RINNOVO`. Il conto si arrotonda prima ai centesimi, come a mano: 14,71 € +2% fa 15,00 € e resta 15, mentre la frazione di centesimo (15,0042) lo porterebbe a 20
+- [DEV] `salvaParametri()` valida la percentuale (0–100) prima di scrivere qualunque parametro, così un valore sbagliato non lascia gli altri salvati a metà. È il primo campo validato della pagina
+- [DEV] **`currency-input.js` svuotava il campo nascosto all'avvio**, dalla v0.26.0: `format()` leggeva solo il campo visibile, che nasce vuoto, e con `sync()` riscriveva vuoto anche il nascosto. Ora all'avvio il valore del nascosto passa nel visibile prima della formattazione. La correzione è nello script, quindi vale per `nuovo.php` ed `edit.php` senza toccare le view
+
 ## [0.36.0] - 2026-10-06
 
 ### La proposta di abbonamento si genera in Word

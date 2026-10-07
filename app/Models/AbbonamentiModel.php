@@ -68,6 +68,12 @@ class AbbonamentiModel extends Model
         'rifiutata'=> 'Rifiutata',
     ];
 
+    // Aumento del prezzo al rinnovo: la percentuale è in Impostazioni → Parametri, questo è
+    // il valore finché nessuno l'ha mai salvata. Il passo di arrotondamento resta fisso:
+    // serve a non avere centesimi nei prezzi, non è un parametro commerciale.
+    const AUMENTO_RINNOVO_DEFAULT = 2.0;
+    const ARROTONDAMENTO_RINNOVO  = 5;
+
     const STATI_BADGE = [
         'attivo'    => 'bg-success',
         'sospeso'   => 'bg-warning text-dark',
@@ -188,6 +194,36 @@ class AbbonamentiModel extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Percentuale di aumento del prezzo al rinnovo, in punti (2 = +2%).
+     *
+     * Si legge dalle Impostazioni; finché non è mai stata salvata vale la regola aziendale
+     * AUMENTO_RINNOVO_DEFAULT, così un database appena installato rinnova già correttamente.
+     */
+    public static function percentualeRinnovo(): float
+    {
+        return (float) (setting('Azienda.rinnovo_aumento_percento') ?? self::AUMENTO_RINNOVO_DEFAULT);
+    }
+
+    /**
+     * Prezzo proposto per il rinnovo: quello dell'anno prima aumentato della percentuale,
+     * arrotondato per eccesso al multiplo di ARROTONDAMENTO_RINNOVO (500 → 510, 1.190 → 1.215).
+     *
+     * Si arrotonda prima ai centesimi, come si farebbe a mano: 14,71 € +2% è 15,00 € e resta
+     * 15, mentre la frazione di centesimo del conto esatto (15,0042) lo porterebbe a 20.
+     * Un prezzo assente resta assente: non si inventa un importo.
+     */
+    public function prezzoRinnovo(float|string|null $prezzo): ?float
+    {
+        if ($prezzo === null || $prezzo === '') {
+            return null;
+        }
+
+        $aumentato = round((float) $prezzo * (1 + self::percentualeRinnovo() / 100), 2);
+
+        return ceil($aumentato / self::ARROTONDAMENTO_RINNOVO) * self::ARROTONDAMENTO_RINNOVO;
     }
 
     /**

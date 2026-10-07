@@ -34,5 +34,12 @@ document.querySelectorAll('[data-currency-display]').forEach(function (display) 
 
     display.addEventListener('input', sync);
     display.addEventListener('blur', format);
-    format(); // formatta subito il valore precompilato, se presente
+
+    // Il valore precompilato dal server sta nel campo nascosto: va portato nel visibile prima
+    // di formattare, altrimenti format() leggerebbe il visibile vuoto e svuoterebbe anche il
+    // nascosto, perdendo il prezzo al salvataggio.
+    if (display.value === '' && hidden.value !== '') {
+        display.value = hidden.value.replace('.', ',');
+    }
+    format();
 });

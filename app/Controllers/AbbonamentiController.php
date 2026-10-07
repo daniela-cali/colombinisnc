@@ -311,6 +311,8 @@ class AbbonamentiController extends BaseController
     /**
      * Apre il form nuovo pre-compilato con i dati dell'abbonamento precedente.
      * Date spostate di un anno; periodi spostati di un anno; abbonamento_precedente_id impostato.
+     * Il prezzo è quello dell'anno prima aumentato secondo AbbonamentiModel::prezzoRinnovo(),
+     * correggibile nel form.
      */
     public function rinnova(int $id): string|RedirectResponse
     {
@@ -337,6 +339,10 @@ class AbbonamentiController extends BaseController
             'data_fine'                 => date('Y-m-d', strtotime($precedente['data_fine']   . ' +1 year')),
             'abbonamento_precedente_id' => $id,
             'stato'                     => AbbonamentiModel::STATO_PROPOSTA,
+            'prezzo'                    => $model->prezzoRinnovo($precedente['prezzo']),
+            // Solo per la riga di spiegazione sotto il prezzo: non sono campi del form.
+            'prezzo_precedente'         => $precedente['prezzo'],
+            'aumento_percento'          => AbbonamentiModel::percentualeRinnovo(),
         ]);
 
         $periodi = (new AbbonamentiPeriodiModel())->perAbbonamento($id);
