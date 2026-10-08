@@ -65,12 +65,6 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   - Poi un brainstorming fra tre strade: fix mirati, meccanismo unico, oppure una pila delle
     pagine visitate (idea di Daniela, da pensare).
   - Tocca tutte le pagine: probabilmente serve un branch.
-- **Proposta in Word per le piscine.** Gli addolcitori sono fatti in v0.36.0 e il motore
-  (`DocumentoWord`) c'è. Il modello di partenza è `docs/spec/2026 PISCINE MODELLO-PROVA-ABBONAMENTO.docx`,
-  più complesso di quello impianti: periodi con le loro date, «senza pulizia del fondo», durata
-  che non è un anno, secondo prezzo per la pulizia del fondo a richiesta, che nel gestionale
-  non esiste. Le note sono in `docs/spec/abbonamenti_proposte_word_spec.md`, «Fuori scope».
-  Il modello va preparato con lo stesso criterio di quello addolcitori (decisione 10).
 - **Rinnovo automatico senza form**, con un flag sull'abbonamento che dica se si può rinnovare
   senza controllo. Il rinnovo multiplo della v0.37.0 apre comunque un form per ciascuno
   (`docs/spec/abbonamenti_rinnovo_multiplo_spec.md`). Se ne riparla dopo il primo giro di

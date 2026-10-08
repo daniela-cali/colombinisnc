@@ -26,14 +26,15 @@ class GeneraleController extends BaseController
      * Salva tutti i parametri generali nella tabella settings.
      * Il logo viene spostato in public/uploads/ e il percorso salvato come setting.
      *
-     * L'unico valore validato è l'aumento al rinnovo, perché entra in un calcolo di prezzo.
-     * La validazione precede ogni scrittura, così un valore sbagliato non lascia gli altri
-     * parametri salvati a metà.
+     * Si validano solo i valori che finiscono in un prezzo: l'aumento al rinnovo e il prezzo
+     * della pulizia del fondo. La validazione precede ogni scrittura, così un valore sbagliato
+     * non lascia gli altri parametri salvati a metà.
      */
     public function salvaParametri()
     {
         $regole = [
             'rinnovo_aumento_percento' => 'required|decimal|greater_than_equal_to[0]|less_than_equal_to[100]',
+            'prezzo_pulizia_fondo'     => 'required|decimal|greater_than_equal_to[0]',
         ];
         if (! $this->validate($regole)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
@@ -56,6 +57,7 @@ class GeneraleController extends BaseController
         }
 
         setting()->set('Azienda.rinnovo_aumento_percento', (float) $post['rinnovo_aumento_percento']);
+        setting()->set('Azienda.prezzo_pulizia_fondo', (float) $post['prezzo_pulizia_fondo']);
 
         return redirect()->to('impostazioni/parametri')->with('success', 'Impostazioni salvate.');
     }

@@ -13,9 +13,9 @@
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-search me-1"></i>Elenco e stati</h6>
 <p>L'elenco mostra cliente, tipo, frequenza e stato:</p>
 <ul>
-    <li><span class="badge bg-info text-dark">Proposta</span> creato ma non ancora accettato dal cliente, nessuna visita generata;</li>
+    <li><span class="badge bg-info">Proposta</span> creato ma non ancora accettato dal cliente, nessuna visita generata;</li>
     <li><span class="badge bg-success">Attivo</span> accettato e in corso, genera le visite previste;</li>
-    <li><span class="badge bg-warning text-dark">Sospeso</span> temporaneamente in pausa;</li>
+    <li><span class="badge bg-warning">Sospeso</span> temporaneamente in pausa;</li>
     <li><span class="badge bg-secondary">Scaduto</span> oltre la data di fine — scade anche un
         abbonamento sospeso, perché la pausa ferma le visite ma non allunga il contratto;</li>
     <li><span class="badge bg-danger">Disdetto</span> chiuso su richiesta del cliente dopo essere stato attivo;</li>
@@ -44,7 +44,8 @@
     Dalla scheda, il pulsante <strong>Proposta Word</strong> scarica il documento da mandare al
     cliente: due pagine uguali, una per lui e una da restituire firmata. Il documento si compone
     in quel momento con i dati salvati, quindi se correggi l'abbonamento basta scaricarlo di nuovo.
-    Per ora c'è il modello degli addolcitori; per le piscine il pulsante non compare ancora.
+    C'è un modello per gli addolcitori e uno per le piscine; per il tipo generale il pulsante
+    non compare.
 </p>
 <p>
     Nell'elenco, sulle proposte, lo stesso pulsante è <strong>pieno</strong> se la proposta è già
@@ -55,10 +56,17 @@
 </p>
 <p>
     Perché si possa generare servono il <strong>prezzo</strong>, le <strong>operazioni
-    incluse</strong>, le <strong>apparecchiature</strong> e la <strong>modalità di
-    pagamento</strong>. Operazioni e apparecchiature si
+    incluse</strong> e la <strong>modalità di pagamento</strong>, e per gli addolcitori anche le
+    <strong>apparecchiature</strong>. Operazioni e apparecchiature si
     scrivono <strong>una per riga, senza trattino</strong>: il simbolo dell'elenco lo mette il
     documento.
+</p>
+<p>
+    Nella proposta delle piscine ogni periodo ha la sua riga, con le date e la frequenza. La
+    <strong>pulizia del fondo</strong> è scritta solo sui periodi che la comprendono: dove non è
+    scritta, non è compresa. Se nessun periodo la comprende compare
+    <em>SENZA PULIZIA DEL FONDO</em>. Il prezzo della pulizia fatta su richiesta è sempre
+    indicato e si cambia in <strong>Impostazioni → Parametri</strong>.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-clipboard-check me-1"></i>Accettare o rifiutare una proposta</h6>

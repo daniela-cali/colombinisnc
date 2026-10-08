@@ -17,10 +17,12 @@ class PropostaAbbonamento
 {
     /**
      * Modello per categoria del tipo di intervento. Una categoria assente non genera proposte:
-     * oggi le piscine, che hanno un documento più complesso e avranno un modello loro.
+     * oggi la generale. Il modello delle piscine è quello degli addolcitori con il corpo
+     * adattato (docs/spec/abbonamenti_proposte_piscine_spec.md).
      */
     private const MODELLI = [
         TipiInterventoModel::CATEGORIA_ADDOLCITORI => 'proposta_addolcitori.docx',
+        TipiInterventoModel::CATEGORIA_PISCINE     => 'proposta_piscine.docx',
     ];
 
     /** Mesi in italiano per la data del documento, senza dipendere dal locale del server. */
@@ -47,7 +49,7 @@ class PropostaAbbonamento
      * @return array{nome: string, contenuto: string}
      *
      * @throws RuntimeException se la categoria non ha un modello, o mancano prezzo, operazioni,
-     *                          apparecchiature o modalità di pagamento
+     *                          modalità di pagamento o, per gli addolcitori, apparecchiature
      */
     public function genera(array $abbonamento): array
     {
@@ -61,13 +63,13 @@ class PropostaAbbonamento
 
         // Il documento rispecchia ciò che è salvato sull'abbonamento: niente ripiego sul testo
         // standard del tipo. Le apparecchiature le impone il form, ma non agli abbonamenti
-        // creati prima che il campo esistesse.
-        $operazioni      = $this->righe($abbonamento['operazioni_incluse']);
-        $apparecchiature = $this->righe($abbonamento['apparecchiature']);
+        // creati prima che il campo esistesse; il modello delle piscine non le ha.
+        $operazioni = $this->righe($abbonamento['operazioni_incluse']);
         if ($operazioni === []) {
             throw new RuntimeException('Mancano le operazioni incluse: compilale in Modifica prima di generare la proposta.');
         }
-        if ($apparecchiature === []) {
+        $apparecchiature = $this->righe($abbonamento['apparecchiature']);
+        if ($categoria === TipiInterventoModel::CATEGORIA_ADDOLCITORI && $apparecchiature === []) {
             throw new RuntimeException('Mancano le apparecchiature installate: compilale in Modifica prima di generare la proposta.');
         }
         // Senza, la proposta uscirebbe con la riga del pagamento vuota davanti al cliente.
@@ -80,27 +82,75 @@ class PropostaAbbonamento
 
         $personaFisica = $cliente['tipo'] === ClientiModel::TIPO_PERSONA_FISICA;
 
-        $contenuto = (new DocumentoWord(APPPATH . 'Templates/word/' . self::MODELLI[$categoria]))
+        // Le parti comuni ai due modelli; quelle di ogni categoria le aggiungono i metodi compila*.
+        $documento = (new DocumentoWord(APPPATH . 'Templates/word/' . self::MODELLI[$categoria]))
             ->valori([
                 'titolo'         => $personaFisica ? 'Gentile Sig./Sig.ra' : 'Spett.le',
                 // nel documento il nome precede il cognome, al contrario di clienti.denominazione
                 'destinatario'   => $personaFisica ? trim($cliente['nome'] . ' ' . $cliente['cognome']) : (string) $cliente['ragsoc'],
                 'indirizzo'      => (string) $cliente['indirizzo'],
                 'cap_citta'      => $this->capCitta($cliente),
-                'frequenza'      => $this->frequenza($periodi),
-                'data_inizio'    => date('d/m/Y', strtotime($abbonamento['data_inizio'])),
-                'data_fine'      => date('d/m/Y', strtotime($abbonamento['data_fine'])),
-                'prezzo'         => number_format((float) $abbonamento['prezzo'], 2, ',', '.'),
+                // con i punti come le date dei periodi delle piscine: un formato solo
+                'data_inizio'    => date('d.m.Y', strtotime($abbonamento['data_inizio'])),
+                'data_fine'      => date('d.m.Y', strtotime($abbonamento['data_fine'])),
+                'prezzo'         => $this->euro((float) $abbonamento['prezzo']),
                 'pagamento'      => (string) $abbonamento['modalita_pagamento'],
                 'data_documento' => date('d') . ' ' . self::MESI[(int) date('n')] . ' ' . date('Y'),
             ])
             ->elenco('riga_telefono', 'telefono', $this->facoltativo($cliente['telefono']))
             ->elenco('riga_email', 'email', $this->facoltativo($cliente['email']))
-            ->elenco('apparecchiature', 'apparecchiatura', $apparecchiature)
-            ->elenco('operazioni', 'operazione', $operazioni)
-            ->contenuto();
+            ->elenco('operazioni', 'operazione', $operazioni);
 
-        return ['nome' => $this->nomeFile($abbonamento), 'contenuto' => $contenuto];
+        if ($categoria === TipiInterventoModel::CATEGORIA_PISCINE) {
+            $this->compilaPiscine($documento, $periodi);
+        } else {
+            $this->compilaAddolcitori($documento, $periodi, $apparecchiature);
+        }
+
+        return ['nome' => $this->nomeFile($abbonamento), 'contenuto' => $documento->contenuto()];
+    }
+
+    /**
+     * Le parti del modello degli addolcitori: una frequenza sola e le apparecchiature installate.
+     *
+     * @param list<string> $apparecchiature
+     */
+    private function compilaAddolcitori(DocumentoWord $documento, array $periodi, array $apparecchiature): void
+    {
+        $documento
+            ->valori(['frequenza' => $this->frequenza($periodi)])
+            ->elenco('apparecchiature', 'apparecchiatura', $apparecchiature);
+    }
+
+    /**
+     * Le parti del modello delle piscine: una riga per periodo e il prezzo della pulizia del
+     * fondo su richiesta.
+     *
+     * La pulizia si scrive solo sui periodi che la comprendono: dove non è scritta non c'è, e
+     * ripetere «senza» sugli altri confonderebbe. Solo se nessun periodo la comprende compare la
+     * riga «SENZA PULIZIA DEL FONDO» (spec piscine, decisione 3). Il primo periodo sta sulla
+     * riga dell'etichetta, gli altri nell'elenco sotto.
+     *
+     * Per stare su una riga anche con QUINDICINALE servono le date in numeri e la colonna dei
+     * valori a 6 cm nel modello (spec piscine, decisione 2).
+     */
+    private function compilaPiscine(DocumentoWord $documento, array $periodi): void
+    {
+        $righe = array_map(
+            fn ($p) => 'Dal ' . $this->giornoMese($p['data_inizio']) . ' al ' . $this->giornoMese($p['data_fine'])
+                . ': ' . $this->etichettaFrequenza($p['frequenza'])
+                . ($p['con_pulizia_fondo'] ? ', con pulizia del fondo' : ''),
+            $periodi
+        );
+        $conPulizia = array_filter($periodi, static fn ($p) => (bool) $p['con_pulizia_fondo']) !== [];
+
+        $documento
+            ->valori([
+                'primo_periodo'  => $righe[0] ?? '',
+                'prezzo_pulizia' => $this->euro(AbbonamentiModel::prezzoPuliziaFondo()),
+            ])
+            ->elenco('altri_periodi', 'periodo', array_slice($righe, 1))
+            ->elenco('riga_senza_pulizia', 'senza_pulizia', $conPulizia ? [] : ['SENZA PULIZIA DEL FONDO']);
     }
 
     /**
@@ -120,12 +170,30 @@ class PropostaAbbonamento
      */
     private function frequenza(array $periodi): string
     {
-        $etichette = array_map(
-            static fn ($p) => mb_strtoupper(AbbonamentiModel::FREQUENZE_LABEL[$p['frequenza']] ?? $p['frequenza'], 'UTF-8'),
-            $periodi
-        );
+        $etichette = array_map(fn ($p) => $this->etichettaFrequenza($p['frequenza']), $periodi);
 
         return implode(' / ', array_unique($etichette));
+    }
+
+    /** «SETTIMANALE»: l'etichetta della frequenza in maiuscolo, come nei modelli. */
+    private function etichettaFrequenza(string $frequenza): string
+    {
+        return mb_strtoupper(AbbonamentiModel::FREQUENZE_LABEL[$frequenza] ?? $frequenza, 'UTF-8');
+    }
+
+    /**
+     * «01.04»: giorno e mese in numeri, senza anno, che lo dice già la durata del servizio. Più
+     * corto del mese in lettere, così il periodo sta nella colonna dei valori.
+     */
+    private function giornoMese(string $data): string
+    {
+        return date('d.m', strtotime($data));
+    }
+
+    /** «2.300,00»: un importo nel formato italiano dei modelli, che aggiungono «Euro» e l'IVA. */
+    private function euro(float $importo): string
+    {
+        return number_format($importo, 2, ',', '.');
     }
 
     /**

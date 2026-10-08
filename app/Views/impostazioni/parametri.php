@@ -224,6 +224,16 @@ $this->extend('layouts/admin');
                         arrotondato per eccesso ai <?= \App\Models\AbbonamentiModel::ARROTONDAMENTO_RINNOVO ?> euro
                         (con il 2%: 500 → 510). Il prezzo resta correggibile nel form. Con 0 il prezzo non aumenta.
                     </p>
+
+                    <label class="form-label mt-3">Prezzo della pulizia del fondo su richiesta (€)</label>
+                    <input type="number" name="prezzo_pulizia_fondo" class="form-control"
+                           step="0.01" min="0" required
+                           value="<?= esc(old('prezzo_pulizia_fondo', \App\Models\AbbonamentiModel::prezzoPuliziaFondo())) ?>">
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        IVA esclusa. La proposta delle piscine lo indica come prezzo di ogni pulizia
+                        del fondo chiesta nei periodi in cui non è compresa.
+                    </p>
                 </div>
             </div>
 

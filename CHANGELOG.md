@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.38.0] - 2026-10-08
+
+### La proposta delle piscine si genera in Word
+
+- [APP] **Anche gli abbonamenti piscine hanno la Proposta Word**, dalla scheda e nello zip di «Scarica proposte», con la stessa impaginazione della proposta degli addolcitori
+- [APP] **La frequenza è scritta periodo per periodo**, una riga ciascuno con le date e la frequenza: «Dal 01.04 al 15.09: SETTIMANALE». La pulizia del fondo è indicata solo sui periodi che la comprendono («, con pulizia del fondo»); se nessun periodo la comprende compare «SENZA PULIZIA DEL FONDO»
+- [APP] **Il prezzo della pulizia del fondo su richiesta** compare sempre nella proposta delle piscine e si imposta in **Impostazioni → Parametri**, nella card Abbonamenti. Vale 65 € + IVA finché non lo si cambia
+- [APP] **Per le piscine la proposta non chiede le apparecchiature**: servono prezzo, operazioni incluse e modalità di pagamento
+- [APP] **Nelle proposte le date della durata sono scritte con i punti** (01.01.2026), anche in quella degli addolcitori
+- [DEV] Nuovo modello `app/Templates/word/proposta_piscine.docx`, ricavato da `proposta_addolcitori.docx` cambiando solo il corpo: colonna dei valori a 6 cm invece di 7 e righe dei periodi allineate a sinistra, perché «QUINDICINALE, con pulizia del fondo» stia su una riga. Spec in `docs/spec/abbonamenti_proposte_piscine_spec.md`
+- [DEV] `PropostaAbbonamento::genera()` compila le parti comuni e passa a `compilaAddolcitori()` o `compilaPiscine()`; il controllo delle apparecchiature vale solo per gli addolcitori. Setting `Azienda.prezzo_pulizia_fondo` letto da `AbbonamentiModel::prezzoPuliziaFondo()`, con `PREZZO_PULIZIA_FONDO_DEFAULT`, sullo schema della percentuale di rinnovo; nessuna migration
+- [DEV] Nell'help degli abbonamenti i badge di Proposta e Sospeso hanno la scritta bianca, come nell'elenco dalla v0.37.1
+
 ## [0.37.1] - 2026-10-08
 
 ### Colori più netti negli abbonamenti, solo tema chiaro

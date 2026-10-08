@@ -74,6 +74,10 @@ class AbbonamentiModel extends Model
     const AUMENTO_RINNOVO_DEFAULT = 2.0;
     const ARROTONDAMENTO_RINNOVO  = 5;
 
+    // Prezzo della pulizia del fondo fatta su richiesta, IVA esclusa, scritto nella proposta
+    // delle piscine. Si cambia in Impostazioni → Parametri; questo vale finché non lo si salva.
+    const PREZZO_PULIZIA_FONDO_DEFAULT = 65.0;
+
     const STATI_BADGE = [
         'attivo'    => 'bg-success',
         'sospeso'   => 'bg-warning',
@@ -211,6 +215,18 @@ class AbbonamentiModel extends Model
     public static function percentualeRinnovo(): float
     {
         return (float) (setting('Azienda.rinnovo_aumento_percento') ?? self::AUMENTO_RINNOVO_DEFAULT);
+    }
+
+    /**
+     * Prezzo della pulizia del fondo su richiesta, IVA esclusa, che la proposta delle piscine
+     * indica per i periodi in cui la pulizia non è compresa.
+     *
+     * Come percentualeRinnovo(): finché non è mai stato salvato vale
+     * PREZZO_PULIZIA_FONDO_DEFAULT, così in produzione funziona senza configurarlo.
+     */
+    public static function prezzoPuliziaFondo(): float
+    {
+        return (float) (setting('Azienda.prezzo_pulizia_fondo') ?? self::PREZZO_PULIZIA_FONDO_DEFAULT);
     }
 
     /**

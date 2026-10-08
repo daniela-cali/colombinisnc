@@ -173,7 +173,7 @@ La modalità di pagamento invece può mancare: la riga resta con il valore vuoto
 
 ## Fuori scope
 
-- **Modello piscine**: un capitolo a sé, da affrontare più avanti con lo stesso motore. Dal modello reale si vede già che sarà più complesso: più periodi scritti con le loro date («Dal 1 Maggio al 30 Settembre: QUINDICINALE»), «SENZA PULIZIA DEL FONDO» (`abbonamenti_periodi.con_pulizia_fondo`), una durata che non è un anno (dal 01.11.2025 al 31.12.2026) e un secondo prezzo, quello della pulizia del fondo su richiesta a intervento, che nel gestionale non esiste.
+- **Modello piscine**: fatto nella v0.38.0, vedi `abbonamenti_proposte_piscine_spec.md`. Era un capitolo a sé, da affrontare più avanti con lo stesso motore. Dal modello reale si vede già che sarà più complesso: più periodi scritti con le loro date («Dal 1 Maggio al 30 Settembre: QUINDICINALE»), «SENZA PULIZIA DEL FONDO» (`abbonamenti_periodi.con_pulizia_fondo`), una durata che non è un anno (dal 01.11.2025 al 31.12.2026) e un secondo prezzo, quello della pulizia del fondo su richiesta a intervento, che nel gestionale non esiste.
 - **Le eccezioni degli abbonamenti impianti**, che ci saranno: si analizzano quando capitano. Il documento esce in Word, quindi un caso fuori dallo schema si ritocca a mano.
 - **Amministratori di condominio** come destinatari, con il loro indirizzo: nella prima versione la proposta va al condominio. Voce «Referente per le comunicazioni del cliente» in `docs/backlog.md`.
 - **Genere del cliente in anagrafica**, per scrivere «Sig.» o «Sig.ra» invece di «Sig./Sig.ra».

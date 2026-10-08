@@ -773,6 +773,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Tolto il tema scuro con il suo interruttore e le regole CSS dedicate
 - Pagina account di nuovo funzionante su MariaDB (`ANY_VALUE` → `MAX`); favicon a goccia nella scheda del browser
 
+#### ✅ v0.38.0 — La proposta delle piscine si genera in Word
+- Spec in `abbonamenti_proposte_piscine_spec.md`: modello ricavato da quello degli addolcitori, con una riga per periodo e la pulizia del fondo indicata solo dove è compresa
+- Prezzo della pulizia del fondo su richiesta in Impostazioni → Parametri
+- Date con i punti in tutte le proposte
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo
