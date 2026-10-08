@@ -768,6 +768,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Un disdetto si rinnova solo dopo averlo riattivato dalla scheda
 - Serve per dicembre 2026, quando il 2027 nascerà rinnovando il 2026 caricato in produzione
 
+#### ✅ v0.37.1 — Colori più netti negli abbonamenti, solo tema chiaro
+- Colonna Rinnovo in menta (Rinnovato) e limone (Rinnova); scritta bianca sugli stati Proposta e Sospeso
+- Tolto il tema scuro con il suo interruttore e le regole CSS dedicate
+- Pagina account di nuovo funzionante su MariaDB (`ANY_VALUE` → `MAX`); favicon a goccia nella scheda del browser
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo

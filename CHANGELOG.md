@@ -1,5 +1,19 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.37.1] - 2026-10-08
+
+### Colori più netti negli abbonamenti, solo tema chiaro
+
+- [APP] **Nella colonna Rinnovo i due casi hanno colori diversi**: **Rinnovato →** è verde menta, il pulsante **Rinnova** è giallo limone. Si distingue a colpo d'occhio chi è già rinnovato e chi no. Anche **Rinnovato →** nella scheda dell'abbonamento è verde menta
+- [APP] **Gli stati Proposta e Sospeso hanno la scritta bianca**, come gli altri stati degli abbonamenti
+- [APP] **Il gestionale ha solo il tema chiaro.** Il tema scuro è stato tolto con il suo pulsante nella barra in alto: si apriva da solo sui dispositivi impostati in modalità scura, ed era troppo scuro
+- [APP] **Corretta la pagina degli account**, che si fermava con un errore del database
+- [APP] **Nella scheda del browser l'icona è la goccia** del vecchio gestionale. L'icona dell'app aggiunta alla Home del telefono resta la C
+- [DEV] Variabili `--clr-menta-*` e `--clr-limone-*` in `custom.css`, usate solo da `.badge-rinnovato`, che sostituisce `.badge-contorno`, e da `.btn-rinnova`, che imposta le variabili `--bs-btn-*` del pulsante. In `AbbonamentiModel::STATI_BADGE` tolto `text-dark` da `sospeso` e `proposta`
+- [DEV] Tolti lo script che sceglieva il tema e l'interruttore in `layouts/admin.php`, ora `<html>` porta `data-bs-theme="light"`. Rimosse le regole `[data-bs-theme="dark"]` da `custom.css` (tabelle `.table-danger` e `.table-light`, `.text-muted` dentro `.bg-light`) e da `calendario.css` (FullCalendar). La barra laterale resta scura con il suo attributo
+- [DEV] `UserModel::tuttiConGruppi()` usava `ANY_VALUE()`, che esiste solo in MySQL: residuo del passaggio a MariaDB. Sostituito con `MAX()`, che dà lo stesso risultato perché ogni account ha al massimo una scheda personale, un cliente e un'email. Non ci sono altre funzioni esclusive di MySQL nel codice
+- [DEV] `public/favicon.svg` copiato dal vecchio progetto e dichiarato in `partials/head_pwa.php`. `favicon.ico` resta come ripiego con `sizes="32x32"`, perché con `"any"` Chrome lo preferirebbe all'SVG. Tolta `assets/icons/icon-32.png`
+
 ## [0.37.0] - 2026-10-07
 
 ### Rinnovo di più abbonamenti in fila

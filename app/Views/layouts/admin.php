@@ -1,25 +1,11 @@
 <!doctype html>
-<html lang="it" data-lte-color-mode="off">
+<html lang="it" data-lte-color-mode="off" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $this->renderSection('title') ?> — Colombini SNC</title>
 
     <?= $this->include('partials/head_pwa') ?>
-
-    <!-- Dark mode init: prima del CSS per evitare flash di tema sbagliato -->
-    <script>
-    (() => {
-        'use strict';
-        const key = 'lte-theme';
-        let stored = null;
-        try { stored = localStorage.getItem(key); } catch {}
-        const prefersDark = globalThis.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = (stored === 'dark' || stored === 'light') ? stored : (prefersDark ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-bs-theme', theme);
-        document.documentElement.style.colorScheme = theme;
-    })();
-    </script>
 
     <link rel="stylesheet" href="<?= asset_url('assets/vendor/overlayscrollbars/overlayscrollbars.min.css') ?>">
     <link rel="stylesheet" href="<?= asset_url('assets/vendor/adminlte/adminlte.min.css') ?>">
@@ -90,11 +76,6 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
                     </a>
                 </li>
                 <?php endif ?>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" id="themeToggle" title="Cambia tema">
-                        <i class="bi bi-moon-fill" id="themeIcon"></i>
-                    </a>
-                </li>
                 <?= view_cell('App\Cells\AvvisiCell') ?>
                 <li class="nav-item dropdown">
                     <?php
@@ -345,26 +326,6 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
     OverlayScrollbarsGlobal.OverlayScrollbars(document.querySelector('.sidebar-wrapper'), {
         scrollbars: { autoHide: 'leave' }
     });
-
-    (() => {
-        const key  = 'lte-theme';
-        const html = document.documentElement;
-        const btn  = document.getElementById('themeToggle');
-        const icon = document.getElementById('themeIcon');
-
-        function applyTheme(theme) {
-            html.setAttribute('data-bs-theme', theme);
-            html.style.colorScheme = theme;
-            icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-            try { localStorage.setItem(key, theme); } catch {}
-        }
-
-        applyTheme(html.getAttribute('data-bs-theme') || 'light');
-
-        btn.addEventListener('click', () => {
-            applyTheme(html.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
-        });
-    })();
 
     <?php if ($_mostraNovita): ?>
     // In coda tramite enqueueModal (vedi script in cima al <body>): se ci sono anche

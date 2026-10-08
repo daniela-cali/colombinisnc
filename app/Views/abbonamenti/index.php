@@ -205,11 +205,11 @@ $statoOrdine = [
                                     <td class="text-nowrap" data-order="<?= $a['successore_id'] ? 1 : ($a['rinnovabile'] ? 2 : 3) ?>">
                                         <?php if ($a['successore_id']): ?>
                                             <a href="<?= base_url('abbonamenti/' . $a['successore_id']) ?>"
-                                               class="badge badge-contorno"
+                                               class="badge badge-rinnovato"
                                                title="Vai al rinnovo per il <?= esc($a['successore_anno']) ?>">Rinnovato →</a>
                                         <?php elseif ($a['rinnovabile']): ?>
                                             <a href="<?= base_url('abbonamenti/' . $a['id'] . '/rinnova') ?>"
-                                               class="btn btn-sm btn-outline-primary" title="Rinnova per l'anno successivo">
+                                               class="btn btn-sm btn-rinnova" title="Rinnova per l'anno successivo">
                                                 <i class="bi bi-arrow-repeat me-1"></i>Rinnova
                                             </a>
                                         <?php endif ?>

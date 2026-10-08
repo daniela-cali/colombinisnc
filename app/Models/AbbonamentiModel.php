@@ -76,10 +76,10 @@ class AbbonamentiModel extends Model
 
     const STATI_BADGE = [
         'attivo'    => 'bg-success',
-        'sospeso'   => 'bg-warning text-dark',
+        'sospeso'   => 'bg-warning',
         'scaduto'   => 'bg-secondary',
         'disdetto'  => 'bg-danger',
-        'proposta'  =>  'bg-info text-dark',
+        'proposta'  => 'bg-info',
         'rifiutata' => 'bg-danger',
     ];
 

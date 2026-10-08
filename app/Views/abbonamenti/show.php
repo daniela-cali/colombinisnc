@@ -69,7 +69,7 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                         </span>
                         <?php if ($abbonamento['successore_id']): ?>
                             <a href="<?= base_url('abbonamenti/' . $abbonamento['successore_id']) ?>"
-                               class="badge badge-contorno"
+                               class="badge badge-rinnovato"
                                title="Vai al rinnovo per il <?= esc($abbonamento['successore_anno']) ?>">Rinnovato →</a>
                         <?php endif ?>
                     </dd>

@@ -13,8 +13,11 @@
 <link rel="manifest" href="<?= base_url('manifest.json') ?>">
 <meta name="theme-color" content="#1a6fa8">
 
-<link rel="icon" href="<?= base_url('favicon.ico') ?>" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="<?= asset_url('assets/icons/icon-32.png') ?>">
+<?php /* Nella scheda del browser la goccia del vecchio gestionale; la C resta per l'app
+         in Home. L'ICO è il ripiego per chi non legge l'SVG: con sizes="any" Chrome lo
+         preferirebbe all'SVG, per questo dichiara 32x32. */ ?>
+<link rel="icon" href="<?= base_url('favicon.ico') ?>" sizes="32x32">
+<link rel="icon" type="image/svg+xml" href="<?= asset_url('favicon.svg') ?>">
 <link rel="apple-touch-icon" href="<?= asset_url('assets/icons/apple-touch-icon.png') ?>">
 
 <?php /* iOS ignora il manifest per lo schermo intero: servono i suoi meta. */ ?>

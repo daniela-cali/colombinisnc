@@ -33,7 +33,7 @@ class UserModel extends ShieldUserModel
      */
     public function tuttiConGruppi(): array
     {
-        return $this->select('users.id, users.username, users.status, ANY_VALUE(p.id) as personale_id, ANY_VALUE(p.nome) as nome, ANY_VALUE(p.cognome) as cognome, ANY_VALUE(c.id) as cliente_id, ANY_VALUE(c.denominazione) as cliente_denominazione, ANY_VALUE(i.secret) as email, GROUP_CONCAT(g.group ORDER BY g.group SEPARATOR ", ") as gruppi')
+        return $this->select('users.id, users.username, users.status, MAX(p.id) as personale_id, MAX(p.nome) as nome, MAX(p.cognome) as cognome, MAX(c.id) as cliente_id, MAX(c.denominazione) as cliente_denominazione, MAX(i.secret) as email, GROUP_CONCAT(g.group ORDER BY g.group SEPARATOR ", ") as gruppi')
             ->join('personale p', 'p.user_id = users.id', 'left')
             ->join('clienti c', 'c.user_id = users.id', 'left')
             ->join('auth_groups_users g', 'g.user_id = users.id', 'left')

@@ -39,6 +39,8 @@ Regole nate da correzioni esplicite nel corso del progetto. Ognuna ha avuto un c
 - **Elenco scritto a mano o query sullo schema.** Quando un controllo dipende da un insieme di tabelle destinato a crescere (es. FK verso `clienti.id`), preferire `information_schema` a un elenco scritto a mano, che diventa incompleto in silenzio.
 - **Tracciamento per analisi future**: se nessuna funzionalità dipende dal dato a breve, bastano poche colonne timestamp sulla tabella esistente, non una tabella di log generica.
 - **Codice versionato non è "debug"**: migration, view e classi nel repo si descrivono per la loro funzione. "Debug" o "temporaneo" vanno solo su ciò che verrà davvero rimosso a breve.
+- **Stati distinguibili a colpo d'occhio**: gli stati di un elenco si distinguono con un cambio di colore netto, non con sfumature. I badge di stato degli abbonamenti hanno la scritta bianca anche su giallo e azzurro, per scelta; i preventivi andranno pensati allo stesso modo.
+- **Solo tema chiaro**: il tema scuro è stato tolto (v0.37.1), con il suo pulsante e le regole CSS dedicate. Non scrivere regole `[data-bs-theme="dark"]`, salvo quelle della barra laterale, che resta scura per scelta.
 - **Prima di introdurre una struttura dati nuova** (oggetto di config, formato JSON, firma di endpoint) mostrare uno snippet isolato di quella sola forma e farla confermare. Non vale per il file intero, che si rivede come diff.
 
 **Git e comandi**

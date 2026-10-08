@@ -17,6 +17,17 @@
     --clr-sidebar-alt:   #162440;
     --clr-top-bar:       #1a6fa8;
 
+    /* Pastelli della colonna Rinnovo degli abbonamenti, e solo di quella:
+       menta = già rinnovato, limone = da rinnovare. */
+    --clr-menta-bg:      #d3f3e6;
+    --clr-menta-hover:   #bdebd8;
+    --clr-menta-bordo:   #8fdcbc;
+    --clr-menta-testo:   #0f6b4a;
+    --clr-limone-bg:     #fcf5b5;
+    --clr-limone-hover:  #f8ee93;
+    --clr-limone-bordo:  #e3d35e;
+    --clr-limone-testo:  #6b5e00;
+
     /* Altezza della barra in cima (.app-header). Il layout è `fixed-header`, quindi
        quella striscia è sempre occupata: ogni elemento `position: sticky` deve
        fermarsi qui sotto e non a 0, altrimenti si incolla dietro la barra e
@@ -473,7 +484,7 @@
     text-transform: uppercase;
 }
 
-/* --- Tom Select: adattamento dark mode via variabili Bootstrap --- */
+/* --- Tom Select: colori presi dalle variabili Bootstrap --- */
 .ts-control,
 .ts-wrapper.single .ts-control,
 .ts-control input {
@@ -580,14 +591,33 @@ table.dataTable th.dt-type-date div.dt-column-header {
     min-width: 1.1em;
 }
 
-/* Badge contornato accanto a un badge pieno (es. "Rinnovato →" vicino allo stato
-   dell'abbonamento). Il contorno è un'ombra interna e non un border: un bordo vero
-   aggiungerebbe 2px di altezza e il badge non starebbe in linea con quello accanto. */
-.badge-contorno {
-    color: var(--bs-primary);
-    background-color: transparent;
-    box-shadow: inset 0 0 0 1px var(--bs-primary);
+/* "Rinnovato →" accanto al badge di stato dell'abbonamento, in menta. Il contorno è
+   un'ombra interna e non un border: un bordo vero aggiungerebbe 2px di altezza e il
+   badge non starebbe in linea con quello accanto. */
+.badge-rinnovato {
+    color: var(--clr-menta-testo);
+    background-color: var(--clr-menta-bg);
+    box-shadow: inset 0 0 0 1px var(--clr-menta-bordo);
     text-decoration: none;
+}
+.badge-rinnovato:hover {
+    color: var(--clr-menta-testo);
+    background-color: var(--clr-menta-hover);
+}
+
+/* Pulsante "Rinnova" nella colonna Rinnovo, in limone. Imposta le variabili del .btn
+   così hover, focus e click li gestisce Bootstrap. */
+.btn-rinnova {
+    --bs-btn-color:               var(--clr-limone-testo);
+    --bs-btn-bg:                  var(--clr-limone-bg);
+    --bs-btn-border-color:        var(--clr-limone-bordo);
+    --bs-btn-hover-color:         var(--clr-limone-testo);
+    --bs-btn-hover-bg:            var(--clr-limone-hover);
+    --bs-btn-hover-border-color:  var(--clr-limone-bordo);
+    --bs-btn-active-color:        var(--clr-limone-testo);
+    --bs-btn-active-bg:           var(--clr-limone-hover);
+    --bs-btn-active-border-color: var(--clr-limone-bordo);
+    --bs-btn-focus-shadow-rgb:    227, 211, 94;
 }
 
 /* =========================================================
@@ -658,54 +688,6 @@ tr:has(a.js-row-open) {
        (tile a z-index 200, controlli zoom a 1000) finiscono per competere
        direttamente con l'overlay sotto, invece di restarne sempre sotto. */
     z-index: 0;
-}
-
-/* --- Righe .table-danger (interventi/viaggi urgenti) in dark mode -----
-   Bootstrap definisce i colori di .table-danger solo per la modalità chiara
-   (testo nero su rosa chiaro) tramite variabili CSS, senza una variante dark.
-   Le celle che usano .text-body/.text-muted (es. colonna Cliente/Tecnico)
-   forzano quindi il colore a var(--bs-body-color), chiaro in dark mode,
-   risultando illeggibile sullo sfondo rosa chiaro rimasto invariato. */
-[data-bs-theme="dark"] .table-danger {
-    --bs-table-color:      #f1c6cb;
-    --bs-table-bg:         #4b2126;
-    --bs-table-border-color: #5f363b;
-    --bs-table-striped-bg: #543035;
-    --bs-table-striped-color: #f1c6cb;
-    --bs-table-active-bg:  #5f363b;
-    --bs-table-active-color: #f1c6cb;
-    --bs-table-hover-bg:   #593338;
-    --bs-table-hover-color: #f1c6cb;
-}
-[data-bs-theme="dark"] .table-danger .text-body,
-[data-bs-theme="dark"] .table-danger .text-muted {
-    color: #f1c6cb !important;
-}
-
-/* --- Intestazioni .table-light in dark mode -----------------------------
-   Come .table-danger, anche .table-light definisce i colori solo per la
-   modalità chiara: il testo resta nero fisso su sfondo quasi bianco fisso.
-   Restava leggibile, ma stonava come banda bianca in una pagina scura
-   (es. intestazioni tabelle in Cantieri/Viaggio/Abbonamenti). */
-[data-bs-theme="dark"] .table-light {
-    --bs-table-color:      #dee2e6;
-    --bs-table-bg:         #2b3035;
-    --bs-table-border-color: #40474d;
-    --bs-table-striped-bg: #313640;
-    --bs-table-striped-color: #dee2e6;
-    --bs-table-active-bg:  #3a3f44;
-    --bs-table-active-color: #dee2e6;
-    --bs-table-hover-bg:   #343a40;
-    --bs-table-hover-color: #dee2e6;
-}
-
-/* --- .text-muted dentro .bg-light in dark mode -------------------------
-   .bg-light resta uno sfondo chiaro fisso in qualsiasi tema (non ha una
-   variante dark), mentre .text-muted usa var(--bs-secondary-color), che in
-   dark mode diventa chiaro: il risultato è testo chiaro su sfondo chiaro,
-   invisibile (es. badge data nelle "Scadenze aperte" del calendario). */
-[data-bs-theme="dark"] .bg-light .text-muted {
-    color: rgba(33, 37, 41, .75) !important;
 }
 
 /* Wrapper con position relative: serve da riferimento per l'overlay
