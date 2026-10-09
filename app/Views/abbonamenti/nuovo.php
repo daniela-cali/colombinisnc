@@ -11,6 +11,8 @@
  *                              urlSalta, urlInterrompi; null per nuovo e rinnovo singolo
  * @var array|null $abbonamento Pre-compilazione per rinnovo; null per nuovo. Nel rinnovo porta anche
  *                              prezzo_precedente e aumento_percento, per la riga sotto il prezzo
+ * @var float      $listinoPulizia AbbonamentiModel::prezzoPuliziaFondo(): precompila la pulizia del fondo
+ *                              quando l'abbonamento non ne porta una (nuovo, o rinnovo di uno senza)
  */
 $this->extend('layouts/admin');
 
@@ -172,7 +174,13 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                                 </div>
                             <?php endif ?>
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-4" id="blocco-pulizia">
+                            <label class="form-label">Pulizia del fondo su richiesta (€) <span class="text-danger">*</span></label>
+                            <input type="text" data-currency-display="prezzo_pulizia_fondo" class="form-control" inputmode="decimal" placeholder="0,00">
+                            <input type="hidden" name="prezzo_pulizia_fondo" id="prezzo_pulizia_fondo"
+                                   value="<?= esc(old('prezzo_pulizia_fondo', $abbonamento['prezzo_pulizia_fondo'] ?? $listinoPulizia)) ?>">
+                        </div>
+                        <div class="col-md">
                             <label class="form-label">Modalità di pagamento</label>
                             <input type="text" name="modalita_pagamento" class="form-control"
                                    placeholder="es. a metà servizio, saldo ad Agosto"
@@ -223,10 +231,14 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
 
     const operazioniStandardDefault = <?= json_encode($operazioniStandardDefault) ?>;
 
+    // Il prezzo della pulizia, oltre a sparire, si disattiva: un campo disattivato non parte
+    // col form, così un tipo senza pulizia non salva il listino precompilato.
     function aggiornaPulizia() {
         const opt = sel.options[sel.selectedIndex];
         const show = opt && opt.dataset.haPuliziaFondo === '1';
         if (typeof window.setPuliziaFondo === 'function') window.setPuliziaFondo(show);
+        document.getElementById('blocco-pulizia').classList.toggle('d-none', ! show);
+        document.getElementById('prezzo_pulizia_fondo').disabled = ! show;
     }
 
     function aggiornaOperazioniIncluse() {

@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.39.0] - 2026-10-09
+
+### Prezzo della pulizia del fondo per ogni abbonamento
+
+- [APP] **Ogni abbonamento piscine ha il suo prezzo della pulizia del fondo su richiesta**, accanto al prezzo totale nel form e nella scheda. Si può fare un prezzo diverso a un cliente, e una proposta rigenerata riporta sempre il prezzo concordato anche se il listino nel frattempo è cambiato
+- [APP] **Il nuovo abbonamento parte dal prezzo di listino**, che si imposta in **Impostazioni → Parametri** come prima. Cambiare il listino non modifica gli abbonamenti già fatti
+- [APP] **Il rinnovo copia il prezzo della pulizia dell'anno prima, senza aumentarlo**: la percentuale di aumento vale solo per il prezzo totale
+- [APP] **Il prezzo della pulizia è obbligatorio** per i tipi di abbonamento che la prevedono: senza, l'abbonamento non si salva e la proposta in Word non si genera
+- [DEV] Migration `AddPrezzoPuliziaFondoToAbbonamenti`: `abbonamenti.prezzo_pulizia_fondo DECIMAL(10,2) NULL` dopo `prezzo`. Regola `required` in `regolaValidazione()` quando il tipo ha `ha_pulizia_fondo`; il controllo in `PropostaAbbonamento` resta sulla categoria piscine, perché dipende dal modello Word. Nei form il campo nascosto si disattiva insieme al blocco, così un tipo senza pulizia non salva il listino precompilato. `trovaConDettagli()` porta anche `tipo_ha_pulizia_fondo`. Spec in `docs/spec/abbonamenti_prezzo_pulizia_fondo_spec.md`
+
 ## [0.38.0] - 2026-10-08
 
 ### La proposta delle piscine si genera in Word

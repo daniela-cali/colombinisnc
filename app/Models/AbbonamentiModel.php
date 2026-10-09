@@ -14,7 +14,7 @@ class AbbonamentiModel extends Model
     protected $allowedFields = [
         'cliente_id', 'tipo_intervento_id', 'abbonamento_precedente_id',
         'data_inizio', 'data_fine', 'durata_mesi',
-        'prezzo', 'stato', 'note',
+        'prezzo', 'prezzo_pulizia_fondo', 'stato', 'note',
         'operazioni_incluse', 'apparecchiature', 'modalita_pagamento',
         'created_by', 'updated_by',
     ];
@@ -74,8 +74,8 @@ class AbbonamentiModel extends Model
     const AUMENTO_RINNOVO_DEFAULT = 2.0;
     const ARROTONDAMENTO_RINNOVO  = 5;
 
-    // Prezzo della pulizia del fondo fatta su richiesta, IVA esclusa, scritto nella proposta
-    // delle piscine. Si cambia in Impostazioni → Parametri; questo vale finché non lo si salva.
+    // Listino della pulizia del fondo su richiesta, IVA esclusa: precompila il campo nei nuovi
+    // abbonamenti. Si cambia in Impostazioni → Parametri; questo vale finché non lo si salva.
     const PREZZO_PULIZIA_FONDO_DEFAULT = 65.0;
 
     const STATI_BADGE = [
@@ -112,7 +112,7 @@ class AbbonamentiModel extends Model
             $data['data']['durata_mesi'] = $diff->y * 12 + $diff->m;
         }
 
-        foreach (['abbonamento_precedente_id', 'prezzo', 'note', 'apparecchiature'] as $campo) {
+        foreach (['abbonamento_precedente_id', 'prezzo', 'prezzo_pulizia_fondo', 'note', 'apparecchiature'] as $campo) {
             if (array_key_exists($campo, $data['data']) && $data['data'][$campo] === '') {
                 $data['data'][$campo] = null;
             }
@@ -218,8 +218,9 @@ class AbbonamentiModel extends Model
     }
 
     /**
-     * Prezzo della pulizia del fondo su richiesta, IVA esclusa, che la proposta delle piscine
-     * indica per i periodi in cui la pulizia non è compresa.
+     * Listino della pulizia del fondo su richiesta, IVA esclusa. Serve solo a precompilare il
+     * campo nel nuovo abbonamento: la proposta legge il prezzo dell'abbonamento, e il rinnovo
+     * lo copia senza aumentarlo, quindi cambiare il listino non tocca gli abbonamenti esistenti.
      *
      * Come percentualeRinnovo(): finché non è mai stato salvato vale
      * PREZZO_PULIZIA_FONDO_DEFAULT, così in produzione funziona senza configurarlo.
@@ -279,6 +280,7 @@ class AbbonamentiModel extends Model
                 "c.denominazione AS cliente_denominazione",
                 'ti.nome AS tipo_nome',
                 'ti.categoria AS tipo_categoria',
+                'ti.ha_pulizia_fondo AS tipo_ha_pulizia_fondo',
                 $this->selectStatoCalcolato(),
                 'succ.id AS successore_id',
                 'SUBSTRING(succ.data_inizio, 1, 4) AS successore_anno',

@@ -7,6 +7,8 @@
  * @var array      $frequenze   AbbonamentiModel::FREQUENZE_LABEL
  * @var array      $periodi     Periodi esistenti da AbbonamentiPeriodiModel::perAbbonamento()
  * @var string|null $from       URL di ritorno dopo salvataggio
+ * @var float      $listinoPulizia AbbonamentiModel::prezzoPuliziaFondo(): precompila la pulizia del fondo
+ *                              se l'abbonamento non ne ha una (salvato prima, o di un tipo senza pulizia)
  */
 $this->extend('layouts/admin');
 
@@ -133,7 +135,13 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                             <input type="hidden" name="prezzo" id="prezzo"
                                    value="<?= esc(old('prezzo', $abbonamento['prezzo'] ?? '')) ?>">
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-4" id="blocco-pulizia">
+                            <label class="form-label">Pulizia del fondo su richiesta (€) <span class="text-danger">*</span></label>
+                            <input type="text" data-currency-display="prezzo_pulizia_fondo" class="form-control" inputmode="decimal" placeholder="0,00">
+                            <input type="hidden" name="prezzo_pulizia_fondo" id="prezzo_pulizia_fondo"
+                                   value="<?= esc(old('prezzo_pulizia_fondo', $abbonamento['prezzo_pulizia_fondo'] ?? $listinoPulizia)) ?>">
+                        </div>
+                        <div class="col-md">
                             <label class="form-label">Modalità di pagamento</label>
                             <input type="text" name="modalita_pagamento" class="form-control"
                                    placeholder="es. a metà servizio, saldo ad Agosto"
@@ -170,10 +178,14 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
 
     const operazioniStandardDefault = <?= json_encode($operazioniStandardDefault) ?>;
 
+    // Il prezzo della pulizia, oltre a sparire, si disattiva: un campo disattivato non parte
+    // col form, così passando a un tipo senza pulizia il valore salvato resta com'è.
     function aggiornaPulizia() {
         const opt = sel.options[sel.selectedIndex];
         const show = opt && opt.dataset.haPuliziaFondo === '1';
         if (typeof window.setPuliziaFondo === 'function') window.setPuliziaFondo(show);
+        document.getElementById('blocco-pulizia').classList.toggle('d-none', ! show);
+        document.getElementById('prezzo_pulizia_fondo').disabled = ! show;
     }
 
     function aggiornaOperazioniIncluse() {

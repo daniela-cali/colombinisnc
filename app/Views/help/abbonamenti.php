@@ -66,7 +66,9 @@
     <strong>pulizia del fondo</strong> è scritta solo sui periodi che la comprendono: dove non è
     scritta, non è compresa. Se nessun periodo la comprende compare
     <em>SENZA PULIZIA DEL FONDO</em>. Il prezzo della pulizia fatta su richiesta è sempre
-    indicato e si cambia in <strong>Impostazioni → Parametri</strong>.
+    indicato: è quello scritto sull'abbonamento, che parte dal listino di
+    <strong>Impostazioni → Parametri</strong> e si può cambiare per ogni cliente. Il rinnovo lo
+    copia così com'è, senza aumentarlo.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-clipboard-check me-1"></i>Accettare o rifiutare una proposta</h6>

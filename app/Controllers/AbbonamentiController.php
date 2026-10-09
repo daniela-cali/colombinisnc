@@ -79,6 +79,7 @@ class AbbonamentiController extends BaseController
             'periodi'   => null,
             'from'      => $this->request->getGet('from'),
             'coda'      => null,
+            'listinoPulizia' => AbbonamentiModel::prezzoPuliziaFondo(),
         ]);
     }
 
@@ -180,6 +181,7 @@ class AbbonamentiController extends BaseController
             'frequenze'   => AbbonamentiModel::FREQUENZE_LABEL,
             'periodi'     => (new AbbonamentiPeriodiModel())->perAbbonamento($id),
             'from'        => $this->request->getGet('from'),
+            'listinoPulizia' => AbbonamentiModel::prezzoPuliziaFondo(),
         ]);
     }
 
@@ -395,6 +397,9 @@ class AbbonamentiController extends BaseController
                 'urlSalta'      => $this->urlProssimo(['saltati' => [...$coda['saltati'], $id]] + $coda),
                 'urlInterrompi' => $this->urlFine($coda, count($coda['coda']) + 1),
             ],
+            // Il prezzo della pulizia arriva dall'anno prima con $precompilato, senza aumento:
+            // il listino serve solo se quello era vuoto.
+            'listinoPulizia' => AbbonamentiModel::prezzoPuliziaFondo(),
         ]);
     }
 
@@ -846,7 +851,8 @@ class AbbonamentiController extends BaseController
     /**
      * Regole comuni a store() e update(). Le apparecchiature sono obbligatorie solo per i tipi
      * della categoria addolcitori, dove sono la ragione stessa dell'abbonamento; per le piscine
-     * l'impianto è la piscina, sottintesa.
+     * l'impianto è la piscina, sottintesa. Il prezzo della pulizia del fondo è obbligatorio per
+     * i tipi che la prevedono, perché la proposta lo scrive sempre.
      */
     private function regolaValidazione(): array
     {
@@ -857,6 +863,13 @@ class AbbonamentiController extends BaseController
             $regole['apparecchiature'] = [
                 'rules'  => 'required',
                 'errors' => ['required' => 'Per gli addolcitori va indicata almeno un\'apparecchiatura installata.'],
+            ];
+        }
+
+        if (! empty($tipo['ha_pulizia_fondo'])) {
+            $regole['prezzo_pulizia_fondo'] = [
+                'rules'  => 'required|decimal|greater_than_equal_to[0]',
+                'errors' => ['required' => 'Per questo tipo va indicato il prezzo della pulizia del fondo.'],
             ];
         }
 

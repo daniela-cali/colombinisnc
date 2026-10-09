@@ -60,6 +60,10 @@ class PropostaAbbonamento
         if ($abbonamento['prezzo'] === null) {
             throw new RuntimeException('Manca il prezzo: senza prezzo la proposta non si può generare.');
         }
+        // Il form lo impone, ma non agli abbonamenti salvati prima che il campo esistesse.
+        if ($categoria === TipiInterventoModel::CATEGORIA_PISCINE && $abbonamento['prezzo_pulizia_fondo'] === null) {
+            throw new RuntimeException('Manca il prezzo della pulizia del fondo: compilalo in Modifica prima di generare la proposta.');
+        }
 
         // Il documento rispecchia ciò che è salvato sull'abbonamento: niente ripiego sul testo
         // standard del tipo. Le apparecchiature le impone il form, ma non agli abbonamenti
@@ -102,7 +106,7 @@ class PropostaAbbonamento
             ->elenco('operazioni', 'operazione', $operazioni);
 
         if ($categoria === TipiInterventoModel::CATEGORIA_PISCINE) {
-            $this->compilaPiscine($documento, $periodi);
+            $this->compilaPiscine($documento, $periodi, (float) $abbonamento['prezzo_pulizia_fondo']);
         } else {
             $this->compilaAddolcitori($documento, $periodi, $apparecchiature);
         }
@@ -124,7 +128,7 @@ class PropostaAbbonamento
 
     /**
      * Le parti del modello delle piscine: una riga per periodo e il prezzo della pulizia del
-     * fondo su richiesta.
+     * fondo su richiesta, quello salvato sull'abbonamento e non il listino.
      *
      * La pulizia si scrive solo sui periodi che la comprendono: dove non è scritta non c'è, e
      * ripetere «senza» sugli altri confonderebbe. Solo se nessun periodo la comprende compare la
@@ -134,7 +138,7 @@ class PropostaAbbonamento
      * Per stare su una riga anche con QUINDICINALE servono le date in numeri e la colonna dei
      * valori a 6 cm nel modello (spec piscine, decisione 2).
      */
-    private function compilaPiscine(DocumentoWord $documento, array $periodi): void
+    private function compilaPiscine(DocumentoWord $documento, array $periodi, float $prezzoPulizia): void
     {
         $righe = array_map(
             fn ($p) => 'Dal ' . $this->giornoMese($p['data_inizio']) . ' al ' . $this->giornoMese($p['data_fine'])
@@ -147,7 +151,7 @@ class PropostaAbbonamento
         $documento
             ->valori([
                 'primo_periodo'  => $righe[0] ?? '',
-                'prezzo_pulizia' => $this->euro(AbbonamentiModel::prezzoPuliziaFondo()),
+                'prezzo_pulizia' => $this->euro($prezzoPulizia),
             ])
             ->elenco('altri_periodi', 'periodo', array_slice($righe, 1))
             ->elenco('riga_senza_pulizia', 'senza_pulizia', $conPulizia ? [] : ['SENZA PULIZIA DEL FONDO']);

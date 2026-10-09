@@ -301,6 +301,7 @@
   <tr><td><code>data_fine</code></td><td>DATE</td><td></td><td></td><td>Tipicamente 31/12 — ultimo giorno di validità</td></tr>
   <tr><td><code>durata_mesi</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Calcolato automaticamente dal model al salvataggio</td></tr>
   <tr><td><code>prezzo</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td></td><td>Totale abbonamento per il periodo intero (non per visita)</td></tr>
+  <tr><td><code>prezzo_pulizia_fondo</code></td><td>DECIMAL(10,2)</td><td class="null">NULL</td><td></td><td>Prezzo della pulizia del fondo su richiesta, IVA esclusa, scritto nella proposta delle piscine · precompilato dal listino in Impostazioni → Parametri, il rinnovo lo copia senza aumentarlo · obbligatorio a livello applicativo per i tipi con <code>ha_pulizia_fondo</code> · aggiunto v0.39.0</td></tr>
   <tr><td><code>operazioni_incluse</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Precompilato da <code>tipi_intervento.operazioni_standard</code> alla scelta del tipo, poi libero per il singolo cliente · aggiunto v0.26.0</td></tr>
   <tr><td><code>apparecchiature</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Una riga per apparecchiatura (es. N. 1 ADDOLCITORE), finisce nella proposta in Word · obbligatorio a livello applicativo per i tipi della categoria <code>addolcitori</code> · aggiunto v0.36.0</td></tr>
   <tr><td><code>modalita_pagamento</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Testo libero, specifico dell'accordo col cliente · aggiunto v0.26.0</td></tr>
@@ -525,6 +526,17 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.39.0</td>
+    <td><code>AddPrezzoPuliziaFondoToAbbonamenti</code></td>
+    <td>
+      Su <code>abbonamenti</code>: <code>prezzo_pulizia_fondo DECIMAL(10,2) NULL</code> dopo <code>prezzo</code>.
+      Prima il prezzo era uno solo, nel setting <code>Azienda.prezzo_pulizia_fondo</code>, che ora fa da listino.
+      Nullable perché serve solo ai tipi con la pulizia, e l'obbligo lo controlla l'applicazione. La migration
+      non compila i dati: in produzione la tabella era vuota. Vedi
+      <code>docs/spec/abbonamenti_prezzo_pulizia_fondo_spec.md</code>.
+    </td>
+  </tr>
   <tr>
     <td>v0.36.0</td>
     <td><code>AddApparecchiatureToAbbonamenti</code></td>

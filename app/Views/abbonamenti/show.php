@@ -93,6 +93,15 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                             : '—' ?>
                     </dd>
 
+                    <?php if ($abbonamento['tipo_ha_pulizia_fondo']): ?>
+                        <dt class="col-5 text-muted">Pulizia del fondo</dt>
+                        <dd class="col-7">
+                            <?= $abbonamento['prezzo_pulizia_fondo'] !== null
+                                ? '€ ' . number_format((float) $abbonamento['prezzo_pulizia_fondo'], 2, ',', '.') . ' su richiesta'
+                                : '—' ?>
+                        </dd>
+                    <?php endif ?>
+
                     <?php if ($abbonamento['modalita_pagamento']): ?>
                         <dt class="col-5 text-muted">Pagamento</dt>
                         <dd class="col-7"><?= esc($abbonamento['modalita_pagamento']) ?></dd>

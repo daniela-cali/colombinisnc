@@ -778,6 +778,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Prezzo della pulizia del fondo su richiesta in Impostazioni → Parametri
 - Date con i punti in tutte le proposte
 
+#### ✅ v0.39.0 — Prezzo della pulizia del fondo per ogni abbonamento
+- Spec in `abbonamenti_prezzo_pulizia_fondo_spec.md`: il prezzo sta sull'abbonamento, il parametro diventa il listino che precompila i nuovi
+- Il rinnovo lo copia senza aumentarlo; obbligatorio per i tipi con la pulizia
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo
