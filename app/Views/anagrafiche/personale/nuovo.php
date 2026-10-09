@@ -43,17 +43,17 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">Nome <span class="text-danger">*</span></label>
                             <input type="text" name="nome" class="form-control"
-                                   value="<?= esc(old('nome')) ?>" required>
+                                   value="<?= esc(old('nome', null, false)) ?>" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Cognome <span class="text-danger">*</span></label>
                             <input type="text" name="cognome" class="form-control"
-                                   value="<?= esc(old('cognome')) ?>" required>
+                                   value="<?= esc(old('cognome', null, false)) ?>" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Telefono</label>
                             <input type="text" name="telefono" class="form-control"
-                                   value="<?= esc(old('telefono')) ?>">
+                                   value="<?= esc(old('telefono', null, false)) ?>">
                         </div>
                         <div class="col-12">
                             <?php
@@ -74,12 +74,12 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">Username <span class="text-danger">*</span></label>
                             <input type="text" name="username" class="form-control"
-                                   value="<?= esc(old('username')) ?>" required>
+                                   value="<?= esc(old('username', null, false)) ?>" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email <span class="text-danger">*</span></label>
                             <input type="email" name="email" class="form-control"
-                                   value="<?= esc(old('email')) ?>" required>
+                                   value="<?= esc(old('email', null, false)) ?>" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Password <span class="text-danger">*</span></label>

@@ -76,7 +76,7 @@ $this->extend('layouts/admin');
                         <div class="col-12">
                             <label class="form-label">Titolo <span class="text-danger">*</span></label>
                             <input type="text" name="titolo" class="form-control" maxlength="150"
-                                   value="<?= esc(old('titolo', $cantiere['titolo'])) ?>">
+                                   value="<?= esc(old('titolo', $cantiere['titolo'], false)) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Tipo <span class="text-danger">*</span></label>
@@ -121,13 +121,13 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">Indirizzo</label>
                             <input type="text" name="indirizzo" class="form-control"
-                                   value="<?= esc(old('indirizzo', $cantiere['indirizzo'])) ?>"
+                                   value="<?= esc(old('indirizzo', $cantiere['indirizzo'], false)) ?>"
                                    placeholder="Indirizzo cantiere, se diverso da anagrafica cliente">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Città</label>
                             <input type="text" name="citta" class="form-control"
-                                   value="<?= esc(old('citta', $cantiere['citta'])) ?>"
+                                   value="<?= esc(old('citta', $cantiere['citta'], false)) ?>"
                                    placeholder="Città cantiere, se diversa da anagrafica cliente">
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
@@ -143,13 +143,13 @@ $this->extend('layouts/admin');
                         <div class="col-md-8">
                             <label class="form-label">Referente</label>
                             <input type="text" name="referente_nome" class="form-control" maxlength="150"
-                                   value="<?= esc(old('referente_nome', $cantiere['referente_nome'])) ?>"
+                                   value="<?= esc(old('referente_nome', $cantiere['referente_nome'], false)) ?>"
                                    placeholder="es. Manuel (custode)">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Telefono referente</label>
                             <input type="tel" name="referente_telefono" class="form-control" maxlength="50"
-                                   value="<?= esc(old('referente_telefono', $cantiere['referente_telefono'])) ?>"
+                                   value="<?= esc(old('referente_telefono', $cantiere['referente_telefono'], false)) ?>"
                                    placeholder="339 1234567">
                         </div>
                     </div>
@@ -160,12 +160,12 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">Data inizio</label>
                             <input type="date" name="data_inizio" class="form-control"
-                                   value="<?= esc(old('data_inizio', $cantiere['data_inizio'])) ?>">
+                                   value="<?= esc(old('data_inizio', $cantiere['data_inizio'], false)) ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Data fine prevista</label>
                             <input type="date" name="data_fine_prevista" class="form-control"
-                                   value="<?= esc(old('data_fine_prevista', $cantiere['data_fine_prevista'])) ?>">
+                                   value="<?= esc(old('data_fine_prevista', $cantiere['data_fine_prevista'], false)) ?>">
                         </div>
                     </div>
 
@@ -174,7 +174,7 @@ $this->extend('layouts/admin');
                     <div class="row g-3 mb-2">
                         <div class="col-12">
                             <textarea name="note" class="form-control" rows="3"
-                                      placeholder="Note generali del cantiere (distinte dal diario)"><?= esc(old('note', $cantiere['note'])) ?></textarea>
+                                      placeholder="Note generali del cantiere (distinte dal diario)"><?= esc(old('note', $cantiere['note'], false)) ?></textarea>
                         </div>
                     </div>
 

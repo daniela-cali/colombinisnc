@@ -49,13 +49,13 @@ $this->extend('layouts/admin');
                         <div class="col-md-3">
                             <label class="form-label">Codice <span class="text-danger">*</span></label>
                             <input type="text" name="codice" class="form-control"
-                                   value="<?= esc(old('codice', $articolo['codice'] ?? '')) ?>"
+                                   value="<?= esc(old('codice', $articolo['codice'] ?? '', false)) ?>"
                                    maxlength="50" required>
                         </div>
                         <div class="col-md-9">
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
                             <input type="text" name="descrizione" class="form-control"
-                                   value="<?= esc(old('descrizione', $articolo['descrizione'])) ?>"
+                                   value="<?= esc(old('descrizione', $articolo['descrizione'], false)) ?>"
                                    maxlength="255" required>
                         </div>
                         <div class="col-md-5">
@@ -98,7 +98,7 @@ $this->extend('layouts/admin');
                             <div class="input-group">
                                 <span class="input-group-text">€</span>
                                 <input type="number" name="costo" class="form-control"
-                                       value="<?= esc(old('costo', $articolo['costo'] ?? '')) ?>"
+                                       value="<?= esc(old('costo', $articolo['costo'] ?? '', false)) ?>"
                                        min="0" step="0.01">
                             </div>
                         </div>
@@ -107,14 +107,14 @@ $this->extend('layouts/admin');
                             <div class="input-group">
                                 <span class="input-group-text">€</span>
                                 <input type="number" name="vendita" class="form-control"
-                                       value="<?= esc(old('vendita', $articolo['vendita'] ?? '')) ?>"
+                                       value="<?= esc(old('vendita', $articolo['vendita'] ?? '', false)) ?>"
                                        min="0" step="0.01">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Giacenza</label>
                             <input type="number" name="giacenza" class="form-control"
-                                   value="<?= esc(old('giacenza', $articolo['giacenza'] ?? '')) ?>"
+                                   value="<?= esc(old('giacenza', $articolo['giacenza'] ?? '', false)) ?>"
                                    min="0" step="0.01">
                         </div>
                     </div>

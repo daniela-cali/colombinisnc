@@ -128,7 +128,7 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
                             <input type="text" name="descrizione" id="descrizione" class="form-control"
                                    maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
-                                   value="<?= esc(old('descrizione', $intervento['descrizione'] ?? '')) ?>">
+                                   value="<?= esc(old('descrizione', $intervento['descrizione'] ?? '', false)) ?>">
                         </div>
                     </div>
 
@@ -207,20 +207,20 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                                    value="<?= esc(old('data_pianificata',
                                        $intervento['data_pianificata']
                                            ? date('Y-m-d\TH:i', strtotime($intervento['data_pianificata']))
-                                           : ''
-                                   )) ?>">
+                                           : '',
+                                       false)) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Data scadenza</label>
                             <input type="date" name="data_scadenza" class="form-control"
-                                   value="<?= esc(old('data_scadenza', $intervento['data_scadenza'] ?? '')) ?>">
+                                   value="<?= esc(old('data_scadenza', $intervento['data_scadenza'] ?? '', false)) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Durata stimata</label>
                             <div class="input-group">
                                 <input type="number" name="durata_stimata" id="durata_stimata"
                                        class="form-control" min="5" max="480" step="5"
-                                       value="<?= esc(old('durata_stimata', $intervento['durata_stimata'] ?? '')) ?>"
+                                       value="<?= esc(old('durata_stimata', $intervento['durata_stimata'] ?? '', false)) ?>"
                                        placeholder="min">
                                 <span class="input-group-text">min</span>
                             </div>
@@ -231,7 +231,7 @@ $faseCorrente = ! empty($intervento['apertura']) ? 'apertura'
                     <p class="text-muted section-header mb-3"><i class="bi bi-sticky me-1"></i> Note</p>
                     <div class="row g-3">
                         <div class="col-12">
-                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', $intervento['note'] ?? '')) ?></textarea>
+                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', $intervento['note'] ?? '', false)) ?></textarea>
                         </div>
                     </div>
 

@@ -112,7 +112,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
                             <input type="text" name="descrizione" id="descrizione" class="form-control"
                                    maxlength="255" placeholder="Oggetto / motivo dell'intervento…"
-                                   value="<?= esc(old('descrizione', $descrizioneDefault)) ?>">
+                                   value="<?= esc(old('descrizione', $descrizioneDefault, false)) ?>">
                         </div>
                     </div>
 
@@ -202,19 +202,19 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                         <div class="col-md-4">
                             <label class="form-label">Data pianificata</label>
                             <input type="datetime-local" name="data_pianificata" id="data_pianificata" class="form-control"
-                                   value="<?= esc(old('data_pianificata')) ?>">
+                                   value="<?= esc(old('data_pianificata', null, false)) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Data scadenza</label>
                             <input type="date" name="data_scadenza" class="form-control"
-                                   value="<?= esc(old('data_scadenza')) ?>">
+                                   value="<?= esc(old('data_scadenza', null, false)) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Durata stimata</label>
                             <div class="input-group">
                                 <input type="number" name="durata_stimata" id="durata_stimata"
                                        class="form-control" min="5" max="480" step="5"
-                                       value="<?= esc(old('durata_stimata')) ?>"
+                                       value="<?= esc(old('durata_stimata', null, false)) ?>"
                                        placeholder="min">
                                 <span class="input-group-text">min</span>
                             </div>
@@ -225,7 +225,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <p class="text-muted section-header mb-3"><i class="bi bi-sticky me-1"></i> Note</p>
                     <div class="row g-3 mb-4">
                         <div class="col-12">
-                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note')) ?></textarea>
+                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', null, false)) ?></textarea>
                         </div>
                     </div>
 

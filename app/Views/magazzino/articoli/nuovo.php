@@ -43,12 +43,12 @@ $this->extend('layouts/admin');
                         <div class="col-md-3">
                             <label class="form-label">Codice <span class="text-danger">*</span></label>
                             <input type="text" name="codice" class="form-control"
-                                   value="<?= esc(old('codice')) ?>" maxlength="50" required>
+                                   value="<?= esc(old('codice', null, false)) ?>" maxlength="50" required>
                         </div>
                         <div class="col-md-9">
                             <label class="form-label">Descrizione <span class="text-danger">*</span></label>
                             <input type="text" name="descrizione" class="form-control"
-                                   value="<?= esc(old('descrizione')) ?>" maxlength="255" required>
+                                   value="<?= esc(old('descrizione', null, false)) ?>" maxlength="255" required>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Categoria</label>
@@ -82,7 +82,7 @@ $this->extend('layouts/admin');
                             <div class="input-group">
                                 <span class="input-group-text">€</span>
                                 <input type="number" name="costo" class="form-control"
-                                       value="<?= esc(old('costo')) ?>"
+                                       value="<?= esc(old('costo', null, false)) ?>"
                                        min="0" step="0.01" placeholder="0.00">
                             </div>
                         </div>
@@ -91,14 +91,14 @@ $this->extend('layouts/admin');
                             <div class="input-group">
                                 <span class="input-group-text">€</span>
                                 <input type="number" name="vendita" class="form-control"
-                                       value="<?= esc(old('vendita')) ?>"
+                                       value="<?= esc(old('vendita', null, false)) ?>"
                                        min="0" step="0.01" placeholder="0.00">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Giacenza iniziale</label>
                             <input type="number" name="giacenza" class="form-control"
-                                   value="<?= esc(old('giacenza', 0)) ?>"
+                                   value="<?= esc(old('giacenza', 0, false)) ?>"
                                    min="0" step="0.01">
                         </div>
                     </div>

@@ -48,7 +48,7 @@ Regole nate da correzioni esplicite nel corso del progetto. Ognuna ha avuto un c
 - **Un branch alla volta.** Un refactor o una migliorìa applicabile anche altrove si propone a parole e si annota in `docs/backlog.md`, ma non si implementa nel branch corrente. I bug sono l'eccezione, vedi sopra.
 - **Commit intermedi su un branch con più parti**: sono checkpoint senza versione, senza `CHANGELOG.md` e senza §7.1 di `ANALISI.md`. Questi si aggiornano solo nel commit finale.
 - **Feature con file intrecciati**: se le modifiche pendenti di più sotto-feature condividono gli stessi file, niente commit intermedi ricavati con patch parziali. Si fa un commit unico a feature finita, testando lungo il percorso.
-- **Le scritture sul database le lancia l'utente.** `php spark migrate`, `db:seed` e simili si propongono nella forma `! <comando>`, dicendo cosa aspettarsi. Le letture restano normali.
+- **Le scritture sul database si lanciano solo dopo l'autorizzazione dell'utente.** `php spark migrate`, `db:seed`, `UPDATE` e altro SQL a mano si propongono mostrando il comando e dicendo cosa aspettarsi; Claude li lancia solo dopo un via libera esplicito, che vale per quel comando e non per i successivi. Le letture restano normali.
 - **Controllo finale dopo un'iterazione manuale**: se l'utente ha appena sistemato a mano un file, i problemi trovati in quel file si segnalano e si lasciano testare prima di correggerli. Fix, changelog e commit non vanno incatenati nello stesso turno.
 - **Amministrazione di sistema** (cron, rotazione e copia off-site dei backup, SSH, pool PHP) è materia del sistemista. Non proporla come prossimo passo; se serve, scrivere le istruzioni per lui.
 
@@ -178,6 +178,19 @@ per le eccezioni, e il ripiego garantisce che un campo nuovo non mostri mai il n
 colonna. Aggiungere una voce solo quando il risultato automatico è sbagliato o brutto.
 
 Una regola già scritta in forma array conserva i suoi `errors`: riceve solo la `label` in più.
+
+## `old()` nei form — sempre con `false` dentro `esc()`
+`old()` di CodeIgniter fa già l'escape del valore ritornato dopo un errore di validazione, ma
+non del default. Avvolto in `esc()` l'escape diventa doppio: nel campo compare `dell&#039;acqua`
+e, salvando, il testo rovinato finisce nel database. Si scrive sempre:
+
+```php
+<?= esc(old('note', $abbonamento['note'] ?? '', false)) ?>
+<?= esc(old('nome', null, false)) ?>   // senza default
+```
+
+Fanno eccezione solo `old()` usato in un confronto (`old('stato') === $codice`) e i valori che
+finiscono in uno `<script>`, come i periodi degli abbonamenti, dove l'escape di `old()` protegge.
 
 ## Flashdata e layout
 Il layout `app/Views/layouts/admin.php` gestisce già `success`, `error` e `warning` per tutte le pagine. Non duplicarli nelle singole view — causa visualizzazione doppia. Nelle view includere solo `errors` (plurale) per la lista errori di validazione, che il layout non gestisce.

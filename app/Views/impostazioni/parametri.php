@@ -217,7 +217,7 @@ $this->extend('layouts/admin');
                     <label class="form-label">Aumento del prezzo al rinnovo (%)</label>
                     <input type="number" name="rinnovo_aumento_percento" class="form-control"
                            step="0.01" min="0" max="100" required
-                           value="<?= esc(old('rinnovo_aumento_percento', \App\Models\AbbonamentiModel::percentualeRinnovo())) ?>">
+                           value="<?= esc(old('rinnovo_aumento_percento', \App\Models\AbbonamentiModel::percentualeRinnovo(), false)) ?>">
                     <p class="text-muted small mt-2 mb-0">
                         <i class="bi bi-info-circle me-1"></i>
                         Il rinnovo propone il prezzo dell'anno prima aumentato di questa percentuale e
@@ -228,7 +228,7 @@ $this->extend('layouts/admin');
                     <label class="form-label mt-3">Prezzo di listino della pulizia del fondo (€)</label>
                     <input type="number" name="prezzo_pulizia_fondo" class="form-control"
                            step="0.01" min="0" required
-                           value="<?= esc(old('prezzo_pulizia_fondo', \App\Models\AbbonamentiModel::prezzoPuliziaFondo())) ?>">
+                           value="<?= esc(old('prezzo_pulizia_fondo', \App\Models\AbbonamentiModel::prezzoPuliziaFondo(), false)) ?>">
                     <p class="text-muted small mt-2 mb-0">
                         <i class="bi bi-info-circle me-1"></i>
                         IVA esclusa. Precompila il prezzo della pulizia nei nuovi abbonamenti:

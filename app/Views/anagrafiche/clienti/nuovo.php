@@ -110,14 +110,14 @@ $tipoAttuale = old('tipo', $tipoDefault);
                             <div class="col-1">
                                 <label class="form-label">Codice <i class="bi bi-info-circle text-muted small" data-bs-toggle="tooltip" data-bs-title="Codice nel software di contabilità esterno"></i></label>
                                 <input type="text" name="codice_esterno" class="form-control"
-                                       value="<?= esc(old('codice_esterno')) ?>" maxlength="50">
+                                       value="<?= esc(old('codice_esterno', null, false)) ?>" maxlength="50">
                             </div>
                         <?php endif ?>
 
                         <div id="campi-societa" class="<?= $adhoc ? 'col-10' : 'col-11' ?>">
                             <label class="form-label">Ragione sociale <span class="text-danger">*</span></label>
                             <input type="text" name="ragsoc" class="form-control"
-                                   value="<?= esc(old('ragsoc', $adhoc['ragsoc'] ?? '')) ?>">
+                                   value="<?= esc(old('ragsoc', $adhoc['ragsoc'] ?? '', false)) ?>">
                         </div>
 
                         <div id="campi-persona" class="col-8" style="display:none">
@@ -125,12 +125,12 @@ $tipoAttuale = old('tipo', $tipoDefault);
                                 <div class="col-6">
                                     <label class="form-label">Cognome <span class="text-danger">*</span></label>
                                     <input type="text" name="cognome" class="form-control"
-                                           value="<?= esc(old('cognome', $adhoc['cognome'] ?? '')) ?>">
+                                           value="<?= esc(old('cognome', $adhoc['cognome'] ?? '', false)) ?>">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label">Nome <span class="text-danger">*</span></label>
                                     <input type="text" name="nome" class="form-control"
-                                           value="<?= esc(old('nome', $adhoc['nome'] ?? '')) ?>">
+                                           value="<?= esc(old('nome', $adhoc['nome'] ?? '', false)) ?>">
                                 </div>
                             </div>
                         </div>
@@ -138,12 +138,12 @@ $tipoAttuale = old('tipo', $tipoDefault);
                         <div class="col-md-6">
                             <label class="form-label">P.IVA</label>
                             <input type="text" name="piva" class="form-control"
-                                   value="<?= esc(old('piva', $adhoc['piva'] ?? '')) ?>" maxlength="15">
+                                   value="<?= esc(old('piva', $adhoc['piva'] ?? '', false)) ?>" maxlength="15">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Codice fiscale</label>
                             <input type="text" name="cfisc" class="form-control"
-                                   value="<?= esc(old('cfisc', $adhoc['cfisc'] ?? '')) ?>" maxlength="16">
+                                   value="<?= esc(old('cfisc', $adhoc['cfisc'] ?? '', false)) ?>" maxlength="16">
                         </div>
                     </div>
 
@@ -153,22 +153,22 @@ $tipoAttuale = old('tipo', $tipoDefault);
                         <div class="col-12">
                             <label class="form-label">Indirizzo</label>
                             <input type="text" name="indirizzo" class="form-control"
-                                   value="<?= esc(old('indirizzo', $adhoc['indirizzo'] ?? '')) ?>" placeholder="es. Via Aurelia, 296">
+                                   value="<?= esc(old('indirizzo', $adhoc['indirizzo'] ?? '', false)) ?>" placeholder="es. Via Aurelia, 296">
                         </div>
                         <div class="col-3">
                             <label class="form-label">CAP</label>
                             <input type="text" name="cap" class="form-control"
-                                   value="<?= esc(old('cap', $adhoc['cap'] ?? '')) ?>" maxlength="10" placeholder="00000">
+                                   value="<?= esc(old('cap', $adhoc['cap'] ?? '', false)) ?>" maxlength="10" placeholder="00000">
                         </div>
                         <div class="col-5">
                             <label class="form-label">Città</label>
                             <input type="text" name="citta" class="form-control"
-                                   value="<?= esc(old('citta', $adhoc['citta'] ?? '')) ?>">
+                                   value="<?= esc(old('citta', $adhoc['citta'] ?? '', false)) ?>">
                         </div>
                         <div class="col-2">
                             <label class="form-label">Prov.</label>
                             <input type="text" name="provincia" class="form-control"
-                                   value="<?= esc(old('provincia', $adhoc['provincia'] ?? '')) ?>" maxlength="5">
+                                   value="<?= esc(old('provincia', $adhoc['provincia'] ?? '', false)) ?>" maxlength="5">
                         </div>
                         <div class="col-2 d-flex align-items-end">
                             <button type="button" class="btn btn-outline-secondary w-100"
@@ -180,7 +180,7 @@ $tipoAttuale = old('tipo', $tipoDefault);
                     </div>
                     <div id="geo-result" class="small mb-3 mt-1"></div>
                     <?php
-                        $nazioneAttuale = old('nazione', $adhoc['nazione'] ?? 'ITALIA');
+                        $nazioneAttuale = old('nazione', $adhoc['nazione'] ?? 'ITALIA', false);
                         $nazioneAltra   = in_array($nazioneAttuale, \App\Models\ClientiModel::NAZIONI_PREDEFINITE, true) ? '' : $nazioneAttuale;
                     ?>
                     <div class="row g-3 mb-4">
@@ -207,17 +207,17 @@ $tipoAttuale = old('tipo', $tipoDefault);
                         <div class="col-md-6">
                             <label class="form-label">Telefono</label>
                             <input type="tel" name="telefono" class="form-control"
-                                   value="<?= esc(old('telefono', $adhoc['telefono'] ?? '')) ?>">
+                                   value="<?= esc(old('telefono', $adhoc['telefono'] ?? '', false)) ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control"
-                                   value="<?= esc(old('email', $adhoc['email'] ?? '')) ?>">
+                                   value="<?= esc(old('email', $adhoc['email'] ?? '', false)) ?>">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Contatti aggiuntivi <small class="text-muted">— testo libero</small></label>
                             <textarea name="contatti" class="form-control" rows="3"
-                                      placeholder="es. Sig. Rossi (responsabile): 333 000 0000"><?= esc(old('contatti')) ?></textarea>
+                                      placeholder="es. Sig. Rossi (responsabile): 333 000 0000"><?= esc(old('contatti', null, false)) ?></textarea>
                         </div>
                     </div>
 
@@ -251,7 +251,7 @@ $tipoAttuale = old('tipo', $tipoDefault);
                     <p class="text-muted section-header mb-3"><i class="bi bi-sticky me-1"></i> Note</p>
                     <div class="row g-3">
                         <div class="col-12">
-                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', $adhoc['note'] ?? '')) ?></textarea>
+                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', $adhoc['note'] ?? '', false)) ?></textarea>
                         </div>
                     </div>
 

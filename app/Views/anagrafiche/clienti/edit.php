@@ -75,13 +75,13 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                         <div class="col-1">
                             <label class="form-label">Codice <i class="bi bi-info-circle text-muted small" data-bs-toggle="tooltip" data-bs-title="Codice nel software di contabilità esterno"></i></label>
                             <input type="text" name="codice_esterno" class="form-control"
-                                   value="<?= esc(old('codice_esterno', $cliente['codice_esterno'] ?? '')) ?>" maxlength="50">
+                                   value="<?= esc(old('codice_esterno', $cliente['codice_esterno'] ?? '', false)) ?>" maxlength="50">
                         </div>
 
                         <div id="campi-societa" class="col-11">
                             <label class="form-label">Ragione sociale <span class="text-danger">*</span></label>
                             <input type="text" name="ragsoc" class="form-control"
-                                   value="<?= esc(old('ragsoc', $cliente['ragsoc'] ?? '')) ?>">
+                                   value="<?= esc(old('ragsoc', $cliente['ragsoc'] ?? '', false)) ?>">
                         </div>
 
                         <div id="campi-persona" class="col-11" style="display:none">
@@ -89,12 +89,12 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                                 <div class="col-6">
                                     <label class="form-label">Cognome <span class="text-danger">*</span></label>
                                     <input type="text" name="cognome" class="form-control"
-                                           value="<?= esc(old('cognome', $cliente['cognome'] ?? '')) ?>">
+                                           value="<?= esc(old('cognome', $cliente['cognome'] ?? '', false)) ?>">
                                 </div>
                                 <div class="col-6">
                                     <label class="form-label">Nome <span class="text-danger">*</span></label>
                                     <input type="text" name="nome" class="form-control"
-                                           value="<?= esc(old('nome', $cliente['nome'] ?? '')) ?>">
+                                           value="<?= esc(old('nome', $cliente['nome'] ?? '', false)) ?>">
                                 </div>
                             </div>
                         </div>
@@ -102,12 +102,12 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                         <div class="col-md-6">
                             <label class="form-label">P.IVA</label>
                             <input type="text" name="piva" class="form-control"
-                                   value="<?= esc(old('piva', $cliente['piva'] ?? '')) ?>" maxlength="15">
+                                   value="<?= esc(old('piva', $cliente['piva'] ?? '', false)) ?>" maxlength="15">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Codice fiscale</label>
                             <input type="text" name="cfisc" class="form-control"
-                                   value="<?= esc(old('cfisc', $cliente['cfisc'] ?? '')) ?>" maxlength="16">
+                                   value="<?= esc(old('cfisc', $cliente['cfisc'] ?? '', false)) ?>" maxlength="16">
                         </div>
                     </div>
 
@@ -117,22 +117,22 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                         <div class="col-12">
                             <label class="form-label">Indirizzo</label>
                             <input type="text" name="indirizzo" class="form-control"
-                                   value="<?= esc(old('indirizzo', $cliente['indirizzo'] ?? '')) ?>">
+                                   value="<?= esc(old('indirizzo', $cliente['indirizzo'] ?? '', false)) ?>">
                         </div>
                         <div class="col-3">
                             <label class="form-label">CAP</label>
                             <input type="text" name="cap" class="form-control"
-                                   value="<?= esc(old('cap', $cliente['cap'] ?? '')) ?>" maxlength="10">
+                                   value="<?= esc(old('cap', $cliente['cap'] ?? '', false)) ?>" maxlength="10">
                         </div>
                         <div class="col-5">
                             <label class="form-label">Città</label>
                             <input type="text" name="citta" class="form-control"
-                                   value="<?= esc(old('citta', $cliente['citta'] ?? '')) ?>">
+                                   value="<?= esc(old('citta', $cliente['citta'] ?? '', false)) ?>">
                         </div>
                         <div class="col-2">
                             <label class="form-label">Prov.</label>
                             <input type="text" name="provincia" class="form-control"
-                                   value="<?= esc(old('provincia', $cliente['provincia'] ?? '')) ?>" maxlength="5">
+                                   value="<?= esc(old('provincia', $cliente['provincia'] ?? '', false)) ?>" maxlength="5">
                         </div>
                         <div class="col-2 d-flex align-items-end">
                             <button type="button" class="btn btn-outline-secondary w-100"
@@ -158,7 +158,7 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                     <div class="row g-3 mb-4 mt-1">
                         <div class="col-md-6">
                             <?php
-                                $nazioneAttuale = old('nazione', $cliente['nazione'] ?? 'ITALIA');
+                                $nazioneAttuale = old('nazione', $cliente['nazione'] ?? 'ITALIA', false);
                                 $nazioneAltra   = in_array($nazioneAttuale, \App\Models\ClientiModel::NAZIONI_PREDEFINITE, true) ? '' : $nazioneAttuale;
                             ?>
                             <label class="form-label">Nazione</label>
@@ -192,16 +192,16 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                         <div class="col-md-6">
                             <label class="form-label">Telefono</label>
                             <input type="tel" name="telefono" class="form-control"
-                                   value="<?= esc(old('telefono', $cliente['telefono'] ?? '')) ?>">
+                                   value="<?= esc(old('telefono', $cliente['telefono'] ?? '', false)) ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control"
-                                   value="<?= esc(old('email', $cliente['email'] ?? '')) ?>">
+                                   value="<?= esc(old('email', $cliente['email'] ?? '', false)) ?>">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Contatti aggiuntivi <small class="text-muted">— testo libero</small></label>
-                            <textarea name="contatti" class="form-control" rows="3"><?= esc(old('contatti', $cliente['contatti'] ?? '')) ?></textarea>
+                            <textarea name="contatti" class="form-control" rows="3"><?= esc(old('contatti', $cliente['contatti'] ?? '', false)) ?></textarea>
                         </div>
                     </div>
 
@@ -243,7 +243,7 @@ $denom = \App\Models\ClientiModel::denominazione($cliente);
                     <p class="text-muted section-header mb-3"><i class="bi bi-sticky me-1"></i> Note</p>
                     <div class="row g-3">
                         <div class="col-12">
-                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', $cliente['note'] ?? '')) ?></textarea>
+                            <textarea name="note" class="form-control" rows="4"><?= esc(old('note', $cliente['note'] ?? '', false)) ?></textarea>
                         </div>
                     </div>
 

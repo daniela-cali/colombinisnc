@@ -72,13 +72,13 @@ $this->extend('layouts/admin');
                         <div class="col-md-7">
                             <label class="form-label form-label-sm">Nome <span class="text-danger">*</span></label>
                             <input type="text" name="nome" class="form-control form-control-sm"
-                                   value="<?= esc(old('nome')) ?>" maxlength="100"
+                                   value="<?= esc(old('nome', null, false)) ?>" maxlength="100"
                                    placeholder="es. Prodotti chimici">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label form-label-sm">Ordine</label>
                             <input type="number" name="ordine" class="form-control form-control-sm"
-                                   value="<?= esc(old('ordine', $prossimoOrdine)) ?>" min="0">
+                                   value="<?= esc(old('ordine', $prossimoOrdine, false)) ?>" min="0">
                         </div>
                         <div class="col-md-3">
                             <button type="submit" class="btn btn-primary btn-sm w-100">

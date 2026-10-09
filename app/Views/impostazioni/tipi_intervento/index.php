@@ -132,19 +132,19 @@ $this->extend('layouts/admin');
                         <div class="col-md-3">
                             <label class="form-label form-label-sm">Codice <span class="text-danger">*</span></label>
                             <input type="text" name="codice" class="form-control form-control-sm"
-                                   value="<?= esc(old('codice')) ?>" maxlength="50"
+                                   value="<?= esc(old('codice', null, false)) ?>" maxlength="50"
                                    placeholder="es. impianti">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label form-label-sm">Prefisso</label>
                             <input type="text" name="prefisso_codice" class="form-control form-control-sm text-uppercase"
-                                   value="<?= esc(old('prefisso_codice')) ?>" maxlength="3"
+                                   value="<?= esc(old('prefisso_codice', null, false)) ?>" maxlength="3"
                                    placeholder="INT">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label form-label-sm">Nome <span class="text-danger">*</span></label>
                             <input type="text" name="nome" class="form-control form-control-sm"
-                                   value="<?= esc(old('nome')) ?>" maxlength="100"
+                                   value="<?= esc(old('nome', null, false)) ?>" maxlength="100"
                                    placeholder="es. Impianti">
                         </div>
                         <div class="col-md-4">
@@ -168,13 +168,13 @@ $this->extend('layouts/admin');
                         <div class="col-md-2">
                             <label class="form-label form-label-sm">Durata (min) <span class="text-danger">*</span></label>
                             <input type="number" name="durata_default" class="form-control form-control-sm"
-                                   value="<?= esc(old('durata_default', 60)) ?>"
+                                   value="<?= esc(old('durata_default', 60, false)) ?>"
                                    min="5" max="480" step="5">
                         </div>
                         <div class="col-md-2">
                             <label class="form-label form-label-sm">Ordine</label>
                             <input type="number" name="ordine" class="form-control form-control-sm"
-                                   value="<?= esc(old('ordine', 0)) ?>" min="0">
+                                   value="<?= esc(old('ordine', 0, false)) ?>" min="0">
                         </div>
                         <div class="col-auto d-flex align-items-end pb-1 gap-3">
                             <div class="form-check mb-0">
@@ -195,7 +195,7 @@ $this->extend('layouts/admin');
                     <div class="row g-2 mt-1 d-none" id="div-operazioni-standard-new">
                         <div class="col-12">
                             <label class="form-label form-label-sm" for="new-operazioni_standard">Operazioni standard previste nell'abbonamento</label>
-                            <textarea name="operazioni_standard" id="new-operazioni_standard" class="form-control form-control-sm" rows="6"><?= esc(old('operazioni_standard')) ?></textarea>
+                            <textarea name="operazioni_standard" id="new-operazioni_standard" class="form-control form-control-sm" rows="6"><?= esc(old('operazioni_standard', null, false)) ?></textarea>
                         </div>
                     </div>
                 </form>

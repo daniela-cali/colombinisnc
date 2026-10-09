@@ -89,7 +89,7 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                         <p class="text-muted section-header mb-3"><i class="bi bi-cpu me-1"></i> Apparecchiature installate <span class="text-danger">*</span></p>
                         <div class="row g-3 mb-4">
                             <div class="col-12">
-                                <textarea name="apparecchiature" id="apparecchiature" class="form-control" rows="3"><?= esc(old('apparecchiature', $abbonamento['apparecchiature'] ?? '')) ?></textarea>
+                                <textarea name="apparecchiature" id="apparecchiature" class="form-control" rows="3"><?= esc(old('apparecchiature', $abbonamento['apparecchiature'] ?? '', false)) ?></textarea>
                                 <div class="form-text">Una riga per apparecchiatura, senza trattino iniziale: es. N. 1 ADDOLCITORE</div>
                             </div>
                         </div>
@@ -99,7 +99,7 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                     <p class="text-muted section-header mb-3"><i class="bi bi-list-check me-1"></i> Operazioni incluse</p>
                     <div class="row g-3 mb-4">
                         <div class="col-12">
-                            <textarea name="operazioni_incluse" id="operazioni_incluse" class="form-control" rows="6"><?= esc(old('operazioni_incluse', $abbonamento['operazioni_incluse'] ?? '')) ?></textarea>
+                            <textarea name="operazioni_incluse" id="operazioni_incluse" class="form-control" rows="6"><?= esc(old('operazioni_incluse', $abbonamento['operazioni_incluse'] ?? '', false)) ?></textarea>
                             <div class="form-text">Una riga per operazione, senza trattino iniziale</div>
                         </div>
                     </div>
@@ -114,12 +114,12 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                         <div class="col-md-6">
                             <label class="form-label">Data inizio <span class="text-danger">*</span></label>
                             <input type="date" name="data_inizio" class="form-control"
-                                   value="<?= esc(old('data_inizio', $abbonamento['data_inizio'])) ?>">
+                                   value="<?= esc(old('data_inizio', $abbonamento['data_inizio'], false)) ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Data fine <span class="text-danger">*</span></label>
                             <input type="date" name="data_fine" class="form-control"
-                                   value="<?= esc(old('data_fine', $abbonamento['data_fine'])) ?>">
+                                   value="<?= esc(old('data_fine', $abbonamento['data_fine'], false)) ?>">
                         </div>
                     </div>
 
@@ -133,23 +133,23 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                             <label class="form-label">Prezzo totale (€)</label>
                             <input type="text" data-currency-display="prezzo" class="form-control" inputmode="decimal" placeholder="0,00">
                             <input type="hidden" name="prezzo" id="prezzo"
-                                   value="<?= esc(old('prezzo', $abbonamento['prezzo'] ?? '')) ?>">
+                                   value="<?= esc(old('prezzo', $abbonamento['prezzo'] ?? '', false)) ?>">
                         </div>
                         <div class="col-md-4" id="blocco-pulizia">
                             <label class="form-label">Pulizia del fondo su richiesta (€) <span class="text-danger">*</span></label>
                             <input type="text" data-currency-display="prezzo_pulizia_fondo" class="form-control" inputmode="decimal" placeholder="0,00">
                             <input type="hidden" name="prezzo_pulizia_fondo" id="prezzo_pulizia_fondo"
-                                   value="<?= esc(old('prezzo_pulizia_fondo', $abbonamento['prezzo_pulizia_fondo'] ?? $listinoPulizia)) ?>">
+                                   value="<?= esc(old('prezzo_pulizia_fondo', $abbonamento['prezzo_pulizia_fondo'] ?? $listinoPulizia, false)) ?>">
                         </div>
                         <div class="col-md">
                             <label class="form-label">Modalità di pagamento</label>
                             <input type="text" name="modalita_pagamento" class="form-control"
                                    placeholder="es. a metà servizio, saldo ad Agosto"
-                                   value="<?= esc(old('modalita_pagamento', $abbonamento['modalita_pagamento'] ?? '')) ?>">
+                                   value="<?= esc(old('modalita_pagamento', $abbonamento['modalita_pagamento'] ?? '', false)) ?>">
                         </div>
                         <div class="col-12">
                             <label class="form-label">Note</label>
-                            <textarea name="note" class="form-control" rows="2"><?= esc(old('note', $abbonamento['note'] ?? '')) ?></textarea>
+                            <textarea name="note" class="form-control" rows="2"><?= esc(old('note', $abbonamento['note'] ?? '', false)) ?></textarea>
                         </div>
                     </div>
 

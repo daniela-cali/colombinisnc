@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.39.1] - 2026-10-09
+
+### Apostrofi e virgolette non si rovinano più nei form
+
+- [APP] **Corretto un difetto di tutti i form**: quando il salvataggio veniva respinto per un campo mancante, i testi con apostrofi, virgolette o «&» tornavano nel form con dei codici al posto dei caratteri («dell&#039;acqua»), e salvando di nuovo finivano così nel database
+- [DEV] `old()` di CodeIgniter fa già l'escape del valore ritornato, e le view lo avvolgevano in `esc()`: escape doppio. Aggiunto `false` come terzo parametro alle 103 `esc(old(...))` di 16 view e alla nazione dei clienti. Regola in `CLAUDE.md`, sezione «`old()` nei form». In `CLAUDE.md` anche la regola sulle scritture al database: migration e SQL a mano li lancia Claude dopo l'autorizzazione esplicita
+
 ## [0.39.0] - 2026-10-09
 
 ### Prezzo della pulizia del fondo per ogni abbonamento

@@ -91,7 +91,7 @@ $this->extend('layouts/admin');
                             <label class="form-label">Titolo <span class="text-danger">*</span></label>
                             <input type="text" name="titolo" class="form-control" maxlength="150"
                                    placeholder="Es. Piscina interna/Esterna"
-                                   value="<?= esc(old('titolo')) ?>">
+                                   value="<?= esc(old('titolo', null, false)) ?>">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Tipo <span class="text-danger">*</span></label>
@@ -136,13 +136,13 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">Indirizzo</label>
                             <input type="text" name="indirizzo" class="form-control"
-                                   value="<?= esc(old('indirizzo')) ?>"
+                                   value="<?= esc(old('indirizzo', null, false)) ?>"
                                    placeholder="Indirizzo cantiere, se diverso da anagrafica cliente">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Città</label>
                             <input type="text" name="citta" class="form-control"
-                                   value="<?= esc(old('citta')) ?>"
+                                   value="<?= esc(old('citta', null, false)) ?>"
                                    placeholder="Città cantiere, se diversa da anagrafica cliente">
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
@@ -158,13 +158,13 @@ $this->extend('layouts/admin');
                         <div class="col-md-8">
                             <label class="form-label">Referente</label>
                             <input type="text" name="referente_nome" class="form-control" maxlength="150"
-                                   value="<?= esc(old('referente_nome')) ?>"
+                                   value="<?= esc(old('referente_nome', null, false)) ?>"
                                    placeholder="es. Rossi (capo cantiere)">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Telefono referente</label>
                             <input type="tel" name="referente_telefono" class="form-control" maxlength="50"
-                                   value="<?= esc(old('referente_telefono')) ?>"
+                                   value="<?= esc(old('referente_telefono', null, false)) ?>"
                                    placeholder="339 1234567">
                         </div>
                     </div>
@@ -175,12 +175,12 @@ $this->extend('layouts/admin');
                         <div class="col-md-6">
                             <label class="form-label">Data inizio</label>
                             <input type="date" name="data_inizio" class="form-control"
-                                   value="<?= esc(old('data_inizio')) ?>">
+                                   value="<?= esc(old('data_inizio', null, false)) ?>">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Data fine prevista</label>
                             <input type="date" name="data_fine_prevista" class="form-control"
-                                   value="<?= esc(old('data_fine_prevista')) ?>">
+                                   value="<?= esc(old('data_fine_prevista', null, false)) ?>">
                         </div>
                     </div>
 
@@ -189,7 +189,7 @@ $this->extend('layouts/admin');
                     <div class="row g-3 mb-2">
                         <div class="col-12">
                             <textarea name="note" class="form-control" rows="3"
-                                      placeholder="Note generali del cantiere (distinte dal diario)"><?= esc(old('note')) ?></textarea>
+                                      placeholder="Note generali del cantiere (distinte dal diario)"><?= esc(old('note', null, false)) ?></textarea>
                         </div>
                     </div>
 

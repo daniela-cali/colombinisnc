@@ -59,17 +59,17 @@ $this->extend('layouts/admin');
                             <div class="col-md-6">
                                 <label class="form-label">Nome <span class="text-danger">*</span></label>
                                 <input type="text" name="nome" class="form-control"
-                                    value="<?= esc(old('nome', $persona['nome'])) ?>" required>
+                                    value="<?= esc(old('nome', $persona['nome'], false)) ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Cognome <span class="text-danger">*</span></label>
                                 <input type="text" name="cognome" class="form-control"
-                                    value="<?= esc(old('cognome', $persona['cognome'])) ?>" required>
+                                    value="<?= esc(old('cognome', $persona['cognome'], false)) ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Telefono</label>
                                 <input type="text" name="telefono" class="form-control"
-                                    value="<?= esc(old('telefono', $persona['telefono'] ?? '')) ?>">
+                                    value="<?= esc(old('telefono', $persona['telefono'] ?? '', false)) ?>">
                             </div>
                             <div class="col-12">
                                 <?php $this->setData(['coloreCorrente' => old('colore', $persona['colore'] ?? '')]); ?>
@@ -90,7 +90,7 @@ $this->extend('layouts/admin');
                             <div class="col-md-6">
                                 <label class="form-label">Email <span class="text-danger">*</span></label>
                                 <input type="email" name="email" class="form-control"
-                                    value="<?= esc(old('email', $email)) ?>" required>
+                                    value="<?= esc(old('email', $email, false)) ?>" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">
