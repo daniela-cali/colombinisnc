@@ -1,5 +1,13 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.40.0] - 2026-10-09
+
+### Modalità di pagamento da una tendina, prezzo e pagamento obbligatori
+
+- [APP] **La modalità di pagamento si sceglie da una tendina** con le due condizioni più usate: «a metà servizio», proposta in automatico nei nuovi abbonamenti, e «in due rate, a metà e fine servizio». Per un accordo diverso si scrive la frase nel campo e si sceglie «Usa «…»». Una frase personalizzata già salvata compare selezionata quando si riapre l'abbonamento, e il rinnovo la riporta
+- [APP] **Prezzo totale e modalità di pagamento sono obbligatori**: senza, l'abbonamento non si salva. Prima l'errore arrivava solo al momento di generare la proposta in Word
+- [DEV] Costante `AbbonamentiModel::MODALITA_PAGAMENTO_STANDARD`, ricavata dai 124 documenti 2026 (56% a metà servizio, 36% in due rate). La colonna resta testo libero: si salva la frase, non un codice. Partial `abbonamenti/_modalita_pagamento.php` con Tom Select (`create: true`), incluso dal form nuovo e da quello di modifica. Regole `required` su `prezzo` e `modalita_pagamento` in `regoleBase()`; etichetta «Modalità di pagamento» in `etichetta_campo()`
+
 ## [0.39.1] - 2026-10-09
 
 ### Apostrofi e virgolette non si rovinano più nei form

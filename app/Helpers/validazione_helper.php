@@ -41,6 +41,7 @@ if (! function_exists('etichetta_campo')) {
             'data_ora_inizio'    => 'Data e ora di inizio',
             'data_ora_fine'      => 'Data e ora di fine',
             'durata_default'     => 'Durata predefinita',
+            'modalita_pagamento' => 'Modalità di pagamento',
             'referente_nome'     => 'Nome del referente',
             'referente_telefono' => 'Telefono del referente',
             'csv_file'           => 'File CSV',

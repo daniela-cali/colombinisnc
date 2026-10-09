@@ -891,7 +891,9 @@ class AbbonamentiController extends BaseController
                     'successiva_a' => 'La data di fine deve essere successiva alla data di inizio: un abbonamento non può durare un giorno solo.',
                 ],
             ],
-            'prezzo'             => 'permit_empty|decimal',
+            // Tutte e due le proposte Word li scrivono, e senza non si generano.
+            'prezzo'             => 'required|decimal',
+            'modalita_pagamento' => 'required',
 
             // Le regole con il jolly valgono per ogni riga di periodi[]. Il "required" sul
             // <select> della frequenza vive solo nel browser: senza queste regole una riga

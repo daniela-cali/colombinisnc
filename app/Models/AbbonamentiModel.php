@@ -41,6 +41,14 @@ class AbbonamentiModel extends Model
         'annuale'      => 'Annuale',
     ];
 
+    // Condizioni di pagamento proposte dalla tendina nei form, che coprono 9 abbonamenti su 10.
+    // Il campo resta testo libero: si salva la frase, e l'operatore può scriverne un'altra.
+    // La prima è il default dei nuovi abbonamenti.
+    const MODALITA_PAGAMENTO_STANDARD = [
+        'a metà servizio',
+        'in due rate, a metà e fine servizio',
+    ];
+
     // valori stato — 'scaduto' calcolato a runtime nelle query; può essere scritto su DB in futuro via cron
     const STATO_ATTIVO   = 'attivo';
     const STATO_SOSPESO  = 'sospeso';

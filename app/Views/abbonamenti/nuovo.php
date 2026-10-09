@@ -162,7 +162,7 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                     <p class="text-muted section-header mb-3"><i class="bi bi-cash me-1"></i> Prezzo e note</p>
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <label class="form-label">Prezzo totale (€)</label>
+                            <label class="form-label">Prezzo totale (€) <span class="text-danger">*</span></label>
                             <input type="text" data-currency-display="prezzo" class="form-control" inputmode="decimal" placeholder="0,00">
                             <input type="hidden" name="prezzo" id="prezzo"
                                    value="<?= esc(old('prezzo', $abbonamento['prezzo'] ?? '', false)) ?>">
@@ -181,10 +181,7 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                                    value="<?= esc(old('prezzo_pulizia_fondo', $abbonamento['prezzo_pulizia_fondo'] ?? $listinoPulizia, false)) ?>">
                         </div>
                         <div class="col-md">
-                            <label class="form-label">Modalità di pagamento</label>
-                            <input type="text" name="modalita_pagamento" class="form-control"
-                                   placeholder="es. a metà servizio, saldo ad Agosto"
-                                   value="<?= esc(old('modalita_pagamento', $abbonamento['modalita_pagamento'] ?? '', false)) ?>">
+                            <?= view('abbonamenti/_modalita_pagamento', ['modalita' => $abbonamento['modalita_pagamento'] ?? null]) ?>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Note</label>

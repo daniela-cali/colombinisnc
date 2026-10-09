@@ -785,6 +785,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 #### ✅ v0.39.1 — Apostrofi e virgolette non si rovinano più nei form
 - Corretto l'escape doppio di `old()` in tutti i form dopo un errore di validazione
 
+#### ✅ v0.40.0 — Modalità di pagamento da una tendina, prezzo e pagamento obbligatori
+- Tendina con le due condizioni più usate nel 2026 e testo libero per le altre, in attesa di un'eventuale tabella delle condizioni
+- Prezzo e modalità di pagamento obbligatori nel form, non più solo alla generazione della proposta
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo

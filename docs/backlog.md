@@ -73,6 +73,10 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   basta il testo libero senza anno. Toglierebbe l'anno dal testo, uniformerebbe le frasi e
   servirebbe anche ai preventivi. Aperti: i casi personalizzati (voce «Altro» con testo
   libero?), dove mettere l'anno nella frase, e se c'entra il codice di pagamento di Ad Hoc.
+  Dal 09/10/2026 nei form c'è una tendina con le due frasi più usate nei 124 documenti 2026
+  (`AbbonamentiModel::MODALITA_PAGAMENTO_STANDARD`: a metà servizio 56%, in due rate 36%) e
+  il testo libero per il resto; il campo è obbligatorio. Una tabella vera prenderebbe il posto
+  della costante.
 - **Preventivi e clienti potenziali**, insieme: il potenziale esiste perché ha un preventivo.
   Decisioni del brainstorming del 06/10/2026 in `docs/spec/preventivi_impianti_spec.md` §8.
   Si fa dopo le proposte in Word. Restano aperti:
