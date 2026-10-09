@@ -17,11 +17,13 @@ use RuntimeException;
  * ciascun marcatore su una riga sua:
  *
  *     ${apparecchiature}
- *     - ${apparecchiatura}
+ *     • ${apparecchiatura}
  *     ${/apparecchiature}
  *
  * Il nome del blocco deve essere diverso da quello della riga che contiene, altrimenti
- * PhpWord scambia la riga per un marcatore.
+ * PhpWord scambia la riga per un marcatore. Per un elenco puntato la riga è un elemento di
+ * un elenco di Word, non un trattino scritto a mano: ogni copia eredita simbolo e rientro
+ * sporgente, così una voce lunga va a capo allineata al testo e non sotto il simbolo.
  */
 class DocumentoWord
 {

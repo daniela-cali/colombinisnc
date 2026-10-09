@@ -107,8 +107,10 @@ Le **stampe PDF** riprendono lo stile dei suoi template dompdf (`app/Views/viagg
 ## Documenti Word — un motore, modelli nel repository
 I documenti in Word (oggi la proposta di abbonamento, domani i preventivi) passano tutti da
 `app/Libraries/DocumentoWord.php`, sopra il `TemplateProcessor` di PhpWord: segnaposto
-`${nome}` ed elenchi a blocchi `${blocco}` / `- ${voce}` / `${/blocco}`, ogni marcatore in un
-paragrafo suo e con un nome diverso dalla riga che contiene. Il motore fa l'escape dei valori
+`${nome}` ed elenchi a blocchi `${blocco}` / `${voce}` / `${/blocco}`, ogni marcatore in un
+paragrafo suo e con un nome diverso dalla riga che contiene. Negli elenchi puntati il paragrafo
+`${voce}` è un elemento di un elenco di Word, non un trattino scritto a mano: solo così una voce
+lunga va a capo allineata al testo. Il motore fa l'escape dei valori
 (PhpWord non lo fa nei blocchi), si ferma se resta un segnaposto non compilato e non lascia
 file sul server: il documento si genera e si scarica. Cosa mettere nei segnaposto lo decide una
 classe di dominio, come `PropostaAbbonamento`.

@@ -1,5 +1,14 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.40.1] - 2026-10-09
+
+### Proposte in Word più ordinate
+
+- [APP] **Le operazioni e le apparecchiature sono un elenco puntato con il pallino**, come nei documenti 2026: una voce lunga va a capo allineata al testo, non più sotto il trattino
+- [APP] **Telefono ed e-mail del cliente stanno a sinistra del destinatario**, allineati in basso con città e CAP, invece che in coda all'indirizzo: il blocco è più corto e la copia da restituire non rischia più di passare a una terza pagina. L'etichetta è «E-mail:»
+- [APP] **Il titolo «Proposta di manutenzione in abbonamento» è staccato dal logo**, e **il logo è intero**: l'immagine usata finora tagliava il fondo dell'onda più chiara
+- [DEV] Modifiche via XML ai due modelli in `app/Templates/word/`: il paragrafo della voce è collegato all'elenco 8 del documento originale (`numPr`) senza il «- » scritto a mano; destinatario in una tabella senza bordi a due colonne (contatti 9 cm con `vAlign` in basso, indirizzo dove stava col rientro), con un paragrafo vuoto in cima alla cella dei contatti perché resti valida senza telefono né email; 6 pt sopra il titolo nelle intestazioni e logo alzato di 4 pt; `image1.png` rigenerato dall'SVG del vecchio progetto con `rsvg-convert` e 20 px di margine, riquadro e ancora ricalcolati perché il disegno resti grande uguale e nello stesso posto. Aggiornate le descrizioni dei blocchi in `CLAUDE.md`, `DocumentoWord` e nello spec delle proposte Word
+
 ## [0.40.0] - 2026-10-09
 
 ### Modalità di pagamento da una tendina, prezzo e pagamento obbligatori
