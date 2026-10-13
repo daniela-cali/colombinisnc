@@ -45,7 +45,6 @@ $statoBadge = [
 
 <?= $this->section('styles') ?>
 <?= $this->include('partials/datatables_styles') ?>
-<link rel="stylesheet" href="<?= asset_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
 <link rel="stylesheet" href="<?= asset_url('assets/vendor/leaflet/leaflet.css') ?>">
 <?= $this->endSection() ?>
 
@@ -773,14 +772,13 @@ $statoBadge = [
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
-<script src="<?= asset_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <?= $this->include('partials/datatables_scripts') ?>
 <script src="<?= asset_url('js/search-bar.js') ?>"></script>
 
 <script>
 // Tom Select — form materiali sospesi
 (function () {
-    var ts = new TomSelect('#sel-sospeso', {
+    var ts = initTomSelect('#sel-sospeso', {
         wrapperClass: 'ts-wrapper ts-upper',
         create: function (input) {
             var v = input.trim().toUpperCase();

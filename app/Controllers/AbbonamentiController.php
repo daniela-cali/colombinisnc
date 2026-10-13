@@ -73,7 +73,7 @@ class AbbonamentiController extends BaseController
         return view('abbonamenti/nuovo', [
             'title'     => 'Nuova proposta di abbonamento',
             'cliente'   => $clienteId ? (new ClientiModel())->find($clienteId) : null,
-            'clienti'   => (new ClientiModel())->orderBy('ragsoc')->findAll(),
+            'clienti'   => (new ClientiModel())->perTendina(),
             'tipi'      => (new TipiInterventoModel())->abbonabili(),
             'frequenze' => AbbonamentiModel::FREQUENZE_LABEL,
             'periodi'   => null,

@@ -13,7 +13,6 @@
  * campo di testo dedicato. Su desktop resta invariato TomSelect con ricerca e creazione al volo.
  */
 ?>
-<script src="<?= asset_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <script>
 (function () {
     var selEl        = document.getElementById('sel-materiale');
@@ -59,7 +58,7 @@
         (optgroupLibero.closest('optgroup') || optgroupLibero).remove();
     }
 
-    var ts = new TomSelect(selEl, {
+    var ts = initTomSelect(selEl, {
         wrapperClass: 'ts-wrapper ts-upper',
         create: function (input) {
             var v = input.trim().toUpperCase();
@@ -69,17 +68,6 @@
         placeholder: 'Cerca articolo o digita descrizione libera…',
         allowEmptyOption: true,
         createFilter: function (input) { return input.trim().length > 0; }
-    });
-
-    // Bug noto TomSelect (github.com/orchidjs/tom-select/issues/729): ad ogni apertura del
-    // dropdown richiama focus() senza preventScroll sui suoi elementi interni — patch mirata
-    // solo a questi due elementi, non al prototipo globale.
-    [ts.control_input, ts.focus_node].forEach(function (el) {
-        if (! el) return;
-        var nativeFocus = el.focus.bind(el);
-        el.focus = function (options) {
-            return nativeFocus(Object.assign({ preventScroll: true }, options));
-        };
     });
 
     form.addEventListener('submit', function (e) {

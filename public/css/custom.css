@@ -509,6 +509,23 @@
     color: #fff !important;
 }
 
+/* --- Tom Select: città sotto il nome nella tendina del cliente (tom-select-init.js) --- */
+.ts-dropdown .ts-citta {
+    font-size: .8rem;
+    color: var(--bs-secondary-color);
+}
+
+.ts-dropdown .option.active .ts-citta {
+    color: rgba(255, 255, 255, .85);
+}
+
+/* Sotto i 16px Safari su iPhone ingrandisce la pagina quando si tocca il campo */
+@media (max-width: 767.98px) {
+    .ts-control input {
+        font-size: 16px !important;
+    }
+}
+
 .ts-dropdown .optgroup-header {
     background-color: var(--bs-secondary-bg) !important;
     color:            var(--bs-secondary-color) !important;

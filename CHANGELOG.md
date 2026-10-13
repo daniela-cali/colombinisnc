@@ -1,5 +1,15 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.41.0] - 2026-10-12
+
+### Il cliente si cerca scrivendo
+
+- [APP] **Nei form di nuovo intervento, nuovo cantiere e nuova proposta di abbonamento il cliente si cerca scrivendo**, sul PC e sul telefono: bastano poche lettere del nome o della città. Sotto ogni nome compare la città, per distinguere gli omonimi. Il menu mostra al massimo 8 clienti, così sul telefono non deve scorrere
+- [APP] **Nella scelta del cliente di cantieri e abbonamenti i privati non finiscono più tutti in cima**: l'elenco è in ordine alfabetico per denominazione, come negli interventi
+- [APP] **Aprendo i menu dei materiali la pagina non salta più** anche nella scheda cliente (materiali sospesi) e nel nuovo intervento, come già succedeva negli altri form
+- [DEV] Partial `partials/select_cliente.php` con `data-cerca-cliente`, trasformato da `public/js/tom-select-init.js` (`maxOptions: 8`, ricerca su nome e `data-citta`). `ClientiModel::perTendina()` sostituisce `trovaConDettagli()` e i `findAll()` ordinati per `ragsoc`; tolto l'elenco clienti, non usato, da `CantieriController::edit()`. I campi in sola lettura usano `ClientiModel::denominazione()`
+- [DEV] Tom Select caricato una volta sola dal layout, prima degli script delle view; `initTomSelect()` applica a ogni istanza il correttivo del bug #729, prima copiato in due view su quattro. Tolti i caricamenti da sei view; lo script di `_modalita_pagamento.php`, che sta nel corpo della pagina, ora parte a `DOMContentLoaded`. In `custom.css` la città nel menu e il campo a 16px su mobile, perché Safari non ingrandisca la pagina. Spec in `docs/spec/clienti_tendina_ricerca_spec.md`
+
 ## [0.40.1] - 2026-10-09
 
 ### Proposte in Word più ordinate

@@ -21,11 +21,11 @@ if ($valore !== '' && ! in_array($valore, $opzioni, true)) {
     <?php endforeach ?>
 </select>
 
-<link rel="stylesheet" href="<?= asset_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
-<script src="<?= asset_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <script>
-(function () {
-    var ts = new TomSelect('#modalita-pagamento', {
+// Questo script sta nel corpo della pagina, quindi gira prima che il layout carichi
+// Tom Select in fondo: si aspetta DOMContentLoaded.
+document.addEventListener('DOMContentLoaded', function () {
+    initTomSelect('#modalita-pagamento', {
         create: true,
         createOnBlur: true,
         createFilter: function (input) { return input.trim().length > 0; },
@@ -36,15 +36,5 @@ if ($valore !== '' && ! in_array($valore, $opzioni, true)) {
             no_results: null
         }
     });
-
-    // Bug noto TomSelect (github.com/orchidjs/tom-select/issues/729), come nei materiali degli
-    // interventi: a ogni apertura chiama focus() senza preventScroll e la pagina salta.
-    [ts.control_input, ts.focus_node].forEach(function (el) {
-        if (! el) return;
-        var nativeFocus = el.focus.bind(el);
-        el.focus = function (options) {
-            return nativeFocus(Object.assign({ preventScroll: true }, options));
-        };
-    });
-})();
+});
 </script>

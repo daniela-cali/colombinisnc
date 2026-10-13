@@ -3,7 +3,6 @@
  * @var string      $title
  * @var array       $cantiere    Record da modificare
  * @var array|null  $cliente     Cliente del cantiere
- * @var array       $clienti     Elenco completo (non usato: cliente readonly in modifica)
  * @var array       $tipi        Righe da TipiInterventoModel::attivi() — per il tipo intervento predefinito
  * @var array       $tipiLabel   CantieriModel::TIPI_LABEL
  * @var array       $statiLabel  CantieriModel::STATI_LABEL

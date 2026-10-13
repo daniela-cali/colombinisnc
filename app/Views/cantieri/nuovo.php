@@ -3,7 +3,7 @@
  * @var string      $title
  * @var array|null  $cantiere    null per nuovo (presente per riuso old())
  * @var array|null  $cliente     Preselezionato da ?cliente_id=; null = mostra select
- * @var array       $clienti     Elenco completo per il select
+ * @var array       $clienti     Righe da ClientiModel::perTendina()
  * @var array       $tipi        Righe da TipiInterventoModel::attivi() — per il tipo intervento predefinito
  * @var array       $tipiLabel   CantieriModel::TIPI_LABEL
  * @var array       $statiLabel  CantieriModel::STATI_LABEL
@@ -62,24 +62,12 @@ $this->extend('layouts/admin');
                             <div class="col-12">
                                 <input type="hidden" name="cliente_id" value="<?= (int) $cliente['id'] ?>">
                                 <input type="text" class="form-control" readonly
-                                       value="<?= esc($cliente['tipo'] === 'persona_fisica'
-                                           ? trim(($cliente['cognome'] ?? '') . ' ' . ($cliente['nome'] ?? ''))
-                                           : $cliente['ragsoc']) ?>">
+                                       value="<?= esc(\App\Models\ClientiModel::denominazione($cliente)) ?>">
                             </div>
                         <?php else: ?>
                             <div class="col-12">
                                 <label class="form-label">Cliente <span class="text-danger">*</span></label>
-                                <select name="cliente_id" class="form-select">
-                                    <option value="">— seleziona —</option>
-                                    <?php foreach ($clienti as $c): ?>
-                                        <option value="<?= $c['id'] ?>"
-                                                <?= old('cliente_id') == $c['id'] ? 'selected' : '' ?>>
-                                            <?= esc($c['tipo'] === 'persona_fisica'
-                                                ? trim(($c['cognome'] ?? '') . ' ' . ($c['nome'] ?? ''))
-                                                : $c['ragsoc']) ?>
-                                        </option>
-                                    <?php endforeach ?>
-                                </select>
+                                <?= view('partials/select_cliente', ['clienti' => $clienti, 'selezionato' => null]) ?>
                             </div>
                         <?php endif ?>
                     </div>

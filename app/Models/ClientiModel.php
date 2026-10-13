@@ -151,24 +151,25 @@ class ClientiModel extends Model
     }
 
     /**
-     * Un solo cliente con gli stessi campi calcolati di elencoCompleto(), per non
-     * passare l'elenco intero alla tendina del form intervento quando il cliente è
-     * già noto.
+     * Righe per la tendina di scelta del cliente (partials/select_cliente): solo id,
+     * denominazione e città, ordinate per denominazione. Ordinare per `ragsoc` metteva
+     * in cima tutte le persone fisiche, che non ce l'hanno.
      *
-     * Restituisce una **lista di una riga** (non la riga singola), proprio per essere
-     * intercambiabile con elencoCompleto() nella view che la consuma.
+     * Con $soloId restituisce una lista con quel solo cliente: il form intervento aperto
+     * da una scheda non ha bisogno dell'elenco intero.
      *
-     * @return list<array<string,mixed>>
+     * @return list<array{id: int|string, cliente_denominazione: string, citta: ?string}>
      */
-    public function trovaConDettagli(int $id): array
+    public function perTendina(?int $soloId = null): array
     {
-        return $this->select("clienti.*,
-            clienti.denominazione AS cliente_denominazione,
-            TRIM(CONCAT_WS(' ', p.cognome, p.nome)) AS tecnico_preferito_nome,
-            (SELECT COUNT(*) FROM interventi WHERE interventi.cliente_id = clienti.id AND interventi.abbonamento_id IS NULL AND interventi.stato NOT IN ('completato','annullato')) AS num_interventi")
-            ->join('personale p', 'p.id = clienti.tecnico_preferito_id', 'left')
-            ->where("clienti.id", $id)
-            ->findAll();
+        $this->select('clienti.id, clienti.denominazione AS cliente_denominazione, clienti.citta')
+            ->orderBy('clienti.denominazione');
+
+        if ($soloId) {
+            $this->where('clienti.id', $soloId);
+        }
+
+        return $this->findAll();
     }
 
     /**

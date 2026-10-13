@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="<?= asset_url('assets/vendor/adminlte/adminlte.min.css') ?>">
     <link rel="stylesheet" href="<?= asset_url('assets/vendor/bootstrap-icons/bootstrap-icons.min.css') ?>">
     <link rel="stylesheet" href="<?= asset_url('assets/vendor/fontawesome/all.min.css') ?>">
+    <link rel="stylesheet" href="<?= asset_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
     <link rel="stylesheet" href="<?= asset_url('css/custom.css') ?>">
     <?= $this->renderSection('styles') ?>
 </head>
@@ -321,6 +322,8 @@ $_helpFile       = (isset($help_sezione) && is_file(APPPATH . 'Views/help/' . $h
 <script src="<?= asset_url('assets/vendor/bootstrap/bootstrap.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/overlayscrollbars/overlayscrollbars.browser.es6.min.js') ?>"></script>
 <script src="<?= asset_url('assets/vendor/adminlte/adminlte.min.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
+<script src="<?= asset_url('js/tom-select-init.js') ?>"></script>
 <script src="<?= asset_url('js/row-dblclick.js') ?>"></script>
 <script>
     OverlayScrollbarsGlobal.OverlayScrollbars(document.querySelector('.sidebar-wrapper'), {

@@ -481,10 +481,6 @@ $statoBadge = [
 
 <?= $this->endSection() ?>
 
-<?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= asset_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
-<?= $this->endSection() ?>
-
 <?= $this->section('scripts') ?>
 <?= $this->include('operativo/interventi/_form_materiale_scripts') ?>
 <script>

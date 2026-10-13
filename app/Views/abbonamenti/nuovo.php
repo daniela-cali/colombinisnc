@@ -2,7 +2,7 @@
 /**
  * @var string     $title
  * @var array|null $cliente     Preselezionato da ?cliente_id= o da rinnova(); null = mostra select
- * @var array      $clienti     Elenco completo per il select (vuoto in modalità rinnova)
+ * @var array      $clienti     Righe da ClientiModel::perTendina() (vuoto in modalità rinnova)
  * @var array      $tipi        Righe da TipiInterventoModel::abbonabili()
  * @var array      $frequenze   AbbonamentiModel::FREQUENZE_LABEL
  * @var array|null $periodi     Periodi precaricati per rinnova(); null per nuovo
@@ -78,25 +78,13 @@ $operazioniStandardDefault = array_column($tipi, 'operazioni_standard', 'id');
                             <div class="col-12">
                                 <input type="hidden" name="cliente_id" value="<?= (int) $cliente['id'] ?>">
                                 <input type="text" class="form-control" readonly
-                                       value="<?= esc($cliente['tipo'] === 'persona_fisica'
-                                           ? trim(($cliente['cognome'] ?? '') . ' ' . ($cliente['nome'] ?? ''))
-                                           : $cliente['ragsoc']) ?>">
+                                       value="<?= esc(\App\Models\ClientiModel::denominazione($cliente)) ?>">
                             </div>
                         <?php else: //Caso cliente non definito (da pulsante nuovo)
                             ?>
                             <div class="col-12">
                                 <label class="form-label">Cliente <span class="text-danger">*</span></label>
-                                <select name="cliente_id" class="form-select">
-                                    <option value="">— seleziona —</option>
-                                    <?php foreach ($clienti as $c): ?>
-                                        <option value="<?= $c['id'] ?>"
-                                                <?= old('cliente_id', $abbonamento['cliente_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
-                                            <?= esc($c['tipo'] === 'persona_fisica'
-                                                ? trim(($c['cognome'] ?? '') . ' ' . ($c['nome'] ?? ''))
-                                                : $c['ragsoc']) ?>
-                                        </option>
-                                    <?php endforeach ?>
-                                </select>
+                                <?= view('partials/select_cliente', ['clienti' => $clienti, 'selezionato' => $abbonamento['cliente_id'] ?? null]) ?>
                             </div>
                         <?php endif ?>
                     </div>

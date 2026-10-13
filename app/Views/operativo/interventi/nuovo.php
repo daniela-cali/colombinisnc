@@ -1,6 +1,6 @@
 <?php
 /**
- * @var array    $clienti        Righe da ClientiModel::elencoCompleto() / Riga unica se proviene da cantieri o abbonamenti
+ * @var array    $clienti        Righe da ClientiModel::perTendina() — una sola se il cliente è già noto
  * @var array    $tecnici        Righe da PersonaleModel::elencoPerGruppi(['tecnico'])
  * @var array    $tipi           Righe da TipiInterventoModel::attivi()
  * @var array    $prioritaLabel  [codice => etichetta]
@@ -79,15 +79,7 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
                     <div class="row g-3 mb-4">
                         <div class="col-md-7">
                             <label class="form-label">Cliente <span class="text-danger">*</span></label>
-                            <select name="cliente_id" class="form-select">
-                                <option value="">— seleziona —</option>
-                                    <?php foreach ($clienti as $c): ?>
-                                        <option value="<?= $c['id'] ?>"
-                                                <?= old('cliente_id', $cliente_id) == $c['id'] ? 'selected' : '' ?>>
-                                            <?= esc($c['cliente_denominazione']) ?>
-                                        </option>
-                                    <?php endforeach ?>
-                                </select>
+                            <?= view('partials/select_cliente', ['clienti' => $clienti, 'selezionato' => $cliente_id]) ?>
 
                         </div>
                         <div class="col-md-5">
@@ -289,18 +281,13 @@ $durateDefault = array_column($tipi, 'durata_default', 'id');
 </div>
 <?= $this->endSection() ?>
 
-<?= $this->section('styles') ?>
-<link rel="stylesheet" href="<?= asset_url('assets/vendor/tom-select/tom-select.bootstrap5.min.css') ?>">
-<?= $this->endSection() ?>
-
 <?= $this->section('scripts') ?>
-<script src="<?= asset_url('assets/vendor/tom-select/tom-select.complete.min.js') ?>"></script>
 <script>
 (function () {
     var durateDefault = <?= json_encode($durateDefault) ?>;
     var materiali = [];
 
-    var ts = new TomSelect('#sel-materiale', {
+    var ts = initTomSelect('#sel-materiale', {
         wrapperClass: 'ts-wrapper ts-upper',
         create: function (input) {
             var v = input.trim().toUpperCase();

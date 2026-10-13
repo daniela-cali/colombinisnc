@@ -94,7 +94,7 @@ class InterventiController extends BaseController
             $descrizioneDefault = ($cliente ? 'Cantiere '.ClientiModel::denominazione($cliente).': '.$cantiereNota['testo'] : '');
         }
         /* Se passa già ID da scheda cliente/cantiere/abbonamento non carica tutto l'elenco di clienti, ma solo quello in questione */
-        $clienti = $clienteId ? (new ClientiModel())->trovaConDettagli($clienteId) : (new ClientiModel())->elencoCompleto();
+        $clienti = (new ClientiModel())->perTendina($clienteId ?: null);
 
         return view('operativo/interventi/nuovo', [
             'clienti'              => $clienti,

@@ -793,6 +793,10 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Elenchi puntati con rientro, contatti a sinistra del destinatario, titolo staccato dal logo, logo intero
 - Verificata la conversione in PDF con LibreOffice, in vista dell'invio delle proposte per email
 
+#### ✅ v0.41.0 — Il cliente si cerca scrivendo
+- Spec in `clienti_tendina_ricerca_spec.md`: Tom Select sulla tendina del cliente di interventi, cantieri e abbonamenti, con la città sotto il nome e al massimo 8 risultati, così il menu non deve scorrere su iPhone
+- Tom Select caricato una volta sola dal layout, con il correttivo del salto di pagina in `initTomSelect()`
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo
