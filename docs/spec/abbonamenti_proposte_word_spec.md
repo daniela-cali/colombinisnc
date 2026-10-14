@@ -55,7 +55,7 @@ Lavoro di dati, nessun codice: inserire nelle Operazioni standard del tipo Addol
 | FREQUENZA DELLE VISITE | etichetta della frequenza del periodo, in maiuscolo («BIMESTRALE») |
 | Apparecchiature installate | `abbonamenti.apparecchiature`, una voce per riga |
 | operazioni | `abbonamenti.operazioni_incluse`, una voce per riga |
-| DURATA DEL SERVIZIO | «UN ANNO» fisso nel modello, poi «dal `data_inizio` al `data_fine`» in formato `01/06/2026` |
+| DURATA DEL SERVIZIO | «Dal `data_inizio` al `data_fine`» in formato `01.06.2026`, senza durata scritta (vedi sotto) |
 | PREZZO COMPLESSIVO | `abbonamenti.prezzo` in formato italiano («500,00»); «Euro … + Iva 22%» fisso nel modello |
 | PAGAMENTO | `abbonamenti.modalita_pagamento`; l'etichetta è testo fisso del modello e si sceglie in Word |
 | condizioni di abbonamento | testo fisso nel modello |
@@ -65,7 +65,7 @@ Lavoro di dati, nessun codice: inserire nelle Operazioni standard del tipo Addol
 Motivazioni delle scelte meno ovvie:
 
 - **«Gentile Sig./Sig.ra» e non il genere.** L'anagrafica non conosce il genere e l'import da Ad Hoc non lo porta. Un campo «titolo» andrebbe compilato a mano su centinaia di schede, e ricavarlo dal nome sbaglia su nomi come Andrea o Celeste: un errore di genere in una lettera pesa più di una formula neutra. Il documento esce in Word, quindi un caso particolare si ritocca a mano prima di spedirlo. Il genere in anagrafica si potrà aggiungere più avanti senza toccare il motore.
-- **«UN ANNO» e non «UN ANNO SOLARE».** Esistono abbonamenti annuali non allineati all'anno solare, per esempio dal 01/06/2026 al 31/05/2027. Le date dicono già tutto: riconoscere il caso solare non serve. Il rinnovo sposta entrambe le date di un anno esatto, quindi regge questi casi.
+- **Solo le date, senza «UN ANNO».** Il modello scriveva «UN ANNO» fisso davanti alle date, ma un abbonamento può durare più anni (dal 01.01.2027 al 31.12.2029) e il documento diceva il falso. Tolto in v0.41.1, come già nel modello delle piscine: le date dicono tutto, anche per gli annuali non allineati all'anno solare (dal 01.06.2026 al 31.05.2027). Scartato calcolare «DUE ANNI», «TRE ANNI»: servirebbe un segnaposto in più e un ripiego per le durate che non sono anni interi.
 - **Una sola frequenza.** Oggi gli abbonamenti addolcitori hanno sempre un solo periodo. Se un giorno ne avessero più d'uno con frequenze diverse, il documento le elenca separate da « / » nell'ordine dei periodi: non si blocca la generazione per un caso che oggi non esiste.
 - **IVA al 22% fissa nel modello**, perché è sempre quella.
 

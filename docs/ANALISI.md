@@ -797,6 +797,9 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 - Spec in `clienti_tendina_ricerca_spec.md`: Tom Select sulla tendina del cliente di interventi, cantieri e abbonamenti, con la città sotto il nome e al massimo 8 risultati, così il menu non deve scorrere su iPhone
 - Tom Select caricato una volta sola dal layout, con il correttivo del salto di pagina in `initTomSelect()`
 
+#### ✅ v0.41.1 — La durata nella proposta degli impianti
+- Tolto «UN ANNO» fisso dal modello degli addolcitori: gli abbonamenti di più anni risultavano annuali
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo

@@ -1,5 +1,12 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.41.1] - 2026-10-14
+
+### La durata nella proposta degli impianti
+
+- [APP] **La proposta degli impianti non scrive più «UN ANNO» davanti alle date**: un abbonamento di più anni, per esempio dal 01.01.2027 al 31.12.2029, risultava di un anno solo. Ora la durata è «Dal … al …», come nella proposta delle piscine
+- [DEV] Tolta la parola fissa dal modello `proposta_addolcitori.docx`, nella proposta e nella copia da restituire; aggiornato lo spec delle proposte Word. In `docs/backlog.md` la voce dei badge di stato pastello, rimandata a dopo il go-live; in `CLAUDE.md` il vecchio progetto si consulta solo su richiesta o per verificare se una cosa era già implementata
+
 ## [0.41.0] - 2026-10-12
 
 ### Il cliente si cerca scrivendo

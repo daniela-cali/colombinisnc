@@ -42,6 +42,17 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
 
 ## Funzionalità
 
+- **Badge di stato pastello: rimandato il 13/10/2026**, fino al go-live non serve. Deciso:
+  badge di stato in tutto il progetto da brillanti a pastello, con bordo e scritta scura della
+  stessa tinta (decade la regola della scritta bianca); «Rinnova» pulsante azzurro brillante,
+  «Rinnovato →» pieno come «Nuovo abbonamento». Proposta: classi `.badge-<tinta>` in
+  `custom.css` con terne di variabili sfondo/bordo/testo, e le mappe dei model
+  (`AbbonamentiModel`, `InterventiModel`, `CantieriModel::STATI_BADGE`,
+  `AssenzeModel::TIPI_BADGE`) che puntano a quelle, togliendo le mappe ripetute nelle view.
+  Aperti: quale schema vince per gli stati degli interventi, oggi diverso fra il model e due
+  view (`operativo/interventi/index.php`, `anagrafiche/clienti/show.php`); se contatori e
+  card della dashboard restano fuori.
+
 - **Menù senza sottomenu degli interventi.** Le parole di Daniela: «il menù non deve più
   filtrare creando sottomenù». L'idea emersa il 28/08/2026 era una pagina unica con una tendina
   Categoria o Tipo al posto delle tre voci generale/piscine/addolcitori. È stata ritirata
