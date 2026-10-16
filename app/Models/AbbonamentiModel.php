@@ -286,6 +286,7 @@ class AbbonamentiModel extends Model
         $result = $this->select([
                 'abbonamenti.*',
                 "c.denominazione AS cliente_denominazione",
+                'c.email AS cliente_email',
                 'ti.nome AS tipo_nome',
                 'ti.categoria AS tipo_categoria',
                 'ti.ha_pulizia_fondo AS tipo_ha_pulizia_fondo',
@@ -294,9 +295,12 @@ class AbbonamentiModel extends Model
                 'SUBSTRING(succ.data_inizio, 1, 4) AS successore_anno',
                 '(SELECT COUNT(*) FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id) AS num_periodi',
                 '(SELECT ap.frequenza FROM abbonamenti_periodi ap WHERE ap.abbonamento_id = abbonamenti.id ORDER BY ap.ordine ASC LIMIT 1) AS prima_frequenza',
+                "TRIM(CONCAT_WS(' ', pinv.nome, pinv.cognome)) AS proposta_inviata_da",
             ])
             ->join('clienti c',         'c.id  = abbonamenti.cliente_id',        'left')
             ->join('tipi_intervento ti', 'ti.id = abbonamenti.tipo_intervento_id', 'left')
+            // chi ha inviato la proposta: proposta_inviata_by è un id di users, come created_by
+            ->join('personale pinv',     'pinv.user_id = abbonamenti.proposta_inviata_by', 'left')
             // Il rinnovo, se c'è: al massimo uno per il vincolo uq_abbonamenti_abbonamento_precedente_id
             ->join('abbonamenti succ',   'succ.abbonamento_precedente_id = abbonamenti.id', 'left')
             ->find($id);
@@ -370,6 +374,22 @@ class AbbonamentiModel extends Model
         $this->builder()
             ->whereIn('id', $ids)
             ->update(['proposta_generata_at' => date('Y-m-d H:i:s')]);
+    }
+
+    /**
+     * Registra che la proposta è partita: dall'invio per email, dopo la risposta positiva del
+     * server SMTP, o da «Segna come inviata» quando è stata spedita fuori dal gestionale.
+     * Come segnaPropostaGenerata() passa dal builder e non tocca updated_at: inviare una
+     * proposta non è modificarla.
+     */
+    public function segnaPropostaInviata(int $id): void
+    {
+        $this->builder()
+            ->where('id', $id)
+            ->update([
+                'proposta_inviata_at' => date('Y-m-d H:i:s'),
+                'proposta_inviata_by' => user_id(),
+            ]);
     }
 
     /**

@@ -47,22 +47,46 @@ $statoOrdine = [
                title="Clicca su un'intestazione per ordinare. Tieni premuto Shift e clicca su altre colonne per ordinare su più criteri."></i>
         </h3>
         <div class="card-tools ms-auto">
-            <button type="submit" form="form-accetta-multiplo" id="btn-accetta-multiplo"
-                    class="btn btn-sm btn-success" disabled title="Accetta selezionati"
-                    onclick="return confirm('Accettare le proposte selezionate? Verranno generati gli interventi.')">
-                <i class="bi bi-clipboard-check-fill"></i><span class="d-none d-sm-inline ms-1">Accetta selezionati</span>
-            </button>
-            <button type="submit" form="form-accetta-multiplo" id="btn-proposte-word"
-                    formaction="<?= base_url('abbonamenti/proposte-word') ?>"
-                    class="btn btn-sm btn-outline-secondary" disabled title="Proposte in Word delle righe selezionate, in un unico zip">
-                <i class="bi bi-file-earmark-word"></i><span class="d-none d-sm-inline ms-1">Scarica proposte</span>
-            </button>
-            <button type="button" id="btn-rinnova-multiplo"
-                    class="btn btn-sm btn-outline-primary" disabled
-                    title="Rinnova le righe selezionate, un form alla volta nell'ordine di selezione">
-                <i class="bi bi-arrow-repeat"></i><span class="d-none d-sm-inline ms-1">Rinnova selezionati</span>
-                <span class="badge text-bg-primary ms-1 d-none" id="conta-rinnovo"></span>
-            </button>
+            <?php /* Il tooltip sta sullo span e non sul pulsante: un pulsante disattivato non riceve il
+                     passaggio del mouse. Lo script ci scrive la descrizione o il motivo per cui è spento. */ ?>
+            <span class="tooltip-pulsante" tabindex="0" data-bs-toggle="tooltip"
+                  data-descrizione="Accetta le proposte selezionate e genera i loro interventi" data-bs-title="Seleziona almeno un abbonamento">
+                <button type="submit" form="form-accetta-multiplo" id="btn-accetta-multiplo"
+                        class="btn btn-sm btn-success" disabled
+                        onclick="return confirm('Accettare le proposte selezionate? Verranno generati gli interventi.')">
+                    <i class="bi bi-clipboard-check-fill"></i><span class="d-none d-sm-inline ms-1">Accetta selezionati</span>
+                </button>
+            </span>
+            <span class="tooltip-pulsante" tabindex="0" data-bs-toggle="tooltip"
+                  data-descrizione="Proposte in Word delle righe selezionate, in un unico zip" data-bs-title="Seleziona almeno un abbonamento">
+                <button type="submit" form="form-accetta-multiplo" id="btn-proposte-word"
+                        formaction="<?= base_url('abbonamenti/proposte-word') ?>"
+                        class="btn btn-sm btn-outline-secondary" disabled>
+                    <i class="bi bi-file-earmark-word"></i><span class="d-none d-sm-inline ms-1">Scarica Word</span>
+                </button>
+            </span>
+            <span class="tooltip-pulsante" tabindex="0" data-bs-toggle="tooltip"
+                  data-descrizione="Proposte in PDF delle righe selezionate, in un unico zip" data-bs-title="Seleziona almeno un abbonamento">
+                <button type="button" id="btn-proposte-pdf"
+                        class="btn btn-sm btn-outline-secondary" disabled>
+                    <i class="bi bi-file-earmark-pdf"></i><span class="d-none d-sm-inline ms-1">Scarica PDF</span>
+                </button>
+            </span>
+            <span class="tooltip-pulsante" tabindex="0" data-bs-toggle="tooltip"
+                  data-descrizione="Invia per email le proposte selezionate, una alla volta" data-bs-title="Seleziona almeno un abbonamento">
+                <button type="button" id="btn-invia-multiplo"
+                        class="btn btn-sm btn-outline-secondary" disabled>
+                    <i class="bi bi-envelope"></i><span class="d-none d-sm-inline ms-1">Invia per email</span>
+                </button>
+            </span>
+            <span class="tooltip-pulsante" tabindex="0" data-bs-toggle="tooltip"
+                  data-descrizione="Rinnova le righe selezionate, un form alla volta nell'ordine di selezione" data-bs-title="Seleziona almeno un abbonamento">
+                <button type="button" id="btn-rinnova-multiplo"
+                        class="btn btn-sm btn-outline-primary" disabled>
+                    <i class="bi bi-arrow-repeat"></i><span class="d-none d-sm-inline ms-1">Rinnova selezionati</span>
+                    <span class="badge text-bg-primary ms-1 d-none" id="conta-rinnovo"></span>
+                </button>
+            </span>
             <a href="<?= base_url('abbonamenti/nuovo') ?>" class="btn btn-sm btn-primary">
                 <i class="bi bi-plus-lg me-1"></i>Nuovo abbonamento
             </a>
@@ -123,6 +147,8 @@ $statoOrdine = [
                     'voci'      => $vociAnno,
                 ]) ?>
             </div>
+            <?php /* Quanti sono selezionati; perché un pulsante è spento lo dice il suo tooltip. */ ?>
+            <p id="riepilogo-selezione" class="small text-muted mb-2 d-none"></p>
             <?php /* Il form della selezione multipla è vuoto e sta fuori dalla tabella: i bottoni gli
                      si collegano con l'attributo form, e gli id selezionati li aggiunge lo script al
                      momento dell'invio. Se racchiudesse la tabella, i form Accetta/Rifiuta di ogni
@@ -153,13 +179,12 @@ $statoOrdine = [
                         <tbody>
                             <?php foreach ($abbonamenti as $a): ?>
                                 <tr>
-                                    <!-- 0 Checkbox selezione: proposte da accettare o scaricare, oppure abbonamenti da rinnovare -->
+                                    <!-- 0 Checkbox selezione, su ogni riga: sono i pulsanti a dire cosa si può fare con la selezione -->
                                     <td class="text-center">
-                                        <?php if ($a['stato_calcolato'] === 'proposta'): ?>
-                                            <input type="checkbox" value="<?= (int) $a['id'] ?>" class="check-riga" data-tipo="proposta">
-                                        <?php elseif ($a['rinnovabile']): ?>
-                                            <input type="checkbox" value="<?= (int) $a['id'] ?>" class="check-riga" data-tipo="rinnovo">
-                                        <?php endif ?>
+                                        <input type="checkbox" value="<?= (int) $a['id'] ?>" class="check-riga"
+                                               data-stato="<?= esc($a['stato_calcolato']) ?>"
+                                               data-rinnovabile="<?= $a['rinnovabile'] ? 1 : 0 ?>"
+                                               data-anno="<?= esc($a['anno_inizio']) ?>">
                                     </td>
                                     <!-- 1 Rif. -->
                                     <td data-order="<?= (int) $a['id'] ?>">
@@ -230,6 +255,14 @@ $statoOrdine = [
                                                        : 'Genera la proposta Word' ?>">
                                                     <i class="bi bi-file-earmark-word"></i>
                                                 </a>
+                                                <?php /* Invia per email e dice se è già partita: pieno sì, contornato no */ ?>
+                                                <button type="button" data-invia="<?= (int) $a['id'] ?>"
+                                                        class="btn btn-sm <?= $a['proposta_inviata_at'] ? 'btn-secondary' : 'btn-outline-secondary' ?>"
+                                                        title="<?= $a['proposta_inviata_at']
+                                                            ? 'Proposta inviata il ' . date('d/m/Y H:i', strtotime($a['proposta_inviata_at'])) . ' — invia di nuovo'
+                                                            : 'Invia la proposta per email' ?>">
+                                                    <i class="bi bi-envelope"></i>
+                                                </button>
                                             <?php endif ?>
                                             <form action="<?= base_url('abbonamenti/' . $a['id'] . '/accetta') ?>" method="post" class="d-inline">
                                                 <?= csrf_field() ?>
@@ -259,11 +292,38 @@ $statoOrdine = [
         <?php endif ?>
     </div>
 </div>
+
+<?= view('abbonamenti/_invio_email') ?>
+
+<?php /* Avanzamento dello zip dei PDF: la conversione va a lotti e con molte proposte dura qualche
+         minuto. Statica: si chiude da sola a zip scaricato, oppure con Chiudi dopo un errore. */ ?>
+<div class="modal fade" id="modal-zip-pdf" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-pdf me-2"></i>Proposte in PDF</h5>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2" id="zip-pdf-stato">Conversione in corso…</p>
+                <div class="progress" role="progressbar" aria-label="Avanzamento della conversione">
+                    <div class="progress-bar" id="zip-pdf-barra"></div>
+                </div>
+                <div class="alert alert-danger mt-3 mb-0 d-none" id="zip-pdf-errore"></div>
+            </div>
+            <div class="modal-footer d-none" id="zip-pdf-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Chiudi</button>
+            </div>
+        </div>
+    </div>
+</div>
 <?= $this->endSection() ?>
 
 <?= $this->section('scripts') ?>
 <?= $this->include('partials/datatables_scripts') ?>
 <script src="<?= asset_url('js/search-bar.js') ?>"></script>
+<script src="<?= asset_url('assets/vendor/fflate/index.js') ?>"></script>
+<script src="<?= asset_url('js/zip-proposte-pdf.js') ?>"></script>
+<script src="<?= asset_url('js/invio-proposte.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -290,19 +350,24 @@ document.addEventListener('DOMContentLoaded', function () {
     // Filtri iniziali: quelli ricordati dalla sessione, altrimenti i default — vedi search-bar.js
     filtriIniziali('tabella-abbonamenti');
 
-    /* Selezione multipla — vedi docs/spec/abbonamenti_rinnovo_multiplo_spec.md, punti 3, 4 e 10.
-       Una selezione è di un tipo solo: proposte (Accetta, Scarica) oppure abbonamenti da
-       rinnovare (Rinnova). Lo stato vive qui e non nelle caselle presenti nella pagina, perché
+    /* Selezione multipla — vedi docs/spec/abbonamenti_invio_email_spec.md, «Selezione».
+       Ogni riga ha la sua casella e le caselle non si bloccano a vicenda: ogni pulsante si
+       accende solo se la selezione contiene ciò su cui sa lavorare, e il suo tooltip dice perché
+       è spento. Lo stato vive qui e non nelle caselle presenti nella pagina, perché
        DataTables stacca dal documento le righe delle altre pagine e quelle escluse dai filtri:
        cercandole con querySelectorAll si perdevano. */
     var selezione = [];   // id nell'ordine di selezione: è l'ordine dei form del rinnovo
-    var tipo      = null; // 'proposta', 'rinnovo' o null se la selezione è vuota
+    var righe     = {};   // id → { stato, rinnovabile, anno } letti dalla casella
 
     var checkTutti = document.getElementById('check-tutti');
     var btnAccetta = document.getElementById('btn-accetta-multiplo');
     var btnWord    = document.getElementById('btn-proposte-word');
+    var btnPdf     = document.getElementById('btn-proposte-pdf');
+    var btnInvia   = document.getElementById('btn-invia-multiplo');
     var btnRinnova = document.getElementById('btn-rinnova-multiplo');
+    var maxInvii   = <?= \App\Libraries\PropostaAbbonamento::inviiMassimi() ?>;
     var contaRinn  = document.getElementById('conta-rinnovo');
+    var riepilogo  = document.getElementById('riepilogo-selezione');
 
     // Le caselle delle righe indicate, di tutte le pagine; senza opzioni, tutte le righe.
     function caselle(opzioni) {
@@ -314,64 +379,89 @@ document.addEventListener('DOMContentLoaded', function () {
     function aggiungi(cb) {
         cb.checked = true;
         if (selezione.indexOf(cb.value) === -1) selezione.push(cb.value);
+        righe[cb.value] = {
+            stato:       cb.dataset.stato,
+            rinnovabile: cb.dataset.rinnovabile === '1',
+            anno:        cb.dataset.anno
+        };
+    }
+
+    function togli(cb) {
+        cb.checked = false;
+        var i = selezione.indexOf(cb.value);
+        if (i !== -1) selezione.splice(i, 1);
+        delete righe[cb.value];
+    }
+
+    // Vero se ogni riga selezionata rispetta la condizione (e ce n'è almeno una).
+    function tutte(condizione) {
+        return selezione.length > 0 && selezione.every(function (id) { return condizione(righe[id]); });
+    }
+
+    // Accende o spegne un pulsante; il tooltip dice cosa fa, oppure perché è spento.
+    function stato(btn, motivo, descrizione) {
+        var span = btn.parentElement;
+        btn.disabled = motivo !== null;
+        bootstrap.Tooltip.getOrCreateInstance(span).setContent({
+            '.tooltip-inner': motivo || descrizione || span.dataset.descrizione
+        });
+    }
+
+    // Gli id rinnovabili della selezione, nell'ordine di selezione.
+    function idRinnovabili() {
+        return selezione.filter(function (id) { return righe[id].rinnovabile; });
     }
 
     function aggiorna() {
-        tipo = selezione.length ? tipo : null;
+        var n           = selezione.length;
+        var proposte    = tutte(function (r) { return r.stato === 'proposta'; });
+        var rinnovabili = idRinnovabili().length;
+        var anni        = selezione.map(function (id) { return righe[id].anno; })
+            .filter(function (a, i, tutti) { return tutti.indexOf(a) === i; });
+        var nessuno     = n === 0 ? 'Seleziona almeno un abbonamento' : null;
 
-        caselle().forEach(function (cb) {
-            cb.disabled = tipo !== null && cb.dataset.tipo !== tipo;
-        });
+        stato(btnWord,    nessuno);
+        stato(btnPdf,     nessuno);
+        stato(btnAccetta, nessuno || (proposte ? null : 'Solo proposte: nella selezione ci sono altri abbonamenti'));
+        // Eccezione voluta: Rinnova lavora sui rinnovabili della selezione e ignora gli altri, perché
+        // il rinnovo di fine anno si fa con «Seleziona tutto» sugli attivi, che comprendono quelli
+        // già rinnovati nei giorni precedenti.
+        stato(btnRinnova, nessuno || (rinnovabili ? null : 'Nessun abbonamento rinnovabile nella selezione'),
+            rinnovabili < n ? 'Rinnova i ' + rinnovabili + ' rinnovabili su ' + n + ' selezionati; gli altri sono già rinnovati o non rinnovabili' : null);
+        stato(btnInvia,   nessuno
+            || (! proposte       ? 'Solo proposte: nella selezione ci sono altri abbonamenti'
+            :  anni.length > 1   ? 'Le proposte devono essere tutte dello stesso anno: filtra per anno'
+            :  n > maxInvii      ? 'Al massimo ' + maxInvii + ' proposte per volta (Impostazioni → Email)'
+            :  null));
 
-        btnAccetta.disabled = tipo !== 'proposta';
-        btnWord.disabled    = tipo !== 'proposta';
-        btnRinnova.disabled = tipo !== 'rinnovo';
+        contaRinn.textContent = rinnovabili;
+        contaRinn.classList.toggle('d-none', ! rinnovabili);
 
-        contaRinn.textContent = selezione.length;
-        contaRinn.classList.toggle('d-none', tipo !== 'rinnovo');
+        riepilogo.textContent = n + (n === 1 ? ' selezionato' : ' selezionati');
+        riepilogo.classList.toggle('d-none', n === 0);
 
-        checkTutti.checked = selezione.length > 0;
+        checkTutti.checked = n > 0;
     }
 
     document.getElementById('tabella-abbonamenti').addEventListener('change', function (e) {
         var cb = e.target;
         if (! cb.classList.contains('check-riga')) return;
 
-        if (cb.checked) {
-            tipo = cb.dataset.tipo;
-            aggiungi(cb);
-        } else {
-            selezione.splice(selezione.indexOf(cb.value), 1);
-        }
+        cb.checked ? aggiungi(cb) : togli(cb);
         aggiorna();
     });
 
     // Spunta le righe filtrate nell'ordine attuale della tabella; tolta la spunta, azzera tutto.
     checkTutti.addEventListener('change', function () {
-        if (! checkTutti.checked) {
-            caselle().forEach(function (cb) { cb.checked = false; });
-            selezione = [];
-            aggiorna();
-            return;
-        }
-
-        var filtrate = caselle({ search: 'applied', order: 'applied' });
-        var tipi     = filtrate.map(function (cb) { return cb.dataset.tipo; })
-            .filter(function (t, i, tutti) { return tutti.indexOf(t) === i; });
-
-        if (tipo === null && tipi.length > 1) {
-            alert('L\'elenco contiene sia proposte sia abbonamenti da rinnovare: filtra per anno o per stato, poi seleziona tutto.');
-        } else if (tipo === null && tipi.length === 1) {
-            tipo = tipi[0];
-        }
-
-        if (tipo !== null) {
-            filtrate.filter(function (cb) { return cb.dataset.tipo === tipo; }).forEach(aggiungi);
+        if (checkTutti.checked) {
+            caselle({ search: 'applied', order: 'applied' }).forEach(aggiungi);
+        } else {
+            caselle().forEach(togli);
         }
         aggiorna();
     });
 
-    // Accetta e Scarica: gli id arrivano dalla selezione, non dalle caselle nella pagina.
+    // Accetta e Scarica Word: gli id arrivano dalla selezione, non dalle caselle nella pagina.
     var formMultiplo = document.getElementById('form-accetta-multiplo');
     formMultiplo.addEventListener('submit', function () {
         formMultiplo.querySelectorAll('input[name="ids[]"]').forEach(function (el) { el.remove(); });
@@ -384,10 +474,35 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Scarica PDF: convertiti a lotti e messi in uno zip nel browser — vedi zip-proposte-pdf.js
+    btnPdf.addEventListener('click', function () {
+        scaricaZipProposte(selezione.slice(), {
+            url:   '<?= base_url('abbonamenti/proposte-pdf/lotto') ?>',
+            lotto: <?= \App\Controllers\AbbonamentiController::LOTTO_PDF ?>,
+            csrf:  formMultiplo.querySelector('input[name="<?= csrf_token() ?>"]').value,
+            nome:  'Proposte abbonamento PDF <?= date('Y-m-d') ?>.zip'
+        });
+    });
+
+    // Invia per email: dall'elenco le selezionate, dalla riga una sola — vedi invio-proposte.js
+    var opzioniInvio = {
+        urlPrepara: '<?= base_url('abbonamenti/invio/prepara') ?>',
+        urlInvia:   '<?= base_url('abbonamenti') ?>/{id}/invia',
+        pausa:      2000
+    };
+    btnInvia.addEventListener('click', function () {
+        apriInvioProposte(selezione.slice(), opzioniInvio);
+    });
+    document.getElementById('tabella-abbonamenti').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-invia]');
+        if (btn) apriInvioProposte([btn.dataset.invia], opzioniInvio);
+    });
+
     // Rinnova: apre il form del primo, gli altri viaggiano nell'indirizzo (spec, punto 5).
     btnRinnova.addEventListener('click', function () {
-        location.href = '<?= base_url('abbonamenti') ?>/' + selezione[0]
-            + '/rinnova?coda=' + selezione.slice(1).join(',');
+        var ids = idRinnovabili();
+        location.href = '<?= base_url('abbonamenti') ?>/' + ids[0]
+            + '/rinnova?coda=' + ids.slice(1).join(',');
     });
 });
 </script>

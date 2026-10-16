@@ -103,6 +103,12 @@
     --lte-card-variant-bg: var(--clr-primary);
 }
 
+/* --- Card impilate: AdminLTE 4 non dà margini alle card, e due card una sotto l'altra
+       restavano attaccate. Vale solo fra card sorelle, quindi non tocca quelle in colonna --- */
+.card + .card {
+    margin-top: 1rem;
+}
+
 /* --- btn-primary: sovrascrive hover/active generati da Bootstrap --- */
 .btn-primary {
     --bs-btn-bg:              var(--clr-primary);
@@ -749,6 +755,9 @@ tr:has(a.js-row-open) {
     flex-wrap: wrap;
     gap: .5rem;
     align-items: center;
+    /* Un footer senza ritorno (la card Posta del profilo) tiene comunque i pulsanti a
+       destra; dove il ritorno c'è, il suo margin-right: auto prende già lo spazio. */
+    justify-content: flex-end;
 }
 /* Desktop: il ritorno a sinistra, tutto il resto spinto a destra,
    con la distruttiva mai adiacente alla primaria. */
@@ -842,3 +851,30 @@ span.prezzo::before {
     }
 }
 
+
+/* =========================================================
+   Anteprima della firma email (profilo, finestra d'invio)
+   La firma sta in un iframe sandbox: si vede con le immagini,
+   ma nessuno script del file incollato gira nella pagina.
+   ========================================================= */
+.anteprima-firma {
+    display: block;
+    width: 100%;
+    height: 260px;
+    border: 1px solid #dee2e6;
+    border-radius: .375rem;
+    background: #fff;
+}
+
+/* =========================================================
+   Tooltip su un pulsante che può essere disattivato
+   Un pulsante disabled non riceve il passaggio del mouse: il
+   tooltip sta sullo span che lo avvolge, e al pulsante spento
+   si tolgono gli eventi del puntatore perché arrivino allo span.
+   ========================================================= */
+.tooltip-pulsante {
+    display: inline-block;
+}
+.tooltip-pulsante > .btn:disabled {
+    pointer-events: none;
+}

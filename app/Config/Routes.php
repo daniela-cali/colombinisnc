@@ -9,6 +9,8 @@ $routes->group('profilo', function ($routes) {
     $routes->get('/',              'ProfiloController::index');
     $routes->post('aggiorna',      'ProfiloController::update');
     $routes->post('versione-vista', 'ProfiloController::versioneVista');
+    $routes->post('posta',          'ProfiloController::salvaPosta');
+    $routes->post('posta/prova',    'ProfiloController::provaPosta');
 });
 
 $routes->get('login',  '\CodeIgniter\Shield\Controllers\LoginController::loginView',   ['filter' => 'noauth']);
@@ -23,6 +25,9 @@ $routes->group('impostazioni', ['filter' => 'permission:impostazioni.manage'], f
     $routes->post('parametri/logo',  'Impostazioni\GeneraleController::cambiaLogo');
 
     $routes->get('numeratori',       'Impostazioni\NumeratoriController::index');
+
+    $routes->get('email',            'Impostazioni\EmailController::index');
+    $routes->post('email',           'Impostazioni\EmailController::salva');
 
     $routes->group('tipi-intervento', function ($routes) {
         $routes->get('/',              'Impostazioni\TipiInterventoController::index');
@@ -105,6 +110,11 @@ $routes->group('abbonamenti', function ($routes) {
         // la generazione scrive proposta_generata_at sull'abbonamento
         $routes->get('(:num)/proposta',  'AbbonamentiController::proposta/$1');
         $routes->post('proposte-word',   'AbbonamentiController::proposteWord');
+        $routes->get('(:num)/proposta-pdf', 'AbbonamentiController::propostaPdf/$1');
+        $routes->post('proposte-pdf/lotto', 'AbbonamentiController::propostePdfLotto');
+        $routes->post('invio/prepara',        'AbbonamentiController::preparaInvio');
+        $routes->post('(:num)/invia',         'AbbonamentiController::invia/$1');
+        $routes->post('(:num)/segna-inviata', 'AbbonamentiController::segnaInviata/$1');
         $routes->post('(:num)/annulla-accettazione', 'AbbonamentiController::annullaAccettazione/$1');
         $routes->post('(:num)/elimina',  'AbbonamentiController::elimina/$1');
     });

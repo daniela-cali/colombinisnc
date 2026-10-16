@@ -1,5 +1,18 @@
 # Changelog — Colombini SNC Gestionale
 
+## [0.42.0] - 2026-10-16
+
+### Le proposte partono per email
+
+- [APP] **La proposta di abbonamento si invia per email dal gestionale**, in PDF, dalla casella di chi la manda e con la sua firma; il mittente vede «Colombini S.n.c. - Nome Cognome» e chi invia riceve una copia nascosta. Dalla scheda, **Invia per email** funziona in qualunque stato, anche per rimandare il documento di un abbonamento già accettato; dall'elenco si inviano più proposte dello stesso anno, una alla volta, e la finestra mostra l'esito di ciascuna. Oggetto e testo sono già pronti e si possono correggere prima di ogni invio
+- [APP] **Nell'elenco la busta piena indica le proposte già inviate**, e nella scheda compare «Proposta inviata il … da …». Una proposta spedita fuori dal gestionale si annota con **Segna come inviata**
+- [APP] **La proposta si scarica anche in PDF**: dalla scheda con **Proposta PDF**, dall'elenco con **Scarica PDF**, uno zip con tutte le proposte selezionate, senza limite di numero, con una finestra che mostra a che punto è la preparazione
+- [APP] **Nel profilo, la nuova sezione Posta**: la password della propria email aziendale, il file della firma con l'anteprima e l'email di prova
+- [APP] **In Impostazioni, la voce Email** sostituisce «Notifiche Email — In costruzione»: server di posta, nome nel mittente, oggetto e testo della proposta, invii massimi per volta
+- [APP] **Nell'elenco degli abbonamenti ogni riga ha la sua casella**, anche gli attivi, e le caselle non si bloccano più a vicenda: sono i pulsanti ad accendersi secondo la selezione, e passando il mouse su uno spento si legge perché. **Rinnova selezionati** lavora solo sugli abbonamenti ancora da rinnovare e salta gli altri. «Scarica proposte» si chiama ora **Scarica Word**
+- [DEV] `ConvertitorePdf`: Word → PDF con LibreOffice, più documenti con un solo avvio, profilo e cartella temporanei, pagine con `pdfinfo`. `EmailOperatore`: classe `Email` di CodeIgniter con la casella dell'operatore, immagini `data:` della firma trasformate in `cid:`, copia nascosta, alternativa testuale. Migration `AddPropostaInviataToAbbonamenti` e `CreatePersonaleCaselleEmail` (tabella separata: la firma pesa ~100 KB e `personale`/`users` si leggono di continuo). Password cifrata con `encryption.key`. `Config\Email` con i valori di Aruba, sovrascrivibili da Impostazioni → Email via Settings
+- [DEV] Endpoint JSON `abbonamenti/invio/prepara`, `abbonamenti/{id}/invia`, `abbonamenti/proposte-pdf/lotto`; script `invio-proposte.js` e `zip-proposte-pdf.js`, con fflate 0.8.2 via npm per lo zip nel browser. Tooltip sui pulsanti disattivati con `.tooltip-pulsante`; `.card-azioni` allinea a destra anche un footer senza ritorno; `.card + .card` stacca le card impilate, che in AdminLTE 4 non hanno margine e restavano attaccate. Spec in `docs/spec/abbonamenti_invio_email_spec.md`; passi di deploy (LibreOffice, caratteri Microsoft, poppler-utils, `key:generate`) in `docs/deploy.md`. In `docs/backlog.md` l'idea della vista unica degli interventi, con la ricerca a più parole al posto del sottomenu per categoria
+
 ## [0.41.1] - 2026-10-14
 
 ### La durata nella proposta degli impianti

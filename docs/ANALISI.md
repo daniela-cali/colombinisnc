@@ -800,6 +800,11 @@ Un **cantiere** raggruppa più interventi legati a un unico progetto per un clie
 #### ✅ v0.41.1 — La durata nella proposta degli impianti
 - Tolto «UN ANNO» fisso dal modello degli addolcitori: gli abbonamenti di più anni risultavano annuali
 
+#### ✅ v0.42.0 — Le proposte partono per email
+- Spec in `abbonamenti_invio_email_spec.md`: invio in PDF dalla casella dell'operatore, singolo in qualunque stato e multiplo per le proposte di un anno, con traccia dell'invio e «Segna come inviata»
+- PDF con LibreOffice (`ConvertitorePdf`), zip dei PDF composto nel browser a lotti; casella e firma nel profilo, Impostazioni → Email
+- Selezione dell'elenco riscritta: una casella per riga, pulsanti con il tooltip del motivo
+
 #### 🔲 v1.0.0 — Release, prevista per **gennaio 2027**
 - La data è operativa prima che tecnica: il gestionale si cambia all'inizio dell'anno contabile, quando gli abbonamenti ripartono, non negli ultimi mesi dell'anno con il lavoro in corso
 - Nei mesi precedenti si carica l'anagrafica sul database di produzione, svuotato e ricostruito da zero il 26/08/2026 (vedi `docs/deploy.md`). Da quel momento quel database è destinato ai dati veri, non più una demo

@@ -49,6 +49,7 @@ Regole nate da correzioni esplicite nel corso del progetto. Ognuna ha avuto un c
 - **Commit intermedi su un branch con più parti**: sono checkpoint senza versione, senza `CHANGELOG.md` e senza §7.1 di `ANALISI.md`. Questi si aggiornano solo nel commit finale.
 - **Feature con file intrecciati**: se le modifiche pendenti di più sotto-feature condividono gli stessi file, niente commit intermedi ricavati con patch parziali. Si fa un commit unico a feature finita, testando lungo il percorso.
 - **Le scritture sul database si lanciano solo dopo l'autorizzazione dell'utente.** `php spark migrate`, `db:seed`, `UPDATE` e altro SQL a mano si propongono mostrando il comando e dicendo cosa aspettarsi; Claude li lancia solo dopo un via libera esplicito, che vale per quel comando e non per i successivi. Le letture restano normali.
+- **`migrate:rollback -b N` torna al gruppo N, non annulla N gruppi.** `-b 1` esegue il `down()` di quasi tutte le migration: il 14/10/2026 ha cancellato `clienti_adhoc` e le colonne aggiunte da agosto in poi nel database di sviluppo. Per annullare l'ultimo gruppo basta `php spark migrate:rollback` senza opzioni; prima di un rollback guardare `SELECT batch, version FROM migrations ORDER BY id DESC` e dire quali migration verranno annullate.
 - **Controllo finale dopo un'iterazione manuale**: se l'utente ha appena sistemato a mano un file, i problemi trovati in quel file si segnalano e si lasciano testare prima di correggerli. Fix, changelog e commit non vanno incatenati nello stesso turno.
 - **Amministrazione di sistema** (cron, rotazione e copia off-site dei backup, SSH, pool PHP) è materia del sistemista. Non proporla come prossimo passo; se serve, scrivere le istruzioni per lui.
 
@@ -104,7 +105,7 @@ Il gestionale precedente è in `/var/www/colombini-old`, in sola lettura, ed è 
 
 Le **stampe PDF** riprendono lo stile dei suoi template dompdf (`app/Views/viaggi/pdf_viaggio.php`, `pdf_giornata.php`, `app/Views/interventi/pdf_rapportino.php`), già applicato in `anagrafiche/clienti/pdf_scheda_cliente.php`: leggere il template corrispondente prima di scrivere la view. Il logo va incorporato come data URI base64, perché `isRemoteEnabled` resta `false`.
 
-## Documenti Word — un motore, modelli nel repository
+## Documenti Word e PDF — un motore, modelli nel repository
 I documenti in Word (oggi la proposta di abbonamento, domani i preventivi) passano tutti da
 `app/Libraries/DocumentoWord.php`, sopra il `TemplateProcessor` di PhpWord: segnaposto
 `${nome}` ed elenchi a blocchi `${blocco}` / `${voce}` / `${/blocco}`, ogni marcatore in un
@@ -114,6 +115,14 @@ lunga va a capo allineata al testo. Il motore fa l'escape dei valori
 (PhpWord non lo fa nei blocchi), si ferma se resta un segnaposto non compilato e non lascia
 file sul server: il documento si genera e si scarica. Cosa mettere nei segnaposto lo decide una
 classe di dominio, come `PropostaAbbonamento`.
+
+**Il PDF si ottiene dal Word con LibreOffice** (`app/Libraries/ConvertitorePdf.php`), che ne
+rispetta intestazioni, loghi e tabulazioni: PhpWord con dompdf li perdeva. Converte più documenti
+con un solo avvio, conta le pagine con `pdfinfo` e, come il motore Word, non lascia file sul
+server. Costa ~0,6 secondi a documento: una richiesta sola regge circa 90 documenti prima dei 60
+secondi di Nginx, per questo lo zip dei PDF si compone nel browser a lotti di 20. Le
+email ai clienti partono dalla casella dell'operatore con `app/Libraries/EmailOperatore.php`
+(password cifrata e firma in `personale_caselle_email`), generica come il motore Word.
 
 I modelli stanno in `app/Templates/word/`. **I segnaposto non si scrivono a mano in Word**: il
 controllo ortografico e le revisioni li spezzano in pezzi invisibili e PhpWord non li trova

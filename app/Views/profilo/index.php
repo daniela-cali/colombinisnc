@@ -6,6 +6,8 @@
  * @var array                                  $pastelli
  * @var array                                  $colori_usati
  * @var \CodeIgniter\Shield\Entities\User|null $user
+ * @var string|null                            $firma               firma HTML della casella, con le immagini data:
+ * @var bool                                   $ha_password_casella se la password della casella è salvata
  */
 $this->extend('layouts/admin');
 ?>
@@ -110,6 +112,69 @@ $this->extend('layouts/admin');
                 </div>
             </form>
         </div>
+
+        <?php // La casella serve a chi spedisce proposte dal gestionale, cioè a un dipendente. ?>
+        <?php if ($persona): ?>
+            <div class="card card-outline card-primary" id="posta">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="bi bi-envelope me-2"></i>Posta
+                    </h3>
+                </div>
+                <form id="form-posta" action="<?= base_url('profilo/posta') ?>" method="post" enctype="multipart/form-data">
+                    <?= csrf_field() ?>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">
+                            Le proposte partono dalla tua casella, <strong><?= esc($email) ?></strong>, con la tua firma.
+                            Ricevi in copia nascosta ogni email che invii.
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Password della casella
+                                    <?php if ($ha_password_casella): ?>
+                                        <span class="badge text-bg-success ms-1">Salvata</span>
+                                    <?php else: ?>
+                                        <span class="badge text-bg-secondary ms-1">Nessuna</span>
+                                    <?php endif ?>
+                                </label>
+                                <input type="password" name="smtp_password" class="form-control" autocomplete="new-password">
+                                <div class="form-text">
+                                    <?= $ha_password_casella ? 'Lascia vuoto per non cambiarla.' : 'La password della tua email aziendale.' ?>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">File della firma</label>
+                                <input type="file" name="firma" class="form-control" accept=".html,.htm">
+                                <div class="form-text">
+                                    Il file .html della tua firma<?= $firma ? ': sostituisce quella attuale.' : '.' ?>
+                                </div>
+                            </div>
+                            <?php if ($firma): ?>
+                                <div class="col-12">
+                                    <label class="form-label">Firma attuale</label>
+                                    <iframe class="anteprima-firma" sandbox srcdoc="<?= esc($firma) ?>" title="Anteprima della firma"></iframe>
+                                </div>
+                            <?php endif ?>
+                        </div>
+                    </div>
+                </form>
+                <div class="card-footer card-azioni">
+                    <?php // Form a sé, fuori da form-posta: i form non si possono annidare. ?>
+                    <form action="<?= base_url('profilo/posta/prova') ?>" method="post" class="azione-secondaria">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary" <?= $ha_password_casella ? '' : 'disabled' ?>
+                                title="<?= $ha_password_casella ? 'Ti invia un\'email per controllare casella e firma' : 'Salva prima la password della casella' ?>">
+                            <i class="bi bi-send me-1"></i>Invia email di prova
+                        </button>
+                    </form>
+                    <button type="submit" form="form-posta" class="btn btn-sm btn-primary azione-primaria">
+                        <i class="bi bi-check-lg me-1"></i>Salva
+                    </button>
+                </div>
+            </div>
+        <?php endif ?>
 
     </div>
 </div>

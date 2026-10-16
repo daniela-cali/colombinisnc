@@ -60,6 +60,9 @@ class AssetsPublish extends BaseCommand
             ['label' => 'Leaflet CSS',            'src' => 'node_modules/leaflet/dist',                         'dest' => 'leaflet',              'pattern' => 'leaflet.css'],
             ['label' => 'Leaflet JS',             'src' => 'node_modules/leaflet/dist',                         'dest' => 'leaflet',              'pattern' => 'leaflet.js'],
             ['label' => 'Leaflet images',         'src' => 'node_modules/leaflet/dist/images',                  'dest' => 'leaflet/images',       'pattern' => '*.png'],
+
+            // zip composto nel browser: lo zip dei PDF delle proposte, convertite a lotti
+            ['label' => 'fflate',                 'src' => 'node_modules/fflate/umd',                           'dest' => 'fflate',               'pattern' => 'index.js'],
         ];
 
         CLI::write('Pubblicazione assets frontend...', 'yellow');

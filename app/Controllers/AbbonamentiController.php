@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\ConvertitorePdf;
+use App\Libraries\EmailOperatore;
 use App\Libraries\PropostaAbbonamento;
 use App\Models\AbbonamentiModel;
 use App\Models\AbbonamentiPeriodiModel;
@@ -10,6 +12,7 @@ use App\Models\InterventiModel;
 use App\Models\TipiInterventoModel;
 use CodeIgniter\HTTP\DownloadResponse;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 use RuntimeException;
 use ZipArchive;
 
@@ -28,6 +31,12 @@ class AbbonamentiController extends BaseController
         InterventiModel::STATO_IN_CORSO,
         InterventiModel::STATO_COMPLETATO,
     ];
+
+    /**
+     * Proposte per ogni lotto dello zip dei PDF: venti conversioni richiedono circa 12 secondi,
+     * ben sotto il limite di 60 secondi con cui Nginx interrompe una richiesta.
+     */
+    public const LOTTO_PDF = 20;
 
     /**
      * Index globale: tutti gli abbonamenti con cliente, tipo e stato calcolato.
@@ -648,12 +657,34 @@ class AbbonamentiController extends BaseController
     }
 
     /**
+     * Proposta in PDF dell'abbonamento, da scaricare: il Word convertito con LibreOffice, per
+     * stamparla o spedirla da un altro programma. Come il Word, si genera in qualunque stato e
+     * annota proposta_generata_at.
+     */
+    public function propostaPdf(int $id): DownloadResponse|RedirectResponse
+    {
+        $model       = new AbbonamentiModel();
+        $abbonamento = $model->trovaConDettagli($id);
+
+        if (! $abbonamento) {
+            return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
+        }
+
+        try {
+            $proposta = (new PropostaAbbonamento())->genera($abbonamento);
+            $pdf      = (new ConvertitorePdf())->converti([$proposta['nome'] => $proposta['contenuto']]);
+        } catch (RuntimeException $e) {
+            return redirect()->to('abbonamenti/' . $id)->with('error', $e->getMessage());
+        }
+
+        $model->segnaPropostaGenerata([$id]);
+
+        return $this->response->download(array_key_first($pdf), reset($pdf)['contenuto'], true);
+    }
+
+    /**
      * Proposte in Word delle righe selezionate nell'index, in un unico zip: un file per
      * proposta, da allegare all'email o da stampare tutti insieme.
-     *
-     * Una proposta che non si può generare non blocca le altre: finisce in NON GENERATE.txt con
-     * il motivo, perché una risposta che scarica un file non può portare un messaggio flash.
-     * Se non se ne genera nessuna non c'è zip, si torna all'elenco con l'errore.
      */
     public function proposteWord(): DownloadResponse|RedirectResponse
     {
@@ -663,13 +694,66 @@ class AbbonamentiController extends BaseController
             return redirect()->to('abbonamenti')->with('error', 'Nessuna proposta selezionata.');
         }
 
+        $selezione = $this->proposteSelezionate($ids);
+        if ($selezione['generate'] === []) {
+            return redirect()->to('abbonamenti')->with('error', 'Nessuna proposta generata. ' . implode(' ', $selezione['scartate']));
+        }
+
+        (new AbbonamentiModel())->segnaPropostaGenerata($selezione['generate']);
+
+        return $this->scaricaZip($selezione['documenti'], $selezione['scartate'], 'Proposte abbonamento ' . date('Y-m-d') . '.zip');
+    }
+
+    /**
+     * Un lotto di proposte in PDF per lo zip dell'elenco. Lo zip lo compone lo script nel
+     * browser, chiedendo un lotto alla volta: tutte le proposte in una sola richiesta
+     * supererebbero presto i 60 secondi di Nginx (0,6 secondi a proposta).
+     *
+     * I PDF viaggiano in base64 dentro il JSON. I nomi sono unici nel lotto; fra un lotto e
+     * l'altro li rende unici lo script, che vede tutto lo zip. Le proposte che non si possono
+     * generare tornano in scartate con il motivo, e non fermano le altre.
+     */
+    public function propostePdfLotto(): ResponseInterface
+    {
+        $ids = array_map('intval', $this->request->getPost('ids') ?? []);
+
+        if ($ids === [] || count($ids) > self::LOTTO_PDF) {
+            return $this->response->setJSON(['ok' => false, 'motivo' => 'Un lotto contiene da 1 a ' . self::LOTTO_PDF . ' proposte.']);
+        }
+
+        $selezione = $this->proposteSelezionate($ids);
+        $file      = [];
+
+        if ($selezione['documenti'] !== []) {
+            try {
+                $pdf = (new ConvertitorePdf())->converti($selezione['documenti']);
+            } catch (RuntimeException $e) {
+                return $this->response->setJSON(['ok' => false, 'motivo' => $e->getMessage()]);
+            }
+
+            foreach ($pdf as $nome => $documento) {
+                $file[] = ['nome' => $nome, 'pdf' => base64_encode($documento['contenuto'])];
+            }
+            (new AbbonamentiModel())->segnaPropostaGenerata($selezione['generate']);
+        }
+
+        return $this->response->setJSON(['ok' => true, 'file' => $file, 'scartate' => $selezione['scartate']]);
+    }
+
+    /**
+     * I Word delle proposte selezionate, con nomi di file unici, più l'elenco di quelle che
+     * non si possono generare con il motivo. Una proposta scartata non blocca le altre.
+     *
+     * @param  list<int> $ids
+     * @return array{documenti: array<string, string>, generate: list<int>, scartate: list<string>}
+     */
+    private function proposteSelezionate(array $ids): array
+    {
         $model      = new AbbonamentiModel();
         $generatore = new PropostaAbbonamento();
-        $file       = tempnam(sys_get_temp_dir(), 'proposte');
-        $zip        = new ZipArchive();
-        $zip->open($file, ZipArchive::OVERWRITE);
 
         $nomiUsati = [];
+        $documenti = [];
         $generate  = [];
         $scartate  = [];
 
@@ -686,28 +770,184 @@ class AbbonamentiController extends BaseController
                 continue;
             }
 
-            $zip->addFromString($this->nomeLibero($proposta['nome'], $nomiUsati), $proposta['contenuto']);
+            $documenti[$this->nomeLibero($proposta['nome'], $nomiUsati)] = $proposta['contenuto'];
             $generate[] = $id;
         }
 
-        if ($scartate !== [] && $generate !== []) {
+        return ['documenti' => $documenti, 'generate' => $generate, 'scartate' => $scartate];
+    }
+
+    /**
+     * Scarica i file in un unico zip. Le proposte scartate finiscono in NON GENERATE.txt con il
+     * motivo, perché una risposta che scarica un file non può portare un messaggio flash.
+     *
+     * @param array<string, string> $file     nome => contenuto, almeno uno
+     * @param list<string>          $scartate
+     */
+    private function scaricaZip(array $file, array $scartate, string $nomeZip): DownloadResponse
+    {
+        $percorso = tempnam(sys_get_temp_dir(), 'proposte');
+        $zip      = new ZipArchive();
+        $zip->open($percorso, ZipArchive::OVERWRITE);
+
+        foreach ($file as $nome => $contenuto) {
+            $zip->addFromString($nome, $contenuto);
+        }
+        if ($scartate !== []) {
             $zip->addFromString('NON GENERATE.txt', implode("\r\n", $scartate) . "\r\n");
         }
         $zip->close();
 
-        // Uno zip chiuso senza file non viene scritto: il file di tempnam() può esserci o no.
-        $contenuto = is_file($file) ? file_get_contents($file) : '';
-        if (is_file($file)) {
-            unlink($file);
+        $contenuto = file_get_contents($percorso);
+        unlink($percorso);
+
+        return $this->response->download($nomeZip, $contenuto, true);
+    }
+
+    /**
+     * Prepara la finestra d'invio per email, per una proposta o per più: oggetto e testo
+     * standard con l'anno, la firma dell'operatore e le righe con il loro stato.
+     *
+     * I vincoli oggettivi bloccano tutto con ok false: casella dell'operatore non configurata,
+     * e per l'invio multiplo più proposte del massimo in Impostazioni, righe che non sono
+     * proposte o anni diversi. Una riga senza email o già inviata invece compare con il suo
+     * stato, e l'invio multiplo la salterà. L'invio singolo vale in qualunque stato: un cliente
+     * può chiedere di nuovo il documento di un abbonamento già accettato.
+     */
+    public function preparaInvio(): ResponseInterface
+    {
+        $ids = array_values(array_unique(array_map('intval', $this->request->getPost('ids') ?? [])));
+
+        if ($ids === []) {
+            return $this->response->setJSON(['ok' => false, 'motivo' => 'Nessun abbonamento selezionato.']);
+        }
+        $multiplo = count($ids) > 1;
+        if ($multiplo && count($ids) > PropostaAbbonamento::inviiMassimi()) {
+            return $this->response->setJSON(['ok' => false, 'motivo' => 'Si possono inviare al massimo '
+                . PropostaAbbonamento::inviiMassimi() . ' proposte per volta (Impostazioni → Email).']);
         }
 
-        if ($generate === []) {
-            return redirect()->to('abbonamenti')->with('error', 'Nessuna proposta generata. ' . implode(' ', $scartate));
+        try {
+            $mittente = new EmailOperatore(user_id());
+        } catch (RuntimeException $e) {
+            return $this->response->setJSON(['ok' => false, 'motivo' => $e->getMessage()]);
         }
 
-        $model->segnaPropostaGenerata($generate);
+        $model   = new AbbonamentiModel();
+        $righe   = [];
+        $anni    = [];
+        foreach ($ids as $id) {
+            $a = $model->trovaConDettagli($id);
+            if (! $a) {
+                continue;
+            }
+            if ($multiplo && $a['stato_calcolato'] !== AbbonamentiModel::STATO_PROPOSTA) {
+                return $this->response->setJSON(['ok' => false, 'motivo' => 'L\'invio multiplo è solo per le proposte: '
+                    . $a['cliente_denominazione'] . ' non lo è.']);
+            }
 
-        return $this->response->download('Proposte abbonamento ' . date('Y-m-d') . '.zip', $contenuto, true);
+            $anni[substr($a['data_inizio'], 0, 4)] = true;
+            $righe[] = [
+                'id'      => (int) $a['id'],
+                'cliente' => $a['cliente_denominazione'],
+                'email'   => trim((string) $a['cliente_email']) ?: null,
+                'inviata' => $a['proposta_inviata_at']
+                    ? date('d/m/Y', strtotime($a['proposta_inviata_at'])) . ($a['proposta_inviata_da'] ? ' da ' . $a['proposta_inviata_da'] : '')
+                    : null,
+            ];
+        }
+
+        if ($righe === []) {
+            return $this->response->setJSON(['ok' => false, 'motivo' => 'Abbonamenti non trovati.']);
+        }
+        if (count($anni) > 1) {
+            $elenco = array_keys($anni);
+            sort($elenco);
+            return $this->response->setJSON(['ok' => false, 'motivo' => 'Le proposte selezionate sono di anni diversi: '
+                . implode(' e ', $elenco) . '. Filtra per anno e riprova.']);
+        }
+
+        $anno = (string) array_key_first($anni);
+
+        return $this->response->setJSON(['ok' => true, 'anno' => $anno, 'firma' => $mittente->firma(), 'proposte' => $righe]
+            + PropostaAbbonamento::emailStandard($anno));
+    }
+
+    /**
+     * Spedisce per email la proposta di un abbonamento, in PDF, dalla casella dell'operatore.
+     * Lo script della finestra lo chiama una proposta alla volta.
+     *
+     * Ricontrolla qui tutto ciò che la finestra ha mostrato, perché fra la preparazione e
+     * l'invio qualcuno può aver modificato l'abbonamento: anno, email, invio già fatto (salvo
+     * reinvio esplicito), pagine del documento. Annota l'invio solo dopo la risposta positiva
+     * del server di posta, così un invio interrotto si riprende senza doppioni.
+     */
+    public function invia(int $id): ResponseInterface
+    {
+        $esito = static fn (string $motivo, bool $perPosta = false) => ['ok' => false, 'motivo' => $motivo, 'per_posta' => $perPosta];
+
+        $model = new AbbonamentiModel();
+        $a     = $model->trovaConDettagli($id);
+        if (! $a) {
+            return $this->response->setJSON($esito('Abbonamento non trovato.'));
+        }
+
+        $oggetto = trim((string) $this->request->getPost('oggetto'));
+        $testo   = trim((string) $this->request->getPost('testo'));
+        if ($oggetto === '' || $testo === '') {
+            return $this->response->setJSON($esito('Oggetto e testo dell\'email sono obbligatori.'));
+        }
+        if (substr($a['data_inizio'], 0, 4) !== (string) $this->request->getPost('anno')) {
+            return $this->response->setJSON($esito('L\'anno dell\'abbonamento è cambiato: chiudi la finestra e riprova.'));
+        }
+
+        $email = trim((string) $a['cliente_email']);
+        if ($email === '') {
+            return $this->response->setJSON($esito('Il cliente non ha un indirizzo email.', true));
+        }
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->response->setJSON($esito('L\'indirizzo del cliente non è valido: ' . $email . '. Correggilo nella scheda cliente.'));
+        }
+        if ($a['proposta_inviata_at'] && $this->request->getPost('reinvio') !== '1') {
+            return $this->response->setJSON($esito('Già inviata il ' . date('d/m/Y', strtotime($a['proposta_inviata_at'])) . '.'));
+        }
+
+        try {
+            $mittente = new EmailOperatore(user_id());
+            $proposta = (new PropostaAbbonamento())->genera($a);
+            $pdf      = (new ConvertitorePdf())->converti([$proposta['nome'] => $proposta['contenuto']]);
+            $nomePdf  = array_key_first($pdf);
+
+            if ($pdf[$nomePdf]['pagine'] > PropostaAbbonamento::PAGINE) {
+                return $this->response->setJSON($esito('Il documento supera le ' . PropostaAbbonamento::PAGINE
+                    . ' pagine: scarica il Word, sistemalo e usa Segna come inviata.'));
+            }
+
+            $mittente->invia($email, $oggetto, $testo, [$nomePdf => $pdf[$nomePdf]['contenuto']]);
+        } catch (RuntimeException $e) {
+            return $this->response->setJSON($esito($e->getMessage()));
+        }
+
+        $model->segnaPropostaGenerata([$id]);
+        $model->segnaPropostaInviata($id);
+
+        return $this->response->setJSON(['ok' => true]);
+    }
+
+    /**
+     * Annota la proposta come inviata senza spedirla: è stata spedita fuori dal gestionale,
+     * per esempio dopo averne ritoccato il Word. Così l'elenco dice il vero su cosa è partito.
+     */
+    public function segnaInviata(int $id): RedirectResponse
+    {
+        $model = new AbbonamentiModel();
+        if (! $model->find($id)) {
+            return redirect()->to('abbonamenti')->with('error', 'Abbonamento non trovato.');
+        }
+
+        $model->segnaPropostaInviata($id);
+
+        return redirect()->to('abbonamenti/' . $id)->with('success', 'Proposta segnata come inviata.');
     }
 
     /**

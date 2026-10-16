@@ -3,8 +3,11 @@
 namespace App\Controllers;
 
 use App\Controllers\Anagrafiche\PersonaleController;
+use App\Libraries\EmailOperatore;
+use App\Models\PersonaleCaselleEmailModel;
 use App\Models\PersonaleModel;
 use App\Models\UserModel;
+use RuntimeException;
 
 class ProfiloController extends BaseController
 {
@@ -20,14 +23,78 @@ class ProfiloController extends BaseController
     {
         $persona = (new PersonaleModel())->perUtente(user_id());
         $user    = (new UserModel())->findById(user_id());
+        // La casella serve solo a chi spedisce dal gestionale, cioè a un dipendente.
+        $casella = $persona ? (new PersonaleCaselleEmailModel())->perPersonale((int) $persona['id']) : null;
 
         return view('profilo/index', [
-            'persona'      => $persona,
-            'user'         => $user,
-            'email'        => $user?->getEmailIdentity()?->secret ?? '',
-            'pastelli'     => PersonaleController::PASTELLI,
-            'colori_usati' => $persona ? (new PersonaleModel())->coloriUsati($persona['id']) : [],
+            'persona'             => $persona,
+            'user'                => $user,
+            'email'               => $user?->getEmailIdentity()?->secret ?? '',
+            'pastelli'            => PersonaleController::PASTELLI,
+            'colori_usati'        => $persona ? (new PersonaleModel())->coloriUsati($persona['id']) : [],
+            'firma'               => $casella['firma_email'] ?? null,
+            'ha_password_casella' => ($casella['smtp_password'] ?? null) !== null,
         ]);
+    }
+
+    /**
+     * Salva la casella email del proprio profilo: la password e la firma, ognuna solo se è
+     * arrivata, così si cambia una senza dover reinserire l'altra. Cifratura della password ed
+     * estrazione della firma dal file le fa il model a ogni salvataggio.
+     */
+    public function salvaPosta()
+    {
+        $persona = (new PersonaleModel())->perUtente(user_id());
+        if (! $persona) {
+            return redirect()->to('profilo')->with('error', 'Il tuo account non ha una scheda personale.');
+        }
+
+        if (! $this->validate([
+            'smtp_password' => 'permit_empty|max_length[200]',
+            'firma'         => 'ext_in[firma,html,htm]|max_size[firma,2048]',
+        ])) {
+            return redirect()->to('profilo#posta')->with('errors', $this->validator->getErrors());
+        }
+
+        $dati = [];
+        if ((string) $this->request->getPost('smtp_password') !== '') {
+            $dati['smtp_password'] = $this->request->getPost('smtp_password');
+        }
+        $file = $this->request->getFile('firma');
+        if ($file && $file->isValid()) {
+            $dati['firma_email'] = file_get_contents($file->getTempName());
+        }
+
+        if ($dati === []) {
+            return redirect()->to('profilo#posta')->with('warning', 'Niente da salvare: inserisci la password o scegli il file della firma.');
+        }
+
+        (new PersonaleCaselleEmailModel())->salva((int) $persona['id'], $dati);
+
+        return redirect()->to('profilo#posta')->with('success', 'Casella email salvata. Prova a inviarti un\'email di prova.');
+    }
+
+    /**
+     * Spedisce un'email di prova a sé stessi dalla propria casella: verifica password, server
+     * e firma prima di spedire qualcosa a un cliente.
+     */
+    public function provaPosta()
+    {
+        try {
+            $mittente = new EmailOperatore(user_id());
+            $indirizzo = (new UserModel())->findById(user_id())->getEmailIdentity()->secret;
+
+            $mittente->invia(
+                $indirizzo,
+                'Email di prova dal gestionale',
+                "Questa è un'email di prova inviata dal gestionale.\n"
+                . "Se la firma e i loghi qui sotto si vedono correttamente, la casella è pronta per inviare le proposte."
+            );
+        } catch (RuntimeException $e) {
+            return redirect()->to('profilo#posta')->with('error', $e->getMessage());
+        }
+
+        return redirect()->to('profilo#posta')->with('success', 'Email di prova inviata a ' . $indirizzo . ': controlla che sia arrivata con la firma.');
     }
 
     /**

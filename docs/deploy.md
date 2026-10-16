@@ -45,6 +45,29 @@ configurazione — tipi intervento, parametri azienda — si fa dall'interfaccia
 Il dump è il primo passo e non l'ultimo: da quando la produzione ospita dati veri, l'operazione
 che li mette a rischio è proprio `migrate`, e un backup preso *dopo* non serve a niente.
 
+## Invio delle proposte per email (dalla v0.42.0)
+
+Una volta sola, prima del primo deploy che arriva alla v0.42.0. I pacchetti si installano con
+`sudo` (sono di sistema); in sviluppo sono già installati dal 09/10/2026.
+
+```bash
+# contrib serve ai caratteri Microsoft: aggiungerlo a Components: in /etc/apt/sources.list.d/debian.sources
+sudo apt update
+sudo apt install libreoffice-writer-nogui ttf-mscorefonts-installer poppler-utils
+cd /var/www/colombini
+sudo -u www-data php spark key:generate      # scrive encryption.key nel .env di produzione
+```
+
+- **LibreOffice** converte il Word della proposta in PDF; senza i **caratteri Microsoft**
+  l'impaginazione cambia e la copia da restituire può scivolare su una terza pagina.
+  **poppler-utils** dà `pdfinfo`, che conta le pagine prima dell'invio.
+- **`encryption.key`** cifra le password delle caselle degli operatori. Va generata sul server
+  di produzione, diversa da quella di sviluppo, e **non va più cambiata**: con una chiave nuova
+  le password salvate non si decifrano e ogni operatore deve reinserire la propria.
+- Dopo il deploy, in **Impostazioni → Email** controllare server, porta, testo e invii massimi;
+  ogni operatore inserisce password e firma in **Il mio profilo → Posta** e si manda l'email di
+  prova.
+
 ## Backup del database
 
 Il backup **non è ancora automatico** — è il punto 18 della review — ma è già **non interattivo**:

@@ -57,6 +57,19 @@ Awesome), 13, 14, 15, 17, 18 (automazione del backup), 19, 19-bis, 20 (checklist
   filtrare creando sottomenù». L'idea emersa il 28/08/2026 era una pagina unica con una tendina
   Categoria o Tipo al posto delle tre voci generale/piscine/addolcitori. È stata ritirata
   insieme al server-side processing (punto successivo), ma non è stata scartata in sé.
+  - Ripresa il 16/10/2026: «a me piacerebbe una sola vista: INTERVENTI». Un intervento va
+    trovato per cliente, per categoria anche senza sapere quale sia, e per cosa si fa, ma
+    senza filtri complicati. Idea: la ricerca a più parole, che DataTables già fa (`rossi
+    piscine`), su una colonna nascosta di parole chiave composta nel model: cliente e città,
+    tipo e fase, famiglia con i sinonimi (`piscina piscine`, `impianto impianti`), origine.
+    Restano solo le tendine d'uso quotidiano (Stato, Periodo). Da decidere: dove mostrare la
+    fase delle piscine nell'elenco unico e se tenere un accesso rapido alle piscine.
+  - Le categorie, tolte dal menu, restano dove servono: modello Word e fase stagionale. Oggi
+    «generale» mescola il sale e la commerciale con l'osmosi, che è un impianto come
+    l'addolcitore; e «ADDOLCITORI» nel nome del file della proposta è inesatto se la
+    famiglia comprende altri impianti. Rinominare il tipo in Impostazioni basta per il file.
+  - La vista unica carica tutti gli interventi insieme, quindi anticipa il problema del
+    volume (punto successivo): vanno pensati insieme.
 - **Volume degli interventi.** A regime saranno 7-8.000 l'anno. La DataTable client-side
   diventa fastidiosa sopra le ~3.000 righe e inusabile su mobile sopra le ~5.000. Il problema
   arriverà con lo storico accumulato, quindi dal 2028 e non nel 2027. Valutato e rimandato il

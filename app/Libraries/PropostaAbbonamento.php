@@ -32,6 +32,51 @@ class PropostaAbbonamento
     ];
 
     /**
+     * Oggetto e testo dell'email con cui si spedisce la proposta. Si cambiano in Impostazioni →
+     * Parametri; questi valgono finché non li si salva. {anno} è l'anno di inizio
+     * dell'abbonamento, la firma dell'operatore si aggiunge in coda all'invio.
+     */
+    public const OGGETTO_EMAIL_DEFAULT = 'Proposta di manutenzione in abbonamento {anno}';
+    public const TESTO_EMAIL_DEFAULT   = "Gentile Cliente,\n"
+        . "in allegato le inviamo la nostra proposta di manutenzione in abbonamento per il {anno}.\n"
+        . "Se di suo gradimento, la preghiamo di restituirci firmata la copia per accettazione.\n"
+        . "Restiamo a disposizione per qualsiasi chiarimento.\n"
+        . "\n"
+        . "Cordiali saluti";
+
+    /**
+     * Proposte al massimo per invio multiplo, finché non lo si cambia in Impostazioni → Email.
+     * Protegge la casella Aruba dell'operatore: ogni proposta sono due destinatari (cliente e
+     * copia nascosta), e oltre la soglia del piano Aruba blocca gli invii.
+     */
+    public const INVII_MASSIMI_DEFAULT = 20;
+
+    /**
+     * Pagine di entrambi i modelli: la proposta e la copia da restituire. Un documento che ne
+     * ha di più non si spedisce: la copia da restituire è scivolata su una pagina in più.
+     */
+    public const PAGINE = 2;
+
+    public static function inviiMassimi(): int
+    {
+        return (int) (setting('Proposte.invii_massimi') ?? self::INVII_MASSIMI_DEFAULT);
+    }
+
+    /**
+     * Oggetto e testo dell'email della proposta, con {anno} già sostituito: precompilano i
+     * campi della finestra d'invio, dove l'operatore li può ancora correggere.
+     *
+     * @return array{oggetto: string, testo: string}
+     */
+    public static function emailStandard(string $anno): array
+    {
+        return [
+            'oggetto' => str_replace('{anno}', $anno, setting('Proposte.oggetto_email') ?? self::OGGETTO_EMAIL_DEFAULT),
+            'testo'   => str_replace('{anno}', $anno, setting('Proposte.testo_email') ?? self::TESTO_EMAIL_DEFAULT),
+        ];
+    }
+
+    /**
      * Dice se per questa categoria esiste un modello di proposta. La scheda abbonamento lo usa
      * per mostrare il bottone, così la regola sta in un punto solo.
      */

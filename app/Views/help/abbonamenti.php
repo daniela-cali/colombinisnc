@@ -39,20 +39,22 @@
     appena creato nasce sempre come <strong>Proposta</strong>: non genera ancora nessuna visita.
 </p>
 
-<h6 class="border-bottom pb-1 mt-4"><i class="bi bi-file-earmark-word me-1"></i>Proposta in Word</h6>
+<h6 class="border-bottom pb-1 mt-4"><i class="bi bi-file-earmark-word me-1"></i>Proposta in Word e in PDF</h6>
 <p>
     Dalla scheda, il pulsante <strong>Proposta Word</strong> scarica il documento da mandare al
-    cliente: due pagine uguali, una per lui e una da restituire firmata. Il documento si compone
+    cliente: due pagine uguali, una per lui e una da restituire firmata. <strong>Proposta PDF</strong>
+    scarica lo stesso documento in PDF, pronto da stampare. Il documento si compone
     in quel momento con i dati salvati, quindi se correggi l'abbonamento basta scaricarlo di nuovo.
-    C'è un modello per gli addolcitori e uno per le piscine; per il tipo generale il pulsante
-    non compare.
+    C'è un modello per gli addolcitori e uno per le piscine; per il tipo generale i pulsanti
+    non compaiono.
 </p>
 <p>
-    Nell'elenco, sulle proposte, lo stesso pulsante è <strong>pieno</strong> se la proposta è già
+    Nell'elenco, sulle proposte, il pulsante del Word è <strong>pieno</strong> se la proposta è già
     stata scaricata e <strong>contornato</strong> se non ancora. Per prepararne molte insieme
-    seleziona le righe con le caselle e premi <strong>Scarica proposte</strong>: arriva un unico
-    file zip con un documento per cliente. Se qualcuna non si può generare, nello zip trovi
-    <em>NON GENERATE.txt</em> con il motivo.
+    seleziona le righe con le caselle e premi <strong>Scarica Word</strong> o <strong>Scarica PDF</strong>:
+    arriva un unico file zip con un documento per cliente. I PDF si preparano a gruppi di 20 e una
+    finestra mostra a che punto è: con molte proposte serve qualche minuto. Se qualcuna non si può
+    generare, nello zip trovi <em>NON GENERATE.txt</em> con il motivo.
 </p>
 <p>
     Perché si possa generare servono il <strong>prezzo</strong>, le <strong>operazioni
@@ -69,6 +71,34 @@
     indicato: è quello scritto sull'abbonamento, che parte dal listino di
     <strong>Impostazioni → Parametri</strong> e si può cambiare per ogni cliente. Il rinnovo lo
     copia così com'è, senza aumentarlo.
+</p>
+
+<h6 class="border-bottom pb-1 mt-4"><i class="bi bi-envelope me-1"></i>Inviare la proposta per email</h6>
+<p>
+    La proposta parte in PDF dalla <strong>tua casella</strong>, con la tua firma, e ne ricevi una
+    copia nascosta. Prima volta: in <strong>Il mio profilo → Posta</strong> inserisci la password
+    della tua email aziendale e carica il file della firma, poi premi <strong>Invia email di prova</strong>
+    e controlla che arrivi con i loghi.
+</p>
+<p>
+    Dalla scheda, <strong>Invia per email</strong> apre una finestra con oggetto e testo già pronti
+    (si cambiano in Impostazioni → Email): puoi correggerli, e le modifiche valgono solo per
+    quell'invio. Funziona in qualunque stato, anche per rimandare a un cliente il documento di
+    un abbonamento già accettato: in quel caso correggi il testo, che chiede di restituire la copia
+    firmata. Se la proposta è già stata inviata, prima di rimandarla ti chiede conferma.
+</p>
+<p>
+    Dall'elenco, seleziona le proposte e premi <strong>Invia per email</strong>: partono una alla
+    volta, con una breve pausa fra l'una e l'altra, e la finestra mostra l'esito di ciascuna. Le
+    proposte devono essere tutte dello stesso anno, e al massimo quante indicate in Impostazioni →
+    Email. Quelle già inviate si saltano; quelle di clienti senza email restano
+    <em>da spedire per posta</em>. Una proposta il cui documento supera le due pagine non parte:
+    scarica il Word, sistemalo e spediscilo tu.
+</p>
+<p>
+    Nell'elenco la <strong>busta</strong> è piena se la proposta è già stata inviata. Se l'hai
+    spedita fuori dal gestionale, per esempio dopo aver ritoccato il Word, usa
+    <strong>Segna come inviata</strong> nella scheda: così l'elenco dice il vero.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-clipboard-check me-1"></i>Accettare o rifiutare una proposta</h6>
@@ -152,13 +182,14 @@
     premi <strong>Salva e prossimo</strong> e si apre subito il successivo. Con
     <strong>Salta</strong> passi oltre senza creare la proposta, con <strong>Interrompi</strong>
     torni all'elenco. Alla fine un riepilogo dice quante proposte sono nate e chi hai saltato.
-    Se interrompi, il giorno dopo basta riselezionare: quelli già rinnovati non hanno più la
-    casella.
+    Se interrompi, il giorno dopo basta riselezionare tutto: Rinnova selezionati lavora solo sugli
+    abbonamenti ancora da rinnovare e salta gli altri, e il numero sul pulsante dice quanti sono.
 </p>
 <p>
-    Una selezione è di un tipo solo: o proposte, da accettare o scaricare in Word, o
-    abbonamenti da rinnovare. Spuntata una riga, le caselle dell'altro tipo si disattivano
-    finché non togli tutte le spunte.
+    Ogni riga ha la sua casella, e puoi selezionare quello che vuoi: sono i pulsanti in alto ad
+    accendersi solo se la selezione contiene ciò su cui sanno lavorare. Scarica Word e PDF valgono
+    per qualunque abbonamento; Accetta e Invia per email solo per le proposte; Rinnova lavora sugli
+    abbonamenti rinnovabili della selezione. Passa il mouse su un pulsante spento per sapere perché lo è.
 </p>
 
 <h6 class="border-bottom pb-1 mt-4"><i class="bi bi-trash me-1"></i>Eliminare</h6>

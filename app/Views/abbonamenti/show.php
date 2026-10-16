@@ -1,7 +1,8 @@
 <?php
 /**
  * @var string $title
- * @var array  $abbonamento          Da AbbonamentiModel::trovaConDettagli() — include stato_calcolato, successore_id, successore_anno
+ * @var array  $abbonamento          Da AbbonamentiModel::trovaConDettagli() — include stato_calcolato, successore_id, successore_anno,
+ *                                   cliente_email, proposta_inviata_da
  * @var bool   $rinnovabile          Da AbbonamentiModel::rinnovabile() — decide il bottone Rinnova
  * @var array  $periodi              Da AbbonamentiPeriodiModel::perAbbonamento()
  * @var array  $interventi           Interventi figli: id, codice, data_scadenza, data_pianificata, stato
@@ -57,6 +58,14 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                            class="btn btn-sm btn-outline-secondary" title="Proposta Word">
                             <i class="bi bi-file-earmark-word"></i><span class="d-none d-sm-inline ms-1">Proposta Word</span>
                         </a>
+                        <a href="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/proposta-pdf') ?>"
+                           class="btn btn-sm btn-outline-secondary" title="Proposta PDF">
+                            <i class="bi bi-file-earmark-pdf"></i><span class="d-none d-sm-inline ms-1">Proposta PDF</span>
+                        </a>
+                        <?php // In qualunque stato: un cliente può chiedere di nuovo il documento già accettato. ?>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-invia-email" title="Invia per email">
+                            <i class="bi bi-envelope"></i><span class="d-none d-sm-inline ms-1">Invia per email</span>
+                        </button>
                     <?php endif ?>
                 </div>
             </div>
@@ -110,6 +119,16 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
                     <?php if ($abbonamento['proposta_generata_at']): ?>
                         <dt class="col-5 text-muted">Proposta generata</dt>
                         <dd class="col-7"><?= date('d/m/Y H:i', strtotime($abbonamento['proposta_generata_at'])) ?></dd>
+                    <?php endif ?>
+
+                    <?php if ($abbonamento['proposta_inviata_at']): ?>
+                        <dt class="col-5 text-muted">Proposta inviata</dt>
+                        <dd class="col-7">
+                            <?= date('d/m/Y H:i', strtotime($abbonamento['proposta_inviata_at'])) ?>
+                            <?php if ($abbonamento['proposta_inviata_da']): ?>
+                                <span class="text-muted">da <?= esc($abbonamento['proposta_inviata_da']) ?></span>
+                            <?php endif ?>
+                        </dd>
                     <?php endif ?>
 
                     <?php if ($abbonamento['abbonamento_precedente_id']): ?>
@@ -173,6 +192,15 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
             <?php if ($stato === 'proposta'): ?>
                 <div class="card-footer">
                     <div class="d-flex flex-column gap-2">
+                        <?php // Spedita fuori dal gestionale, per esempio dopo aver ritoccato il Word ?>
+                        <form action="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/segna-inviata') ?>" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-outline-secondary btn-sm w-100"
+                                    title="Per una proposta spedita fuori dal gestionale"
+                                    onclick="return confirm('Segnare la proposta come inviata?')">
+                                <i class="bi bi-envelope-check me-1"></i>Segna come inviata
+                            </button>
+                        </form>
                         <form action="<?= base_url('abbonamenti/' . $abbonamento['id'] . '/accetta') ?>" method="post">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-success btn-sm w-100"
@@ -380,4 +408,25 @@ $avvisoPeriodi = $nPeriodi . ' period' . ($nPeriodi === 1 ? 'o' : 'i');
 </div>
 <?php endif ?>
 
+<?php if (\App\Libraries\PropostaAbbonamento::haModello($abbonamento['tipo_categoria'])): ?>
+    <?= view('abbonamenti/_invio_email') ?>
+<?php endif ?>
+
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="<?= asset_url('js/invio-proposte.js') ?>"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btn-invia-email');
+    if (! btn) return;
+    btn.addEventListener('click', function () {
+        apriInvioProposte([<?= (int) $abbonamento['id'] ?>], {
+            urlPrepara: '<?= base_url('abbonamenti/invio/prepara') ?>',
+            urlInvia:   '<?= base_url('abbonamenti') ?>/{id}/invia',
+            pausa:      2000
+        });
+    });
+});
+</script>
 <?= $this->endSection() ?>

@@ -34,11 +34,12 @@
 </head>
 <body>
 
-<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.36.0 · 2026-10-06</span></h1>
+<h1>Schema Database — Colombini SNC Gestionale <span class="updated">aggiornato v0.42.0 · 2026-10-14</span></h1>
 
 <div class="toc">
   <strong style="font-size:.8rem;color:#555">Tabelle:</strong>
   <a href="#personale">personale</a>
+  <a href="#personale_caselle_email">personale_caselle_email</a>
   <a href="#clienti">clienti</a>
   <a href="#clienti_adhoc">clienti_adhoc</a>
   <a href="#tipi_intervento">tipi_intervento</a>
@@ -72,6 +73,27 @@
   <tr><td><code>telefono</code></td><td>VARCHAR(20)</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>colore</code></td><td>VARCHAR(7)</td><td class="null">NULL</td><td></td><td>Hex #RRGGBB — colore profilo calendario</td></tr>
   <tr><td><code>attivo</code></td><td>TINYINT</td><td></td><td>1</td><td>0 = disabilitato</td></tr>
+  <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+  <tr><td><code>updated_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════════════════ personale_caselle_email -->
+<h2 id="personale_caselle_email">personale_caselle_email</h2>
+<p class="note">
+  Casella email e firma di chi spedisce dal gestionale (oggi le proposte di abbonamento, domani i preventivi):
+  una riga al massimo per dipendente, compilata dal profilo. Sta in una tabella a parte e non su
+  <code>personale</code> perché quella si legge con <code>personale.*</code> in molti punti (il layout a ogni pagina,
+  le tendine dei tecnici) e la firma pesa ~100 KB; non su <code>users</code> perché Shield ne legge la riga a ogni
+  richiesta. Server e porta SMTP sono comuni, in <code>settings</code>. Aggiunta v0.42.0.
+</p>
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Default</th><th>Note</th></tr>
+  <tr><td><span class="badge badge-pk">PK</span> <code>id</code></td><td>INT UNSIGNED AUTO_INCREMENT</td><td></td><td></td><td></td></tr>
+  <tr><td><span class="badge badge-fk">FK</span> <span class="badge badge-uq">UQ</span> <code>personale_id</code></td><td>INT UNSIGNED</td><td></td><td></td><td>→ personale.id · ON DELETE CASCADE · una casella per dipendente</td></tr>
+  <tr><td><code>smtp_password</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Password della casella, cifrata con <code>encryption.key</code> del <code>.env</code> e salvata in base64 · utente SMTP è l'email di login</td></tr>
+  <tr><td><code>firma_email</code></td><td>MEDIUMTEXT</td><td class="null">NULL</td><td></td><td>Firma HTML con le immagini incorporate come <code>data:</code>, trasformate in <code>cid:</code> all'invio · MEDIUMTEXT perché una firma supera i 64 KB di TEXT</td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>updated_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -306,6 +328,8 @@
   <tr><td><code>apparecchiature</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td>Una riga per apparecchiatura (es. N. 1 ADDOLCITORE), finisce nella proposta in Word · obbligatorio a livello applicativo per i tipi della categoria <code>addolcitori</code> · aggiunto v0.36.0</td></tr>
   <tr><td><code>modalita_pagamento</code></td><td>VARCHAR(255)</td><td class="null">NULL</td><td></td><td>Testo libero, specifico dell'accordo col cliente · aggiunto v0.26.0</td></tr>
   <tr><td><code>proposta_generata_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Ultima generazione della proposta in Word · scritto senza toccare <code>updated_at</code>/<code>updated_by</code>, perché generare un documento non modifica l'abbonamento · aggiunto v0.36.0</td></tr>
+  <tr><td><code>proposta_inviata_at</code></td><td>DATETIME</td><td class="null">NULL</td><td></td><td>Ultimo invio della proposta per email, o «Segna come inviata» se spedita fuori dal gestionale · scritto solo dopo la risposta positiva del server di posta, senza toccare <code>updated_at</code> · aggiunto v0.42.0</td></tr>
+  <tr><td><code>proposta_inviata_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td>Utente che l'ha inviata (id di <code>users</code>, come <code>created_by</code>) · aggiunto v0.42.0</td></tr>
   <tr><td><code>stato</code></td><td>VARCHAR(20)</td><td></td><td>proposta</td><td>Valori: <code>proposta</code> · <code>attivo</code> · <code>sospeso</code> · <code>scaduto</code> · <code>disdetto</code> · <code>rifiutata</code> · default cambiato da <code>attivo</code> v0.26.0</td></tr>
   <tr><td><code>note</code></td><td>TEXT</td><td class="null">NULL</td><td></td><td></td></tr>
   <tr><td><code>created_by</code></td><td>INT UNSIGNED</td><td class="null">NULL</td><td></td><td></td></tr>
@@ -459,12 +483,14 @@
 </table>
 <p class="note">
   <strong>Non esiste nessuna tabella <code>impostazioni</code></strong>: tutto ciò che l'analisi chiamava così
-  vive qui dentro, distinto dal solo campo <code>class</code>. Le tre famiglie in uso:
+  vive qui dentro, distinto dal solo campo <code>class</code>. Le famiglie in uso:
 </p>
 <table>
   <tr><th>class</th><th>Contenuto</th><th>Scritto da</th></tr>
   <tr><td><code>Azienda</code></td><td>Sede (indirizzo, lat/lng, logo), orari di lavoro, durate standard per tipo, soglie di longitudine delle zone</td><td>Impostazioni → Generale (<code>setting()->set('Azienda.…')</code>)</td></tr>
   <tr><td><code>Interventi</code></td><td>Contatori progressivi dei codici, una riga per prefisso</td><td><code>InterventiModel::generaCodice()</code></td></tr>
+  <tr><td><code>Config\Email</code></td><td>Server, porta e cifratura SMTP, nome dell'azienda nel mittente: sovrascrivono i valori di <code>app/Config/Email.php</code>, che restano il ripiego (dalla v0.42.0)</td><td>Impostazioni → Email</td></tr>
+  <tr><td><code>Proposte</code></td><td>Oggetto e testo dell'email della proposta, invii massimi per volta (dalla v0.42.0)</td><td>Impostazioni → Email</td></tr>
   <tr><td><code>Import</code></td><td><code>clienti_adhoc_mapping</code>: associazione colonne CSV → campi, in JSON, così il caricamento successivo riparte dalla stessa mappatura</td><td>Impostazioni → Import Clienti</td></tr>
 </table>
 
@@ -526,6 +552,17 @@
 <h2 id="log">Log modifiche DB</h2>
 <table>
   <tr><th>Versione</th><th>Migrazione</th><th>Modifica</th></tr>
+  <tr>
+    <td>v0.42.0</td>
+    <td><code>AddPropostaInviataToAbbonamenti</code><br><code>CreatePersonaleCaselleEmail</code></td>
+    <td>
+      Su <code>abbonamenti</code>: <code>proposta_inviata_at DATETIME NULL</code> e <code>proposta_inviata_by INT UNSIGNED NULL</code>
+      dopo <code>proposta_generata_at</code>, per l'invio delle proposte per email. Nuova tabella
+      <code>personale_caselle_email</code> con la password cifrata e la firma di chi spedisce: separata da
+      <code>personale</code> e da <code>users</code> perché la firma pesa ~100 KB e quelle tabelle si leggono di continuo.
+      Vedi <code>docs/spec/abbonamenti_invio_email_spec.md</code>, «Strutture dati».
+    </td>
+  </tr>
   <tr>
     <td>v0.39.0</td>
     <td><code>AddPrezzoPuliziaFondoToAbbonamenti</code></td>
